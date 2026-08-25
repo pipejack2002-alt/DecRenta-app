@@ -29,6 +29,7 @@ import {
   type GeminiModelId,
 } from "@/lib/ai/gemini";
 import { ExtractionPreviewModal } from "./extraction-preview-modal";
+import { FormattedMarkdown } from "@/components/ui/formatted-markdown";
 import type { VaultDoc } from "@/lib/docs/types";
 
 const QUICK_PROMPTS = [
@@ -459,8 +460,8 @@ export function GeminiAsistenteModal({
                 </Badge>
               </div>
 
-              <div className="prose prose-sm max-w-none text-xs leading-relaxed text-ink whitespace-pre-wrap">
-                {answer}
+              <div className="bg-surface/90 rounded-xl p-4 border border-line/70 shadow-sm">
+                <FormattedMarkdown content={answer} />
               </div>
             </div>
           )}
