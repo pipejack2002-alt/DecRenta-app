@@ -117,6 +117,7 @@ type AppState = {
   duplicateProfile: (id: string) => string;
   deleteProfile: (id: string) => void;
   updateProfileStatus: (id: string, status: ProfileStatus) => void;
+  updateProfileInfo: (id: string, name: string, nit: string, year?: TaxYear) => void;
   exportAllProfilesJson: () => string;
   importProfilesJson: (jsonStr: string) => { ok: true; count: number } | { ok: false; error: string };
 };
@@ -397,6 +398,60 @@ export const useAppStore = create<AppState>()(
         set((s) => ({
           profiles: s.profiles.map((p) => (p.id === id ? { ...p, status, updatedAt: new Date().toISOString() } : p)),
         }));
+      },
+
+      updateProfileInfo: (id, name, nit, year) => {
+        set((s) => {
+          const cleanName = name.trim();
+          const cleanNit = nit.trim();
+          const parts = cleanName.split(" ");
+          const primerNombre = parts[0] || "";
+          const primerApellido = parts.slice(1).join(" ") || "";
+
+          if (s.activeProfileId === id) {
+            const nextDecl = {
+              ...s.declaration,
+              year: year || s.declaration.year,
+              identity: {
+                ...s.declaration.identity,
+                primerNombre: primerNombre || s.declaration.identity.primerNombre,
+                primerApellido: primerApellido || s.declaration.identity.primerApellido,
+                nit: cleanNit || s.declaration.identity.nit,
+              },
+            };
+            const synced = s.profiles.map((p) =>
+              p.id === id
+                ? {
+                    ...p,
+                    name: cleanName || p.name,
+                    nit: cleanNit || p.nit,
+                    year: year || p.year,
+                    declaration: nextDecl,
+                    updatedAt: new Date().toISOString(),
+                  }
+                : p
+            );
+            return { declaration: nextDecl, profiles: synced };
+          }
+
+          const synced = s.profiles.map((p) => {
+            if (p.id !== id) return p;
+            const decl = hydrateDeclaration(p.declaration);
+            decl.year = year || decl.year;
+            if (primerNombre) decl.identity.primerNombre = primerNombre;
+            if (primerApellido) decl.identity.primerApellido = primerApellido;
+            if (cleanNit) decl.identity.nit = cleanNit;
+            return {
+              ...p,
+              name: cleanName || p.name,
+              nit: cleanNit || p.nit,
+              year: year || p.year,
+              declaration: decl,
+              updatedAt: new Date().toISOString(),
+            };
+          });
+          return { profiles: synced };
+        });
       },
 
       exportAllProfilesJson: () => {
