@@ -1,8 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, FileStack, Scale, Wallet } from "lucide-react";
+import { ArrowRight, FileCheck, FileSpreadsheet, FileStack, Scale, Wallet } from "lucide-react";
+import { useState } from "react";
 import { AlertList } from "@/components/layout/alert-list";
 import { DeadlineLookup } from "@/components/layout/deadline-lookup";
 import { UvtPanel } from "@/components/layout/uvt-panel";
+import { ExogenaImportModal } from "@/components/layout/exogena-import-modal";
+import { ClientChecklistModal } from "@/components/layout/client-checklist-modal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardHint, CardTitle } from "@/components/ui/card";
@@ -16,6 +19,8 @@ import { uvtFromPesos } from "@/lib/tax/uvt";
 export const Route = createFileRoute("/")({ component: Home });
 
 function Home() {
+  const [exogenaOpen, setExogenaOpen] = useState(false);
+  const [checklistOpen, setChecklistOpen] = useState(false);
   const d = useAppStore((s) => s.declaration);
   const docs = useAppStore((s) => s.docs);
   const loadExample = useAppStore((s) => s.loadExample);
@@ -30,6 +35,9 @@ function Home() {
 
   return (
     <div className="space-y-8">
+      <ExogenaImportModal isOpen={exogenaOpen} onClose={() => setExogenaOpen(false)} />
+      <ClientChecklistModal isOpen={checklistOpen} onClose={() => setChecklistOpen(false)} />
+
       <section className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
         <div className="relative order-2 overflow-hidden rounded-xl bg-forest px-6 py-7 text-primary-fg shadow-[var(--shadow-page)] sm:px-8 sm:py-10 lg:order-1">
           <p className="text-[11px] uppercase tracking-[0.22em] text-primary-fg/70">Persona natural residente · Formulario 210</p>
@@ -40,11 +48,20 @@ function Home() {
             Sistema profesional de liquidación y depuración cedular del Formulario 210 (Año Gravable {d.year}) con la UVT oficial de {formatCOP(c.uvt)}. Aplica de forma automática los límites y exenciones de la Ley 2277 de 2022 y genera los archivos listos para el prevalidador de la DIAN.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Button asChild className="bg-surface text-forest hover:bg-bg-raised font-medium">
-              <Link to="/topes">
-                ¿Debo declarar renta?
-                <ArrowRight />
-              </Link>
+            <Button
+              onClick={() => setExogenaOpen(true)}
+              className="bg-emerald-600 text-white hover:bg-emerald-700 font-semibold gap-2 shadow-sm"
+            >
+              <FileSpreadsheet className="size-4" />
+              Importar Exógena DIAN (Excel)
+            </Button>
+            <Button
+              onClick={() => setChecklistOpen(true)}
+              variant="outline"
+              className="border-primary-fg/40 text-primary-fg hover:bg-forest-deep gap-2 font-medium"
+            >
+              <FileCheck className="size-4" />
+              Lista Documentos Cliente
             </Button>
             <Button asChild variant="outline" className="border-primary-fg/25 text-primary-fg hover:bg-forest-deep">
               <Link to="/declaracion">Diligenciar Formulario 210</Link>

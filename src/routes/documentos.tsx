@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Check, Copy, FileText, FileUp, Sparkles, Trash2, BookOpen } from "lucide-react";
+import { Check, Copy, FileText, FileUp, Sparkles, Trash2, BookOpen, FileSpreadsheet, FileCheck } from "lucide-react";
 import { useMemo, useState } from "react";
 import { extractDocument, revisarDocumento } from "@/lib/ai/ask";
 import { extractDocumentWithGemini } from "@/lib/ai/gemini";
 import { ExtractionPreviewModal } from "@/components/layout/extraction-preview-modal";
 import { GeminiAsistenteModal } from "@/components/layout/gemini-asistente-modal";
 import { FormatosLegalesModal } from "@/components/layout/formatos-legales-modal";
+import { ExogenaImportModal } from "@/components/layout/exogena-import-modal";
+import { ClientChecklistModal } from "@/components/layout/client-checklist-modal";
 import { auditExpediente, findingsSummary, type Finding } from "@/lib/docs/audit";
 import { cartaProveedor, providerAsks, type ProviderAsk } from "@/lib/docs/proveedores";
 import {
@@ -49,6 +51,8 @@ function DocumentosPage() {
 
   const [tab, setTab] = useState<TabId | null>(null);
   const [formatosOpen, setFormatosOpen] = useState(false);
+  const [exogenaOpen, setExogenaOpen] = useState(false);
+  const [checklistOpen, setChecklistOpen] = useState(false);
   const effective: TabId = tab ?? (sum.block + sum.warn > 0 ? "mal" : "pedir");
 
   return (
@@ -58,18 +62,40 @@ function DocumentosPage() {
           <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Procedimiento Probatorio · Art. 771-2 E.T.</p>
           <h1 className="mt-1 font-display text-4xl font-bold">Expediente y Soportes Documentales</h1>
           <p className="mt-2 max-w-2xl text-sm text-muted">
-            Audite la procedencia fiscal de sus deducciones, genere cartas de solicitud a entidades bancarias y empleadores, y gestione sus certificados con extracción automática asistida por Gemini AI.
+            Importe la Información Exógena DIAN en Excel, genere la lista de documentos para su cliente, y audite sus certificados con extracción asistida por IA.
           </p>
         </div>
-        <Button
-          onClick={() => setFormatosOpen(true)}
-          className="gap-2 bg-forest text-primary-fg hover:bg-forest-deep shadow-sm"
-        >
-          <FileText className="size-4" />
-          <span>Generar Formatos & Certificados</span>
-        </Button>
+        <div className="flex flex-wrap items-center gap-2.5">
+          <Button
+            onClick={() => setExogenaOpen(true)}
+            className="gap-2 bg-emerald-700 text-white hover:bg-emerald-800 shadow-sm"
+          >
+            <FileSpreadsheet className="size-4" />
+            <span>Importar Exógena DIAN (Excel)</span>
+          </Button>
+
+          <Button
+            variant="outline"
+            onClick={() => setChecklistOpen(true)}
+            className="gap-2 text-ink hover:border-forest hover:bg-forest-mist hover:text-forest"
+          >
+            <FileCheck className="size-4 text-forest" />
+            <span>Lista Documentos Cliente</span>
+          </Button>
+
+          <Button
+            variant="outline"
+            onClick={() => setFormatosOpen(true)}
+            className="gap-2 text-ink hover:border-forest hover:bg-forest-mist hover:text-forest"
+          >
+            <FileText className="size-4 text-forest" />
+            <span>Formatos & Cartas</span>
+          </Button>
+        </div>
       </header>
 
+      <ExogenaImportModal isOpen={exogenaOpen} onClose={() => setExogenaOpen(false)} />
+      <ClientChecklistModal isOpen={checklistOpen} onClose={() => setChecklistOpen(false)} />
       <FormatosLegalesModal isOpen={formatosOpen} onClose={() => setFormatosOpen(false)} />
 
       <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
