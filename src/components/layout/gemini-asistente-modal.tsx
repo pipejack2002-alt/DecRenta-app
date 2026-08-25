@@ -33,11 +33,11 @@ import { FormattedMarkdown } from "@/components/ui/formatted-markdown";
 import type { VaultDoc } from "@/lib/docs/types";
 
 const QUICK_PROMPTS = [
-  { emoji: "📝", label: "Explicar liquidación y saldo", prompt: "¿Cómo se calculó mi impuesto neto y saldo final según la tabla del art. 241 E.T.?" },
-  { emoji: "📊", label: "Resumir cifras clave y estado", prompt: "Haz un resumen ejecutivo de mi patrimonio, ingresos de trabajo, depuración y retenciones con mis cifras actuales." },
-  { emoji: "⚖️", label: "Análisis del 40 % y límite 1.340 UVT", prompt: "¿Cómo opera el límite del 40 % y las 1.340 UVT en mi cédula general? ¿Tengo deducciones fuera de la bolsa?" },
-  { emoji: "🛡️", label: "Auditoría y soportes requeridos", prompt: "¿Qué documentos y soportes probatorios exige la DIAN para blindar mi declaración ante una fiscalización?" },
-  { emoji: "💡", label: "Optimización y planeación legal", prompt: "¿Qué estrategias legales (AFC, dependientes, 1% factura electrónica) puedo aplicar para optimizar mi impuesto?" },
+  { emoji: "📝", label: "Explicar cálculo del impuesto y saldo", prompt: "¿Cómo se calculó mi impuesto neto y saldo final según la tabla del art. 241 E.T.?" },
+  { emoji: "📊", label: "Resumen de cifras clave y estado", prompt: "Haz un resumen ejecutivo de mi patrimonio, ingresos de trabajo, depuración y retenciones con mis cifras actuales." },
+  { emoji: "⚖️", label: "Tope del 40 % (1.340 UVT) y deducciones", prompt: "¿Cómo se calcula el límite conjunto del 40 % y las 1.340 UVT en la cédula general? ¿Cuáles deducciones y rentas exentas aplican de forma independiente?" },
+  { emoji: "🛡️", label: "Soportes y auditoría DIAN", prompt: "¿Qué documentos y soportes probatorios exige la DIAN para blindar mi declaración ante una fiscalización?" },
+  { emoji: "💡", label: "Optimización y beneficios tributarios", prompt: "¿Qué estrategias legales (cuentas AFC, dependientes económicos, 1 % de compras con factura electrónica) puedo aplicar para optimizar mi impuesto?" },
 ];
 
 export function GeminiAsistenteModal({
