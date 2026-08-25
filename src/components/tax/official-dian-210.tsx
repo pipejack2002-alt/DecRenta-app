@@ -1,19 +1,15 @@
 import {
-  Calculator,
   CheckCircle2,
   FileCode,
   FileSpreadsheet,
-  Info,
   Maximize2,
   Minimize2,
   Printer,
   Search,
-  Sparkles,
   ZoomIn,
   ZoomOut,
 } from "lucide-react";
-import { useMemo, useState } from "react";
-import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAppStore, useComputed } from "@/lib/store";
 import {
@@ -30,7 +26,6 @@ interface OfficialDian210Props {
   compact?: boolean;
   hideHeaderActions?: boolean;
   className?: string;
-  onNavigateToField?: (section: string) => void;
 }
 
 export function OfficialDian210({
@@ -43,8 +38,7 @@ export function OfficialDian210({
   const id = d.identity;
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [zoomLevel, setZoomLevel] = useState<number>(compact ? 90 : 100);
-  const [activeSectionFilter, setActiveSectionFilter] = useState<string>("TODAS");
+  const [zoomLevel, setZoomLevel] = useState<number>(compact ? 85 : 100);
   const [selectedCasilla, setSelectedCasilla] = useState<number | null>(null);
 
   const fullName =
@@ -52,27 +46,29 @@ export function OfficialDian210({
       .filter(Boolean)
       .join(" ") || "CONTRIBUYENTE PERSONA NATURAL";
 
-  // Agrupación de casillas oficiales por sección
-  const sections = useMemo(() => {
-    const map = new Map<string, typeof CASILLAS_OFICIALES_210>();
-    for (const item of CASILLAS_OFICIALES_210) {
-      if (!map.has(item.section)) {
-        map.set(item.section, []);
-      }
-      map.get(item.section)!.push(item);
-    }
-    return Array.from(map.entries()).map(([title, items]) => ({
-      title,
-      items,
-    }));
-  }, []);
-
   const normalizedQuery = searchQuery.toLowerCase().trim();
+
+  // Helper para formatear valor de casilla en el PDF exacto
+  function v(num: number): string {
+    const val = c.casillas[num];
+    if (val === undefined || val === null || (val === 0 && num !== 140)) return "";
+    if (num === 140) return val ? "X" : "";
+    return formatNumber(Math.round(val));
+  }
+
+  function isMatch(num: number): boolean {
+    if (!normalizedQuery) return false;
+    const meta = CASILLAS_OFICIALES_210.find((x) => x.num === num);
+    return (
+      String(num).includes(normalizedQuery) ||
+      (meta?.label.toLowerCase().includes(normalizedQuery) ?? false)
+    );
+  }
 
   // Export handlers
   function handleExportXlsx() {
     const wb = generateFormulario210Workbook(d, c);
-    const filename = `formulario-210-oficial-ag${d.year}-${id.nit || "dian"}.xlsx`;
+    const filename = `Formulario_210_AG${d.year}_${id.nit || "DIAN"}.xlsx`;
     downloadXlsxFile(filename, wb);
   }
 
@@ -86,42 +82,54 @@ export function OfficialDian210({
     downloadFile(`formulario-210-ag${d.year}-${id.nit || "dian"}.csv`, csv, "text/csv");
   }
 
-  function handleExportJson() {
-    const jsonStr = JSON.stringify(
-      {
-        identity: id,
-        year: d.year,
-        casillas: c.casillas,
-        computed: {
-          patrimonioLiquido: c.casillas[31] ?? 0,
-          rentaLiquidaGravable: c.rentaLiquidaGravable,
-          impuestoNeto: c.impuestoNeto,
-          impuestoCargo: c.impuestoCargo,
-          saldoPagar: c.saldoPagar,
-          saldoFavor: c.saldoFavor,
-        },
-      },
-      null,
-      2,
+  function Cell({
+    num,
+    className = "",
+  }: {
+    num: number;
+    className?: string;
+  }) {
+    const valStr = v(num);
+    const highlighted = isMatch(num);
+    const meta = CASILLAS_OFICIALES_210.find((x) => x.num === num);
+
+    return (
+      <div
+        onClick={() => setSelectedCasilla(num)}
+        title={meta ? `Casilla ${num}: ${meta.label} (${meta.legal})` : `Casilla ${num}`}
+        className={`relative flex items-center justify-end px-1.5 py-0.5 cursor-pointer font-mono text-[11px] leading-none transition-colors select-text ${
+          highlighted
+            ? "bg-[#ffeb99] ring-2 ring-amber-500 z-10 font-bold"
+            : valStr
+              ? "bg-white text-black font-semibold"
+              : "bg-white text-transparent"
+        } ${className}`}
+      >
+        <span className="absolute left-1 top-0.5 font-sans text-[8px] text-gray-500 select-none pointer-events-none">
+          {num}
+        </span>
+        <span className="tabular-nums text-right w-full pl-4 truncate">{valStr || "—"}</span>
+      </div>
     );
-    downloadFile(`respaldo-210-ag${d.year}-${id.nit || "dian"}.json`, jsonStr, "application/json");
   }
+
+  const requiereContador = (c.casillas[29] ?? 0) >= c.uvt * 100000 || id.llevaLibros;
 
   return (
     <div className={`space-y-4 ${className}`}>
-      {/* Barra de herramientas y acciones */}
+      {/* Barra de Herramientas y Acciones */}
       {!hideHeaderActions && (
         <div
           data-print-hide
           className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-surface p-3 shadow-xs"
         >
-          {/* Búsqueda y Filtros Rápidos */}
+          {/* Búsqueda y Zoom */}
           <div className="flex flex-1 items-center gap-2 min-w-[280px]">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-2.5 size-4 text-muted" />
               <input
                 type="text"
-                placeholder="Buscar por casilla o concepto (ej: 32, patrimonio, retenciones, 136)..."
+                placeholder="Buscar casilla en el PDF oficial (ej: 32, 97, patrimonio, retenciones)..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="h-9 w-full rounded-xl border border-line bg-bg-raised pl-9 pr-8 text-xs text-ink focus:border-forest focus:outline-none"
@@ -137,13 +145,12 @@ export function OfficialDian210({
               )}
             </div>
 
-            {/* Controles de Zoom */}
             <div className="hidden sm:flex items-center gap-1 border-l border-line pl-2">
               <Button
                 variant="ghost"
                 size="sm"
                 className="h-8 px-2 text-xs"
-                onClick={() => setZoomLevel((z) => Math.max(75, z - 10))}
+                onClick={() => setZoomLevel((z) => Math.max(65, z - 10))}
                 title="Reducir escala"
               >
                 <ZoomOut className="size-3.5" />
@@ -155,7 +162,7 @@ export function OfficialDian210({
                 variant="ghost"
                 size="sm"
                 className="h-8 px-2 text-xs"
-                onClick={() => setZoomLevel((z) => Math.min(125, z + 10))}
+                onClick={() => setZoomLevel((z) => Math.min(130, z + 10))}
                 title="Aumentar escala"
               >
                 <ZoomIn className="size-3.5" />
@@ -163,14 +170,14 @@ export function OfficialDian210({
             </div>
           </div>
 
-          {/* Botones de Exportación Oficial */}
+          {/* Botones de Exportación */}
           <div className="flex flex-wrap items-center gap-1.5">
             <Button
               variant="default"
               size="sm"
               onClick={handleExportXlsx}
               className="h-8 bg-forest hover:bg-forest-deep text-white text-xs font-semibold shadow-xs"
-              title="Descargar Formulario 210 en Excel (.xlsx) profesional con fórmulas"
+              title="Descargar Formulario 210 en Excel (.xlsx) estructurado"
             >
               <FileSpreadsheet className="mr-1.5 size-3.5" />
               Descargar Excel (.xlsx)
@@ -183,14 +190,14 @@ export function OfficialDian210({
               title="Descargar archivo XML oficial para el Prevalidador DIAN"
             >
               <FileCode className="mr-1.5 size-3.5 text-forest" />
-              XML Prevalidador
+              XML DIAN
             </Button>
             <Button
               variant="outline"
               size="sm"
               onClick={handleExportCsv}
               className="h-8 text-xs"
-              title="Descargar archivo CSV estructurado"
+              title="Descargar archivo CSV compatible con Excel"
             >
               CSV
             </Button>
@@ -199,7 +206,7 @@ export function OfficialDian210({
               size="sm"
               onClick={() => window.print()}
               className="h-8 text-xs"
-              title="Imprimir o Guardar como PDF oficial de la DIAN"
+              title="Imprimir o exportar PDF idéntico al oficial de la DIAN"
             >
               <Printer className="mr-1.5 size-3.5" />
               Imprimir / PDF
@@ -208,456 +215,717 @@ export function OfficialDian210({
         </div>
       )}
 
-      {/* Píldoras de Secciones para Navegación Rápida */}
-      {!hideHeaderActions && (
-        <div data-print-hide className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
-          <button
-            type="button"
-            onClick={() => setActiveSectionFilter("TODAS")}
-            className={`shrink-0 rounded-full px-3 py-1 font-medium transition-colors ${
-              activeSectionFilter === "TODAS"
-                ? "bg-forest text-white"
-                : "bg-surface border border-line text-muted hover:text-ink"
-            }`}
-          >
-            Todas las Cédulas (210 Completo)
-          </button>
-          {sections.map((s) => (
-            <button
-              key={s.title}
-              type="button"
-              onClick={() => setActiveSectionFilter(s.title)}
-              className={`shrink-0 rounded-full px-3 py-1 font-medium transition-colors ${
-                activeSectionFilter === s.title
-                  ? "bg-forest text-white"
-                  : "bg-surface border border-line text-muted hover:text-ink"
-              }`}
-            >
-              {s.title}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* ———————————————————————————————————————————————————————————
-          DOCUMENTO OFICIAL DEL FORMULARIO 210 DIAN (VISTA OFICIAL)
-          ——————————————————————————————————————————————————————————— */}
-      <div
-        className="overflow-x-auto rounded-2xl border-2 border-[#164e3e]/30 bg-white p-3 sm:p-6 shadow-xl transition-all"
-        style={{
-          fontSize: `${(zoomLevel / 100) * 14}px`,
-        }}
-      >
-        <div className="mx-auto max-w-[960px] bg-white text-[#1c241f] select-text">
-          {/* ==========================================
-              CABECERA INSTITUCIONAL OFICIAL DE LA DIAN
-              ========================================== */}
-          <header className="border-2 border-[#00573F] bg-white">
-            {/* Fila Superior: República de Colombia + DIAN + Año y Formulario */}
-            <div className="grid grid-cols-12 border-b-2 border-[#00573F] bg-[#00573F] text-white">
-              {/* Escudo / Identidad */}
-              <div className="col-span-12 md:col-span-3 flex items-center gap-2.5 p-2.5 bg-[#004733] border-b md:border-b-0 md:border-r border-[#003828]">
-                <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-white/10 p-1.5 border border-white/20">
-                  <svg viewBox="0 0 24 24" className="size-full fill-current text-[#F7C948]">
-                    <path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3zm0 2.18l6 2.25v4.66c0 4.14-2.73 8.01-6 9.08-3.27-1.07-6-4.94-6-9.08V6.43l6-2.25z" />
-                  </svg>
-                </div>
-                <div className="leading-tight">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-white/90">
-                    República de Colombia
-                  </p>
-                  <p className="font-display text-xs font-bold text-[#F7C948]">
-                    DIAN · Tributos
-                  </p>
-                  <p className="text-[9px] text-white/75">
-                    Dirección de Impuestos y Aduanas Nacionales
-                  </p>
-                </div>
-              </div>
-
-              {/* Título Principal */}
-              <div className="col-span-12 md:col-span-6 flex flex-col justify-center p-2.5 text-center border-b md:border-b-0 md:border-r border-[#003828]">
-                <h1 className="font-display text-sm md:text-base font-black uppercase tracking-tight text-white">
-                  Declaración de Renta y Complementario Personas Naturales y Asimiladas de Residentes
-                </h1>
-                <p className="text-[10px] font-medium text-white/80">
-                  y Sucesiones Ilíquidas de Causantes Residentes
-                </p>
-                <div className="mt-1 flex items-center justify-center gap-2">
-                  <span className="inline-block rounded bg-[#F7C948] px-2 py-0.5 text-[10px] font-extrabold text-[#004733]">
-                    MUISCA OFICIAL
-                  </span>
-                  <span className="text-[10px] text-white/80">
-                    Servicios Informáticos Electrónicos
-                  </span>
-                </div>
-              </div>
-
-              {/* Casilla 1 (Año) y Número 210 */}
-              <div className="col-span-12 md:col-span-3 grid grid-cols-2 bg-[#004733]">
-                {/* 1. Año */}
-                <div className="flex flex-col items-center justify-center border-r border-[#003828] p-1.5 text-center">
-                  <span className="text-[9px] font-bold uppercase text-white/70">1. Año</span>
-                  <span className="font-mono text-xl font-black text-white tabular-nums">
-                    {d.year}
-                  </span>
-                </div>
-                {/* Formulario 210 */}
-                <div className="flex flex-col items-center justify-center p-1.5 text-center bg-[#00573F]">
-                  <span className="text-[9px] font-bold uppercase text-[#F7C948]">Formulario</span>
-                  <span className="font-display text-2xl font-black text-white tracking-wider">
-                    210
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Fila 2: Casilla 2 Concepto y Casilla 4 Número de Formulario */}
-            <div className="grid grid-cols-12 border-b border-[#00573F] bg-[#eef7f3] text-xs">
-              <div className="col-span-6 md:col-span-3 border-r border-[#00573F] p-1.5">
-                <span className="block font-mono text-[9px] font-bold text-[#00573F]">
-                  2. Concepto
-                </span>
-                <span className="font-semibold text-[#00573F]">
-                  {id.esCorreccion ? "2 - Corrección" : "1 - Inicial"}
-                </span>
-              </div>
-              <div className="col-span-6 md:col-span-4 border-r border-[#00573F] p-1.5">
-                <span className="block font-mono text-[9px] font-bold text-[#00573F]">
-                  4. Número de Formulario
-                </span>
-                <span className="font-mono text-xs font-semibold text-[#00573F]">
-                  210{d.year}000{id.nit ? id.nit.slice(-5) : "88291"}
-                </span>
-              </div>
-              <div className="col-span-12 md:col-span-5 flex items-center justify-between p-1.5 px-3 bg-[#e4f1eb]">
-                <span className="text-[10px] font-bold text-[#00573F] uppercase">
-                  Borrador Oficial para Declarar
-                </span>
-                <span className="font-mono text-[10px] text-muted">
-                  Generado: {new Date().toLocaleDateString("es-CO")}
-                </span>
-              </div>
-            </div>
-
-            {/* Fila 3: DATOS DEL DECLARANTE (Casillas 5 a 27) */}
-            <div className="border-b-2 border-[#00573F] bg-[#f9fbf9]">
-              <div className="bg-[#00573F]/10 px-3 py-1 font-display text-[11px] font-bold uppercase tracking-wider text-[#00573F]">
-                Datos del Declarante
-              </div>
-              <div className="grid grid-cols-12 text-xs border-t border-[#00573F]">
-                {/* 5. NIT y 6. DV */}
-                <div className="col-span-8 md:col-span-4 border-r border-b md:border-b-0 border-[#00573F] p-2">
-                  <span className="block font-mono text-[9px] font-bold text-[#00573F]">
-                    5. Número de Identificación Tributaria (NIT)
-                  </span>
-                  <span className="font-mono text-sm font-bold text-ink">
-                    {id.nit || "—"}
-                  </span>
-                </div>
-                <div className="col-span-4 md:col-span-1 border-r border-b md:border-b-0 border-[#00573F] p-2 text-center">
-                  <span className="block font-mono text-[9px] font-bold text-[#00573F]">
-                    6. DV
-                  </span>
-                  <span className="font-mono text-sm font-bold text-ink">
-                    {id.dv || "0"}
-                  </span>
-                </div>
-
-                {/* 7 a 10. Apellidos y Nombres */}
-                <div className="col-span-6 md:col-span-2 border-r border-b md:border-b-0 border-[#00573F] p-2">
-                  <span className="block font-mono text-[9px] font-bold text-[#00573F]">
-                    7. Primer Apellido
-                  </span>
-                  <span className="font-semibold text-ink uppercase">
-                    {id.primerApellido || "—"}
-                  </span>
-                </div>
-                <div className="col-span-6 md:col-span-2 border-r border-b md:border-b-0 border-[#00573F] p-2">
-                  <span className="block font-mono text-[9px] font-bold text-[#00573F]">
-                    8. Segundo Apellido
-                  </span>
-                  <span className="font-semibold text-ink uppercase">
-                    {id.segundoApellido || "—"}
-                  </span>
-                </div>
-                <div className="col-span-6 md:col-span-1.5 border-r border-[#00573F] p-2">
-                  <span className="block font-mono text-[9px] font-bold text-[#00573F]">
-                    9. Primer Nombre
-                  </span>
-                  <span className="font-semibold text-ink uppercase">
-                    {id.primerNombre || "—"}
-                  </span>
-                </div>
-                <div className="col-span-6 md:col-span-1.5 border-[#00573F] p-2">
-                  <span className="block font-mono text-[9px] font-bold text-[#00573F]">
-                    10. Otros Nombres
-                  </span>
-                  <span className="font-semibold text-ink uppercase">
-                    {id.otrosNombres || "—"}
-                  </span>
-                </div>
-              </div>
-
-              {/* Fila Seccional, CIIU y Corrección */}
-              <div className="grid grid-cols-12 text-xs border-t border-[#00573F] bg-white">
-                <div className="col-span-6 md:col-span-3 border-r border-b md:border-b-0 border-[#00573F] p-2">
-                  <span className="block font-mono text-[9px] font-bold text-[#00573F]">
-                    12. Cód. Dirección Seccional
-                  </span>
-                  <span className="font-semibold text-ink">
-                    {id.dirSeccional || "32 - Bogotá"}
-                  </span>
-                </div>
-                <div className="col-span-6 md:col-span-3 border-r border-b md:border-b-0 border-[#00573F] p-2">
-                  <span className="block font-mono text-[9px] font-bold text-[#00573F]">
-                    24. Actividad Económica (CIIU)
-                  </span>
-                  <span className="font-mono font-bold text-ink">
-                    {id.actividadCiiu || "—"}
-                  </span>
-                </div>
-                <div className="col-span-6 md:col-span-3 border-r border-[#00573F] p-2">
-                  <span className="block font-mono text-[9px] font-bold text-[#00573F]">
-                    25. Fracción año gravable siguiente
-                  </span>
-                  <span className="font-semibold text-ink">NO</span>
-                </div>
-                <div className="col-span-6 md:col-span-3 p-2 bg-[#fbfdfc]">
-                  <span className="block font-mono text-[9px] font-bold text-[#00573F]">
-                    {id.esCorreccion ? "27. No. Formulario Anterior" : "26. Tipo de Declaración"}
-                  </span>
-                  <span className="font-semibold text-ink">
-                    {id.esCorreccion ? id.formAnterior || "—" : "Declaración Inicial"}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </header>
-
-          {/* ==========================================
-              CUERPO OFICIAL DE CASILLAS (28 a 141)
-              ========================================== */}
-          <div className="mt-3 border-2 border-[#00573F] bg-white">
-            {sections.map((sec) => {
-              if (activeSectionFilter !== "TODAS" && activeSectionFilter !== sec.title) {
-                return null;
-              }
-
-              const filteredItems = sec.items.filter((item) => {
-                if (!normalizedQuery) return true;
-                return (
-                  String(item.num).includes(normalizedQuery) ||
-                  item.label.toLowerCase().includes(normalizedQuery) ||
-                  item.legal.toLowerCase().includes(normalizedQuery) ||
-                  sec.title.toLowerCase().includes(normalizedQuery)
-                );
-              });
-
-              if (filteredItems.length === 0) return null;
-
-              return (
-                <div key={sec.title} className="border-b-2 border-[#00573F] last:border-b-0">
-                  {/* Encabezado de Sección Oficial */}
-                  <div className="flex items-center justify-between bg-[#00573F] px-3 py-1.5 text-white">
-                    <span className="font-display text-xs font-bold uppercase tracking-wider">
-                      {sec.title}
-                    </span>
-                    <span className="text-[10px] text-white/70 font-mono">
-                      Formulario 210 · DIAN
-                    </span>
-                  </div>
-
-                  {/* Tabla de Casillas */}
-                  <table className="w-full border-collapse text-left">
-                    <thead>
-                      <tr className="border-b border-[#00573F] bg-[#eef7f3] text-[10px] font-bold text-[#00573F] uppercase">
-                        <th className="w-16 border-r border-[#00573F] px-2 py-1 text-center">
-                          Casilla
-                        </th>
-                        <th className="border-r border-[#00573F] px-3 py-1">
-                          Concepto / Renglón Oficial
-                        </th>
-                        <th className="hidden md:table-cell w-48 border-r border-[#00573F] px-2 py-1 text-center">
-                          Fundamento Legal
-                        </th>
-                        <th className="w-44 px-3 py-1 text-right">
-                          Valor (COP)
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#c2decb]">
-                      {filteredItems.map((item) => {
-                        const rawVal = c.casillas[item.num];
-                        const isNonZero = (rawVal ?? 0) > 0 || item.num === 140;
-                        const isTotalCasilla = [
-                          31, 37, 40, 41, 42, 49, 52, 53, 54, 57, 65, 68, 69, 70, 73,
-                          82, 85, 86, 87, 90, 91, 92, 93, 97, 101, 103, 106, 111,
-                          115, 121, 125, 126, 129, 134, 136, 137, 980,
-                        ].includes(item.num);
-                        const isHighlightedMatch =
-                          normalizedQuery &&
-                          (String(item.num).includes(normalizedQuery) ||
-                            item.label.toLowerCase().includes(normalizedQuery));
-
-                        let displayVal = "$ 0";
-                        if (rawVal !== undefined && rawVal !== null) {
-                          if (item.num === 140) {
-                            displayVal = rawVal ? "X (SÍ)" : "—";
-                          } else {
-                            displayVal = formatCOP(rawVal);
-                          }
-                        }
-
-                        return (
-                          <tr
-                            key={item.num}
-                            onClick={() => setSelectedCasilla(item.num)}
-                            className={`cursor-pointer transition-colors hover:bg-[#e4f4ea] ${
-                              isHighlightedMatch
-                                ? "bg-[#fff7d6]"
-                                : isTotalCasilla
-                                  ? "bg-[#eaf4ee] font-semibold"
-                                  : isNonZero
-                                    ? "bg-[#f4f9f6]"
-                                    : "bg-white"
-                            }`}
-                          >
-                            {/* Número de Casilla en Cajetín Oficial */}
-                            <td className="border-r border-[#00573F]/40 p-1 text-center">
-                              <span
-                                className={`inline-flex min-w-8 items-center justify-center rounded px-1.5 py-0.5 font-mono text-xs font-extrabold ${
-                                  isTotalCasilla
-                                    ? "bg-[#00573F] text-white"
-                                    : isNonZero
-                                      ? "bg-[#00573F]/15 text-[#00573F]"
-                                      : "bg-gray-100 text-gray-700"
-                                }`}
-                              >
-                                {item.num}
-                              </span>
-                            </td>
-
-                            {/* Nombre del Renglón Oficial */}
-                            <td className="border-r border-[#00573F]/40 px-3 py-1.5 text-xs leading-snug">
-                              <span className="text-ink font-medium">
-                                {item.label}
-                              </span>
-                              {item.formula && (
-                                <span className="block text-[10px] text-muted italic">
-                                  {item.formula}
-                                </span>
-                              )}
-                            </td>
-
-                            {/* Fundamento Legal */}
-                            <td className="hidden md:table-cell border-r border-[#00573F]/40 px-2 py-1.5 text-center font-mono text-[10px] text-muted">
-                              {item.legal}
-                            </td>
-
-                            {/* Valor Formateado */}
-                            <td
-                              className={`px-3 py-1.5 text-right font-mono text-xs tabular-nums ${
-                                isTotalCasilla
-                                  ? "text-[#00573F] font-bold text-sm"
-                                  : isNonZero
-                                    ? "text-ink font-semibold"
-                                    : "text-muted/60"
-                              }`}
-                            >
-                              {displayVal}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              );
-            })}
+      {/* =========================================================================
+          CONTENEDOR DEL FORMULARIO 210 (RÉPLICA EXACTA DEL Formulario_210_2024.pdf)
+          ========================================================================= */}
+      <div className="overflow-x-auto rounded-xl border border-gray-400 bg-gray-100 p-2 sm:p-6 shadow-2xl flex justify-center">
+        <div
+          id="dian-form-pdf-container"
+          className="relative bg-white text-black border border-black shadow-md origin-top select-text"
+          style={{
+            width: "980px",
+            minWidth: "980px",
+            transform: zoomLevel !== 100 ? `scale(${zoomLevel / 100})` : "none",
+            transformOrigin: "top center",
+            marginBottom: zoomLevel < 100 ? `-${(100 - zoomLevel) * 11}px` : zoomLevel > 100 ? `${(zoomLevel - 100) * 11}px` : "0",
+            fontFamily: "Arial, 'Helvetica Neue', Helvetica, sans-serif",
+          }}
+        >
+          {/* Marca de agua de fondo */}
+          <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-[0.035] overflow-hidden">
+            <svg viewBox="0 0 500 500" className="w-[850px] h-[850px] text-black fill-current">
+              <circle cx="250" cy="250" r="230" fill="none" stroke="currentColor" strokeWidth="8" />
+              <path d="M250 50 A200 200 0 0 1 450 250 A200 200 0 0 1 250 450 A200 200 0 0 1 50 250 A200 200 0 0 1 250 50 Z" fill="none" stroke="currentColor" strokeWidth="6" />
+              <text x="250" y="270" textAnchor="middle" fontSize="48" fontWeight="bold" letterSpacing="4">DIAN · 210</text>
+            </svg>
           </div>
 
-          {/* ==========================================
-              SECCIÓN DE FIRMAS Y RECAUDO OFICIAL (980 a 997)
-              ========================================== */}
-          <footer className="mt-3 border-2 border-[#00573F] bg-[#f9fbf9] text-xs">
-            {/* Casilla 980 Pago Total */}
-            <div className="grid grid-cols-12 border-b border-[#00573F] bg-[#eef7f3]">
-              <div className="col-span-8 flex items-center gap-2 border-r border-[#00573F] p-2">
-                <span className="rounded bg-[#00573F] px-1.5 py-0.5 font-mono text-xs font-bold text-white">
-                  980
-                </span>
-                <span className="font-display text-sm font-bold text-[#00573F]">
-                  Pago Total Oficial
-                </span>
-                <span className="text-[10px] text-muted">(Art. 800 E.T.)</span>
+          {/* ———————————————————————————————————————————————————————————
+              1. ENCABEZADO OFICIAL DIAN (Idéntico a Formulario_210_2024.pdf)
+              ——————————————————————————————————————————————————————————— */}
+          <div className="grid grid-cols-12 border-b border-black">
+            {/* Logo DIAN y Casilla 1 */}
+            <div className="col-span-3 border-r border-black p-2 flex flex-col justify-between">
+              <div className="flex items-center gap-1.5">
+                {/* Logotipo DIAN con letras contorneadas */}
+                <div className="font-sans text-3xl font-black tracking-tighter text-black flex items-baseline">
+                  <span>d</span>
+                  <span className="text-[#2D6187]">i</span>
+                  <span>an</span>
+                </div>
               </div>
-              <div className="col-span-4 p-2 text-right">
-                <span className="font-mono text-base font-black text-[#00573F] tabular-nums">
-                  {c.saldoPagar > 0 ? formatCOP(c.saldoPagar) : "$ 0"}
+              <div className="mt-2 text-[9px] leading-tight">
+                <span className="font-bold">1. Año:</span>
+                <span className="ml-2 font-mono text-sm font-black">{d.year}</span>
+                <p className="text-[8px] text-gray-500 mt-1">Espacio reservado para la DIAN</p>
+              </div>
+            </div>
+
+            {/* Título Central y Casilla 4 */}
+            <div className="col-span-7 border-r border-black p-2 flex flex-col justify-between text-center">
+              <h1 className="font-sans text-[13px] font-bold uppercase tracking-tight leading-snug px-4">
+                Declaración de renta y complementario personas naturales y asimiladas residentes y sucesiones ilíquidas de causantes residentes
+              </h1>
+              <div className="mt-2 flex items-center justify-center gap-2 text-[10px]">
+                <span className="font-bold">4. Número de formulario:</span>
+                <span className="font-mono font-bold text-xs bg-gray-50 px-2 py-0.5 border border-gray-300">
+                  210{d.year}000{id.nit ? id.nit.slice(-5) : "41029"}
                 </span>
               </div>
             </div>
 
-            {/* Firmas y Datos Profesionales */}
-            <div className="grid grid-cols-12 divide-y md:divide-y-0 md:divide-x divide-[#00573F]">
-              {/* Firma del Declarante */}
-              <div className="col-span-12 md:col-span-6 p-4 space-y-4">
-                <div className="flex items-center justify-between text-[11px] font-bold text-[#00573F]">
-                  <span>981. Firma del Contribuyente o Declarante</span>
-                  <CheckCircle2 className="size-4 text-forest" />
-                </div>
-                <div className="h-16 rounded border border-dashed border-line bg-white flex items-center justify-center text-muted text-xs italic">
-                  [ Firma Digitalizada / Autógrafa del Declarante ]
-                </div>
-                <div className="text-[11px] text-muted">
-                  <p className="font-semibold text-ink">{fullName}</p>
-                  <p>NIT / C.C. {id.nit || "—"} - {id.dv || "0"}</p>
-                </div>
-              </div>
-
-              {/* Firma Contador / Revisor Fiscal */}
-              <div className="col-span-12 md:col-span-6 p-4 space-y-4 bg-white">
-                <div className="flex items-center justify-between text-[11px] font-bold text-[#00573F]">
-                  <span>982. Firma Contador Público / Revisor Fiscal</span>
-                  <span className="font-mono text-[10px] text-muted">983. Tarjeta Profesional</span>
-                </div>
-                {(() => {
-                  const requiereContador = (c.casillas[29] ?? 0) >= c.uvt * 100000 || id.llevaLibros;
-                  return (
-                    <>
-                      <div className="h-16 rounded border border-dashed border-line bg-[#fafafa] flex items-center justify-center text-muted text-xs italic">
-                        {requiereContador
-                          ? "[ Requiere Firma de Contador Público (Patrimonio/Ingresos ≥ 100.000 UVT o lleva libros) ]"
-                          : "[ Firma no requerida por topes legales de ingresos o patrimonio ]"}
-                      </div>
-                      <div className="text-[11px] text-muted">
-                        <p>
-                          {requiereContador
-                            ? "Obligado a firma según Art. 596 E.T."
-                            : "Declaración sin obligatoriedad de contador"}
-                        </p>
-                      </div>
-                    </>
-                  );
-                })()}
-              </div>
-            </div>
-
-            {/* Espacio reservado para el sello DIAN / Entidad Recaudadora */}
-            <div className="border-t border-[#00573F] bg-[#f0f5f2] p-2 text-center text-[10px] text-muted">
-              <span className="font-bold text-[#00573F]">
-                997. Espacio reservado para el sello de la entidad recaudadora / DIAN MUISCA
+            {/* Caja Azul Oficial 210 */}
+            <div className="col-span-2 bg-[#2D6187] text-white flex items-center justify-center p-2">
+              <span className="font-sans text-5xl font-black tracking-normal">
+                210
               </span>
-              <p className="text-[9px] mt-0.5">
-                Declaración Privada generada electrónicamente conforme a los Arts. 574, 596 y 598 del Estatuto Tributario.
-              </p>
             </div>
-          </footer>
+          </div>
+
+          {/* ———————————————————————————————————————————————————————————
+              2. DATOS DEL DECLARANTE (Casillas 5 a 28)
+              ——————————————————————————————————————————————————————————— */}
+          <div className="border-b border-black text-[10px]">
+            {/* Fila NIT, DV, Nombres y Seccional */}
+            <div className="flex border-b border-black">
+              <div className="w-5 bg-gray-200 border-r border-black flex items-center justify-center">
+                <span className="[writing-mode:vertical-lr] rotate-180 font-sans text-[7.5px] font-bold tracking-tight text-gray-700 py-1">
+                  Datos del declarante
+                </span>
+              </div>
+
+              <div className="flex-1 grid grid-cols-12 divide-x divide-black">
+                <div className="col-span-3 p-1">
+                  <span className="block text-[8px] text-gray-600">5. Número de Identificación Tributaria (NIT)</span>
+                  <span className="font-mono font-bold text-xs">{id.nit || "—"}</span>
+                </div>
+                <div className="col-span-1 p-1 text-center">
+                  <span className="block text-[8px] text-gray-600">6.DV</span>
+                  <span className="font-mono font-bold text-xs">{id.dv || "0"}</span>
+                </div>
+                <div className="col-span-2 p-1">
+                  <span className="block text-[8px] text-gray-600">7. Primer apellido</span>
+                  <span className="font-semibold uppercase text-[11px] truncate block">{id.primerApellido || "—"}</span>
+                </div>
+                <div className="col-span-2 p-1">
+                  <span className="block text-[8px] text-gray-600">8. Segundo apellido</span>
+                  <span className="font-semibold uppercase text-[11px] truncate block">{id.segundoApellido || "—"}</span>
+                </div>
+                <div className="col-span-2 p-1">
+                  <span className="block text-[8px] text-gray-600">9. Primer nombre</span>
+                  <span className="font-semibold uppercase text-[11px] truncate block">{id.primerNombre || "—"}</span>
+                </div>
+                <div className="col-span-1 p-1">
+                  <span className="block text-[8px] text-gray-600">10. Otros</span>
+                  <span className="font-semibold uppercase text-[11px] truncate block">{id.otrosNombres || "—"}</span>
+                </div>
+                <div className="col-span-1 p-1 text-center">
+                  <span className="block text-[7.5px] text-gray-600 leading-none">12.Cód.Secc</span>
+                  <span className="font-mono font-bold text-xs">{id.dirSeccional || "32"}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Fila Actividad CIIU, Correcciones y Casilla 28 */}
+            <div className="grid grid-cols-12 divide-x divide-black bg-[#f4f7f9]">
+              <div className="col-span-3 p-1">
+                <span className="block text-[8px] text-gray-600">24. Actividad económica principal</span>
+                <span className="font-mono font-bold text-xs">{id.actividadCiiu || "0010"}</span>
+              </div>
+              <div className="col-span-1 p-1 text-center">
+                <span className="block text-[7.5px] text-gray-600 leading-none">25. Cód</span>
+                <span className="font-mono font-bold text-xs">{id.esCorreccion ? "1" : "—"}</span>
+              </div>
+              <div className="col-span-3 p-1">
+                <span className="block text-[8px] text-gray-600">26. No. Formulario anterior</span>
+                <span className="font-mono text-xs">{id.formAnterior || "—"}</span>
+              </div>
+              <div className="col-span-2 p-1 text-center">
+                <span className="block text-[7.5px] text-gray-600 leading-none">27. Fracción año gravable sig.</span>
+                <span className="font-semibold text-xs">NO</span>
+              </div>
+              <div className="col-span-3 p-1 bg-white flex items-center justify-between">
+                <span className="text-[7.5px] text-gray-700 leading-tight">
+                  28. Uno por ciento (1%) de compras con factura electrónica
+                </span>
+                <Cell num={28} className="w-24 border border-gray-300" />
+              </div>
+            </div>
+          </div>
+
+          {/* ———————————————————————————————————————————————————————————
+              3. SECCIÓN PATRIMONIO (Casillas 29 a 31)
+              ——————————————————————————————————————————————————————————— */}
+          <div className="border-b border-black bg-[#dbe7f0] text-[10px] font-bold">
+            <div className="grid grid-cols-12 divide-x divide-black items-center">
+              <div className="col-span-2 px-2 py-1 uppercase text-black font-extrabold tracking-wide">
+                Patrimonio
+              </div>
+              <div className="col-span-3 flex items-center justify-between px-2 py-0.5 bg-white">
+                <span className="text-[9px] font-normal">Total patrimonio bruto</span>
+                <Cell num={29} className="w-28 border border-gray-300" />
+              </div>
+              <div className="col-span-3 flex items-center justify-between px-2 py-0.5 bg-white">
+                <span className="text-[9px] font-normal">Deudas</span>
+                <Cell num={30} className="w-28 border border-gray-300" />
+              </div>
+              <div className="col-span-4 flex items-center justify-between px-2 py-0.5 bg-[#eaf1f7]">
+                <span className="text-[9px] font-bold">Total patrimonio líquido</span>
+                <Cell num={31} className="w-32 border border-black font-bold" />
+              </div>
+            </div>
+          </div>
+
+          {/* ———————————————————————————————————————————————————————————
+              4. CÉDULA GENERAL: TABLA MULTICOLUMNA (32 a 90)
+              ——————————————————————————————————————————————————————————— */}
+          <div className="border-b border-black text-[9.5px]">
+            <div className="flex">
+              {/* Etiqueta vertical izquierda: Cédula General */}
+              <div className="w-5 bg-gray-200 border-r border-black flex items-center justify-center">
+                <span className="[writing-mode:vertical-lr] rotate-180 font-sans text-[8px] font-bold uppercase tracking-wider text-gray-800 py-4">
+                  Cédula general
+                </span>
+              </div>
+
+              {/* Contenedor de la Matriz Cedular */}
+              <div className="flex-1">
+                {/* Cabecera de Columnas */}
+                <div className="grid grid-cols-12 border-b border-black bg-[#dbe7f0] text-[9px] font-bold text-center divide-x divide-black">
+                  <div className="col-span-4 p-1 text-left pl-2">Conceptos/rentas</div>
+                  <div className="col-span-2 p-1">Rentas de trabajo</div>
+                  <div className="col-span-2 p-1 leading-tight">
+                    Rentas de trabajo que no provengan de una relación laboral
+                  </div>
+                  <div className="col-span-2 p-1">Rentas de capital</div>
+                  <div className="col-span-2 p-1">Rentas no laborales</div>
+                </div>
+
+                {/* Filas de la Cédula General */}
+                <div className="divide-y divide-gray-300">
+                  {/* Ingresos brutos */}
+                  <div className="grid grid-cols-12 divide-x divide-black">
+                    <div className="col-span-4 px-2 py-0.5 bg-[#f9fbfd]">Ingresos brutos</div>
+                    <Cell num={32} className="col-span-2" />
+                    <Cell num={43} className="col-span-2" />
+                    <Cell num={58} className="col-span-2" />
+                    <Cell num={74} className="col-span-2" />
+                  </div>
+
+                  {/* Devoluciones, rebajas y descuentos */}
+                  <div className="grid grid-cols-12 divide-x divide-black bg-[#f4f4f4]">
+                    <div className="col-span-4 px-2 py-0.5">Devoluciones, rebajas y descuentos</div>
+                    <div className="col-span-2 bg-gray-100" />
+                    <div className="col-span-2 bg-gray-100" />
+                    <div className="col-span-2 bg-gray-100" />
+                    <Cell num={75} className="col-span-2 bg-white" />
+                  </div>
+
+                  {/* Ingresos no constitutivos de renta */}
+                  <div className="grid grid-cols-12 divide-x divide-black">
+                    <div className="col-span-4 px-2 py-0.5 bg-[#f9fbfd]">Ingresos no constitutivos de renta</div>
+                    <Cell num={33} className="col-span-2" />
+                    <Cell num={44} className="col-span-2" />
+                    <Cell num={59} className="col-span-2" />
+                    <Cell num={76} className="col-span-2" />
+                  </div>
+
+                  {/* Costos y deducciones procedentes */}
+                  <div className="grid grid-cols-12 divide-x divide-black">
+                    <div className="col-span-4 px-2 py-0.5 bg-[#f9fbfd]">Costos y deducciones procedentes</div>
+                    <div className="col-span-2 bg-gray-100" />
+                    <Cell num={45} className="col-span-2" />
+                    <Cell num={60} className="col-span-2" />
+                    <Cell num={77} className="col-span-2" />
+                  </div>
+
+                  {/* Renta líquida */}
+                  <div className="grid grid-cols-12 divide-x divide-black bg-[#eef4f8] font-semibold">
+                    <div className="col-span-4 px-2 py-0.5">Renta líquida</div>
+                    <Cell num={34} className="col-span-2 font-bold" />
+                    <Cell num={46} className="col-span-2 font-bold" />
+                    <Cell num={61} className="col-span-2 font-bold" />
+                    <Cell num={78} className="col-span-2 font-bold" />
+                  </div>
+
+                  {/* Rentas líquidas pasivas - ECE */}
+                  <div className="grid grid-cols-12 divide-x divide-black">
+                    <div className="col-span-4 px-2 py-0.5 bg-[#f9fbfd]">Rentas líquidas pasivas - ECE</div>
+                    <div className="col-span-2 bg-gray-100" />
+                    <div className="col-span-2 bg-gray-100" />
+                    <Cell num={62} className="col-span-2" />
+                    <Cell num={79} className="col-span-2" />
+                  </div>
+
+                  {/* Bloque Rentas Exentas */}
+                  <div className="grid grid-cols-12 divide-x divide-black">
+                    <div className="col-span-4 px-2 py-0.5 bg-[#f9fbfd] pl-4 italic">
+                      • Aportes voluntarios AFC, FVP y AVC
+                    </div>
+                    <Cell num={35} className="col-span-2" />
+                    <Cell num={47} className="col-span-2" />
+                    <Cell num={63} className="col-span-2" />
+                    <Cell num={80} className="col-span-2" />
+                  </div>
+
+                  <div className="grid grid-cols-12 divide-x divide-black">
+                    <div className="col-span-4 px-2 py-0.5 bg-[#f9fbfd] pl-4 italic">
+                      • Otras rentas exentas
+                    </div>
+                    <Cell num={36} className="col-span-2" />
+                    <Cell num={48} className="col-span-2" />
+                    <Cell num={64} className="col-span-2" />
+                    <Cell num={81} className="col-span-2" />
+                  </div>
+
+                  <div className="grid grid-cols-12 divide-x divide-black bg-[#f0f5f9] font-medium">
+                    <div className="col-span-4 px-2 py-0.5 pl-2 font-semibold">Total rentas exentas</div>
+                    <Cell num={37} className="col-span-2" />
+                    <Cell num={49} className="col-span-2" />
+                    <Cell num={65} className="col-span-2" />
+                    <Cell num={82} className="col-span-2" />
+                  </div>
+
+                  {/* Bloque Deducciones Imputables */}
+                  <div className="grid grid-cols-12 divide-x divide-black">
+                    <div className="col-span-4 px-2 py-0.5 bg-[#f9fbfd] pl-4 italic">
+                      • Intereses de vivienda
+                    </div>
+                    <Cell num={38} className="col-span-2" />
+                    <Cell num={50} className="col-span-2" />
+                    <Cell num={66} className="col-span-2" />
+                    <Cell num={83} className="col-span-2" />
+                  </div>
+
+                  <div className="grid grid-cols-12 divide-x divide-black">
+                    <div className="col-span-4 px-2 py-0.5 bg-[#f9fbfd] pl-4 italic">
+                      • Otras deducciones imputables
+                    </div>
+                    <Cell num={39} className="col-span-2" />
+                    <Cell num={51} className="col-span-2" />
+                    <Cell num={67} className="col-span-2" />
+                    <Cell num={84} className="col-span-2" />
+                  </div>
+
+                  <div className="grid grid-cols-12 divide-x divide-black bg-[#f0f5f9] font-medium">
+                    <div className="col-span-4 px-2 py-0.5 pl-2 font-semibold">Total deducciones imputables</div>
+                    <Cell num={40} className="col-span-2" />
+                    <Cell num={52} className="col-span-2" />
+                    <Cell num={68} className="col-span-2" />
+                    <Cell num={85} className="col-span-2" />
+                  </div>
+
+                  {/* Rentas exentas y/o deduc. imputables (Limitadas) */}
+                  <div className="grid grid-cols-12 divide-x divide-black bg-[#e9f0f6] font-semibold">
+                    <div className="col-span-4 px-2 py-0.5">
+                      Rentas exentas y/o deduc. imputables (Limitadas)
+                    </div>
+                    <Cell num={41} className="col-span-2" />
+                    <Cell num={53} className="col-span-2" />
+                    <Cell num={69} className="col-span-2" />
+                    <Cell num={86} className="col-span-2" />
+                  </div>
+
+                  {/* Renta líquida ordinaria del ejercicio */}
+                  <div className="grid grid-cols-12 divide-x divide-black">
+                    <div className="col-span-4 px-2 py-0.5 bg-[#f9fbfd]">Renta líquida ordinaria del ejercicio</div>
+                    <div className="col-span-2 bg-gray-100" />
+                    <Cell num={54} className="col-span-2" />
+                    <Cell num={70} className="col-span-2" />
+                    <Cell num={87} className="col-span-2" />
+                  </div>
+
+                  {/* Pérdida líquida del ejercicio */}
+                  <div className="grid grid-cols-12 divide-x divide-black">
+                    <div className="col-span-4 px-2 py-0.5 bg-[#f9fbfd]">Pérdida líquida del ejercicio</div>
+                    <div className="col-span-2 bg-gray-100" />
+                    <Cell num={55} className="col-span-2" />
+                    <Cell num={71} className="col-span-2" />
+                    <Cell num={88} className="col-span-2" />
+                  </div>
+
+                  {/* Compensaciones por pérdidas */}
+                  <div className="grid grid-cols-12 divide-x divide-black">
+                    <div className="col-span-4 px-2 py-0.5 bg-[#f9fbfd]">Compensaciones por pérdidas</div>
+                    <div className="col-span-2 bg-gray-100" />
+                    <Cell num={56} className="col-span-2" />
+                    <Cell num={72} className="col-span-2" />
+                    <Cell num={89} className="col-span-2" />
+                  </div>
+
+                  {/* Renta líquida ordinaria */}
+                  <div className="grid grid-cols-12 divide-x divide-black bg-[#dbe7f0] font-bold">
+                    <div className="col-span-4 px-2 py-0.5">Renta líquida ordinaria</div>
+                    <Cell num={42} className="col-span-2 font-bold" />
+                    <Cell num={57} className="col-span-2 font-bold" />
+                    <Cell num={73} className="col-span-2 font-bold" />
+                    <Cell num={90} className="col-span-2 font-bold" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ———————————————————————————————————————————————————————————
+              5. DEPURACIÓN CÉDULA GENERAL (Casillas 91 a 98)
+              ——————————————————————————————————————————————————————————— */}
+          <div className="border-b border-black bg-[#eef4f8] text-[9px]">
+            <div className="grid grid-cols-12 divide-x divide-black border-b border-gray-300">
+              <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5">
+                <span>Ren. líquida céd. gen.</span>
+                <Cell num={91} className="w-24 border border-gray-300" />
+              </div>
+              <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5">
+                <span>Ren. ex. y ded. imp. li.</span>
+                <Cell num={92} className="w-24 border border-gray-300" />
+              </div>
+              <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5 font-bold">
+                <span>R. líq. ord. cédula gen.</span>
+                <Cell num={93} className="w-24 border border-gray-300 font-bold" />
+              </div>
+              <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5">
+                <span>Comp. pérdidas año 2018 y ant.</span>
+                <Cell num={94} className="w-24 border border-gray-300" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-12 divide-x divide-black">
+              <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5">
+                <span>Comp. exc. ren. presuntiva</span>
+                <Cell num={95} className="w-24 border border-gray-300" />
+              </div>
+              <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5">
+                <span>Rentas gravables</span>
+                <Cell num={96} className="w-24 border border-gray-300" />
+              </div>
+              <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5 bg-[#dbe7f0] font-black">
+                <span>R. líq. grav. cédula gen.</span>
+                <Cell num={97} className="w-24 border border-black font-black" />
+              </div>
+              <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5">
+                <span>Renta presuntiva</span>
+                <Cell num={98} className="w-24 border border-gray-300" />
+              </div>
+            </div>
+          </div>
+
+          {/* ———————————————————————————————————————————————————————————
+              6. DIVISIÓN INFERIOR EN 2 COLUMNAS (PENSIONES/DIVIDENDOS/GO + LIQUIDACIÓN)
+              ——————————————————————————————————————————————————————————— */}
+          <div className="grid grid-cols-12 divide-x divide-black border-b border-black text-[9px]">
+            {/* ==================== COLUMNA IZQUIERDA ==================== */}
+            <div className="col-span-6 flex flex-col justify-between">
+              {/* CÉDULA DE PENSIONES (99 a 103) */}
+              <div className="border-b border-black">
+                <div className="flex">
+                  <div className="w-5 bg-gray-200 border-r border-black flex items-center justify-center">
+                    <span className="[writing-mode:vertical-lr] rotate-180 font-sans text-[7.5px] font-bold uppercase text-gray-700 py-1">
+                      Cédula de pensiones
+                    </span>
+                  </div>
+                  <div className="flex-1 divide-y divide-gray-300">
+                    <div className="flex items-center justify-between px-2 py-0.5">
+                      <span>Ingresos brutos por rentas de pensiones del país y del exterior</span>
+                      <Cell num={99} className="w-24 border border-gray-300" />
+                    </div>
+                    <div className="flex items-center justify-between px-2 py-0.5">
+                      <span>Ingresos no constitutivos de renta</span>
+                      <Cell num={100} className="w-24 border border-gray-300" />
+                    </div>
+                    <div className="flex items-center justify-between px-2 py-0.5 bg-[#f4f7f9]">
+                      <span>Renta líquida</span>
+                      <Cell num={101} className="w-24 border border-gray-300" />
+                    </div>
+                    <div className="flex items-center justify-between px-2 py-0.5">
+                      <span>Rentas exentas de pensiones</span>
+                      <Cell num={102} className="w-24 border border-gray-300" />
+                    </div>
+                    <div className="flex items-center justify-between px-2 py-0.5 bg-[#dbe7f0] font-bold">
+                      <span>Renta líquida gravable cédula de pensiones</span>
+                      <Cell num={103} className="w-24 border border-black font-bold" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* CÉDULA DE DIVIDENDOS Y PARTICIPACIONES (104 a 111) */}
+              <div className="border-b border-black">
+                <div className="flex">
+                  <div className="w-5 bg-gray-200 border-r border-black flex items-center justify-center">
+                    <span className="[writing-mode:vertical-lr] rotate-180 font-sans text-[7px] font-bold uppercase text-gray-700 py-2">
+                      Cédula de dividendos y/o participaciones
+                    </span>
+                  </div>
+                  <div className="flex-1 divide-y divide-gray-300">
+                    <div className="flex items-center justify-between px-2 py-0.5">
+                      <span>Dividendos y participaciones año 2016 y anteriores, y otros</span>
+                      <Cell num={104} className="w-24 border border-gray-300" />
+                    </div>
+                    <div className="flex items-center justify-between px-2 py-0.5">
+                      <span>Ingresos no constitutivos de renta</span>
+                      <Cell num={105} className="w-24 border border-gray-300" />
+                    </div>
+                    <div className="flex items-center justify-between px-2 py-0.5 bg-[#f4f7f9]">
+                      <span>Renta líquida ordinaria año 2016 y anteriores</span>
+                      <Cell num={106} className="w-24 border border-gray-300" />
+                    </div>
+                    <div className="flex items-center justify-between px-2 py-0.5">
+                      <span>1a. Subcédula años 2017 y siguientes numeral 3 art. 49 del E.T.</span>
+                      <Cell num={107} className="w-24 border border-gray-300" />
+                    </div>
+                    <div className="flex items-center justify-between px-2 py-0.5">
+                      <span>2a. Subcédula años 2017 y siguientes parágrafo 2 art. 49 del E.T.</span>
+                      <Cell num={108} className="w-24 border border-gray-300" />
+                    </div>
+                    <div className="flex items-center justify-between px-2 py-0.5">
+                      <span>Dividendos y participaciones recibidas del exterior</span>
+                      <Cell num={109} className="w-24 border border-gray-300" />
+                    </div>
+                    <div className="flex items-center justify-between px-2 py-0.5">
+                      <span>Rentas exentas de la casilla 109</span>
+                      <Cell num={110} className="w-24 border border-gray-300" />
+                    </div>
+                    <div className="flex items-center justify-between px-2 py-0.5 bg-[#dbe7f0] font-bold">
+                      <span className="text-[8px] leading-tight">
+                        Renta líquida gravable (Cédula general o Renta presuntiva, pensiones y dividendos art. 241)
+                      </span>
+                      <Cell num={111} className="w-24 border border-black font-bold" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* GANANCIAS OCASIONALES (112 a 115) */}
+              <div>
+                <div className="flex">
+                  <div className="w-5 bg-gray-200 border-r border-black flex items-center justify-center">
+                    <span className="[writing-mode:vertical-lr] rotate-180 font-sans text-[7px] font-bold uppercase text-gray-700 py-1">
+                      Ganancias ocasionales
+                    </span>
+                  </div>
+                  <div className="flex-1 divide-y divide-gray-300">
+                    <div className="flex items-center justify-between px-2 py-0.5">
+                      <span>Ingresos por ganancias ocasionales del país y del exterior</span>
+                      <Cell num={112} className="w-24 border border-gray-300" />
+                    </div>
+                    <div className="flex items-center justify-between px-2 py-0.5">
+                      <span>Costos por ganancias ocasionales</span>
+                      <Cell num={113} className="w-24 border border-gray-300" />
+                    </div>
+                    <div className="flex items-center justify-between px-2 py-0.5">
+                      <span>Ganancias ocasionales no gravadas y exentas</span>
+                      <Cell num={114} className="w-24 border border-gray-300" />
+                    </div>
+                    <div className="flex items-center justify-between px-2 py-0.5 bg-[#dbe7f0] font-bold">
+                      <span>Ganancias ocasionales gravables</span>
+                      <Cell num={115} className="w-24 border border-black font-bold" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ==================== COLUMNA DERECHA: LIQUIDACIÓN PRIVADA ==================== */}
+            <div className="col-span-6 flex">
+              <div className="w-5 bg-gray-200 border-r border-black flex items-center justify-center">
+                <span className="[writing-mode:vertical-lr] rotate-180 font-sans text-[8px] font-bold uppercase tracking-wider text-gray-800 py-4">
+                  Liquidación privada
+                </span>
+              </div>
+
+              <div className="flex-1 divide-y divide-gray-300 flex flex-col justify-between">
+                {/* Sub-bloque Impuesto */}
+                <div className="flex items-center justify-between px-2 py-0.5">
+                  <span>Cédula general, de pensiones y de dividendos y participaciones</span>
+                  <Cell num={116} className="w-24 border border-gray-300" />
+                </div>
+                <div className="flex items-center justify-between px-2 py-0.5">
+                  <span>Renta presuntiva, de pensiones y de dividendos y participaciones</span>
+                  <Cell num={117} className="w-24 border border-gray-300" />
+                </div>
+                <div className="flex items-center justify-between px-2 py-0.5">
+                  <span>Por dividendos y participaciones año 2017 y siguientes, 2a subcédula (Art. 240)</span>
+                  <Cell num={118} className="w-24 border border-gray-300" />
+                </div>
+                <div className="flex items-center justify-between px-2 py-0.5">
+                  <span>Por dividendos y participaciones año 2016</span>
+                  <Cell num={119} className="w-24 border border-gray-300" />
+                </div>
+                <div className="flex items-center justify-between px-2 py-0.5">
+                  <span>Por dividendos y participaciones recibidas del exterior</span>
+                  <Cell num={120} className="w-24 border border-gray-300" />
+                </div>
+                <div className="flex items-center justify-between px-2 py-0.5 bg-[#eef4f8] font-bold">
+                  <span>Total impuesto sobre las rentas líquidas gravables</span>
+                  <Cell num={121} className="w-24 border border-black font-bold" />
+                </div>
+
+                {/* Sub-bloque Descuentos */}
+                <div className="grid grid-cols-2 divide-x divide-black border-y border-black bg-[#f9fbfd]">
+                  <div className="flex items-center justify-between px-1.5 py-0.5">
+                    <span className="text-[8px]">Imp. pagados exterior</span>
+                    <Cell num={122} className="w-16 border border-gray-300" />
+                  </div>
+                  <div className="flex items-center justify-between px-1.5 py-0.5">
+                    <span className="text-[8px]">Donaciones</span>
+                    <Cell num={123} className="w-16 border border-gray-300" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 divide-x divide-black border-b border-black bg-[#f9fbfd]">
+                  <div className="flex items-center justify-between px-1.5 py-0.5">
+                    <span className="text-[8px]">Dividendos, partic. y otros</span>
+                    <Cell num={124} className="w-16 border border-gray-300" />
+                  </div>
+                  <div className="flex items-center justify-between px-1.5 py-0.5 bg-[#eef4f8] font-bold">
+                    <span className="text-[8px]">Total desctos trib.</span>
+                    <Cell num={125} className="w-16 border border-black font-bold" />
+                  </div>
+                </div>
+
+                {/* Totales y Liquidación Final */}
+                <div className="flex items-center justify-between px-2 py-0.5 font-semibold bg-[#f4f7f9]">
+                  <span>Impuesto neto de renta</span>
+                  <Cell num={126} className="w-24 border border-gray-300 font-bold" />
+                </div>
+                <div className="flex items-center justify-between px-2 py-0.5">
+                  <span>Impuesto de ganancias ocasionales</span>
+                  <Cell num={127} className="w-24 border border-gray-300" />
+                </div>
+                <div className="flex items-center justify-between px-2 py-0.5">
+                  <span>Descuento por impuestos pagados en el exterior por ganancias ocasionales</span>
+                  <Cell num={128} className="w-24 border border-gray-300" />
+                </div>
+                <div className="flex items-center justify-between px-2 py-0.5 bg-[#dbe7f0] font-black">
+                  <span>Total impuesto a cargo</span>
+                  <Cell num={129} className="w-24 border border-black font-black" />
+                </div>
+                <div className="flex items-center justify-between px-2 py-0.5">
+                  <span>Anticipo renta liquidado año gravable anterior</span>
+                  <Cell num={130} className="w-24 border border-gray-300" />
+                </div>
+                <div className="flex items-center justify-between px-2 py-0.5">
+                  <span>Saldo a favor del año gravable anterior sin solicitud de devolución/compensación</span>
+                  <Cell num={131} className="w-24 border border-gray-300" />
+                </div>
+                <div className="flex items-center justify-between px-2 py-0.5">
+                  <span>Retenciones año gravable a declarar</span>
+                  <Cell num={132} className="w-24 border border-gray-300" />
+                </div>
+                <div className="flex items-center justify-between px-2 py-0.5">
+                  <span>Anticipo renta para el año gravable siguiente</span>
+                  <Cell num={133} className="w-24 border border-gray-300" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ———————————————————————————————————————————————————————————
+              7. TOTALES DE SALDO Y DATOS INFORMATIVOS (134 a 141)
+              ——————————————————————————————————————————————————————————— */}
+          <div className="border-b border-black text-[9.5px]">
+            {/* Saldos y Sanciones */}
+            <div className="grid grid-cols-12 divide-x divide-black border-b border-black bg-[#f4f7f9]">
+              <div className="col-span-3 flex items-center justify-between px-2 py-1">
+                <span className="text-[9px]">Saldo a pagar por impuesto</span>
+                <Cell num={134} className="w-24 border border-gray-300" />
+              </div>
+              <div className="col-span-3 flex items-center justify-between px-2 py-1">
+                <span className="text-[9px]">Sanciones</span>
+                <Cell num={135} className="w-24 border border-gray-300" />
+              </div>
+              <div className="col-span-3 flex items-center justify-between px-2 py-1 bg-[#fbeae8] font-black text-red-900">
+                <span className="text-[9px]">Total saldo a pagar</span>
+                <Cell num={136} className="w-24 border border-red-800 font-black text-red-950" />
+              </div>
+              <div className="col-span-3 flex items-center justify-between px-2 py-1 bg-[#eaf4ee] font-black text-[#00573F]">
+                <span className="text-[9px]">Total saldo a favor</span>
+                <Cell num={137} className="w-24 border border-[#00573F] font-black text-[#00573F]" />
+              </div>
+            </div>
+
+            {/* Datos Informativos (138 a 141) */}
+            <div className="grid grid-cols-12 divide-x divide-black bg-white">
+              <div className="col-span-3 flex items-center justify-between px-2 py-1">
+                <span className="text-[8.5px]">Número de dependientes económicos</span>
+                <Cell num={138} className="w-16 border border-gray-300 text-center" />
+              </div>
+              <div className="col-span-3 flex items-center justify-between px-2 py-1">
+                <span className="text-[8.5px]">Adición dependientes a casilla 92</span>
+                <Cell num={139} className="w-24 border border-gray-300" />
+              </div>
+              <div className="col-span-3 flex items-center justify-between px-2 py-1">
+                <span className="text-[8px] leading-tight">Ud. superó tope indicativo art. 336-1 E.T., marque X</span>
+                <Cell num={140} className="w-12 border border-gray-300 text-center font-bold" />
+              </div>
+              <div className="col-span-3 flex items-center justify-between px-2 py-1">
+                <span className="text-[8.5px]">Aporte voluntario</span>
+                <Cell num={141} className="w-24 border border-gray-300" />
+              </div>
+            </div>
+          </div>
+
+          {/* ———————————————————————————————————————————————————————————
+              8. SECCIÓN DE FIRMAS Y RECAUDO OFICIAL (980 a 997)
+              ——————————————————————————————————————————————————————————— */}
+          <div className="grid grid-cols-12 divide-x divide-black text-[9px] bg-white">
+            {/* Firmas Declarante y Contador */}
+            <div className="col-span-5 flex flex-col justify-between divide-y divide-black">
+              {/* Representación y Firma Declarante */}
+              <div className="p-1.5 space-y-1">
+                <div className="flex items-center justify-between text-[8px] text-gray-700">
+                  <span>981. Cód. Representación</span>
+                  <span className="border border-black px-2 py-0.5 font-mono font-bold">0</span>
+                </div>
+                <div className="h-9 border border-dashed border-gray-400 bg-gray-50 flex items-center justify-center text-[8.5px] text-gray-500 italic">
+                  Firma del declarante o de quien lo representa: {fullName}
+                </div>
+              </div>
+
+              {/* Firma Contador */}
+              <div className="p-1.5 space-y-1">
+                <div className="flex items-center justify-between text-[8px] text-gray-700">
+                  <span>982. Cód. Contador: <strong className="ml-1 border border-black px-1.5 py-0.2">{requiereContador ? "1" : "0"}</strong></span>
+                  <span>994. Con salvedades: <strong className="ml-1 border border-black px-1.5 py-0.2"> </strong></span>
+                </div>
+                <div className="h-9 border border-dashed border-gray-400 bg-gray-50 flex items-center justify-center text-[8px] text-gray-500 italic text-center">
+                  {requiereContador
+                    ? "Firma de Contador Público obligatoria (Art. 596 E.T.)"
+                    : "Firma de contador no requerida por topes legales"}
+                </div>
+                <div className="text-[8px] text-gray-700">
+                  983. No. Tarjeta profesional: <span className="font-mono">__________-T</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Espacio Sello Recaudadora y Pago Total (980) */}
+            <div className="col-span-7 flex flex-col justify-between">
+              <div className="p-2 text-center text-gray-600 flex-1 flex flex-col justify-center border-b border-black bg-gray-50/50">
+                <p className="text-[8.5px] font-bold text-gray-800">
+                  997. Espacio exclusivo para el sello de la entidad recaudadora
+                </p>
+                <p className="text-[7.5px] text-gray-500 mt-1">
+                  (Fecha de presentación y sello oficial de la entidad recaudadora / Certificación MUISCA)
+                </p>
+              </div>
+
+              <div className="grid grid-cols-12 divide-x divide-black bg-[#eaf1f7]">
+                <div className="col-span-7 p-1.5 flex items-center justify-between">
+                  <span className="font-bold text-[10px]">980. Pago total $</span>
+                  <span className="font-mono text-sm font-black tabular-nums bg-white px-2 py-0.5 border border-black">
+                    {c.saldoPagar > 0 ? formatNumber(Math.round(c.saldoPagar)) : "0"}
+                  </span>
+                </div>
+                <div className="col-span-5 p-1 text-[7.5px] text-gray-600 flex items-center justify-center text-center">
+                  996. Espacio para el número interno de la DIAN/ Adhesivo
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Modal o Popover Informativo de la Casilla Seleccionada */}
+      {/* Popover Explicativo de Casilla */}
       {selectedCasilla && (
         <div
           data-print-hide
@@ -669,7 +937,7 @@ export function OfficialDian210({
             return (
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5">
-                  <span className="inline-flex size-8 items-center justify-center rounded-lg bg-forest text-sm font-bold text-white">
+                  <span className="inline-flex size-8 items-center justify-center rounded-lg bg-[#2D6187] text-sm font-bold text-white font-mono">
                     {selectedCasilla}
                   </span>
                   <div>
@@ -682,7 +950,7 @@ export function OfficialDian210({
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="text-right">
-                    <span className="text-[10px] uppercase tracking-wider text-muted">Valor actual</span>
+                    <span className="text-[10px] uppercase tracking-wider text-muted">Valor liquidado</span>
                     <p className="font-mono text-base font-bold text-forest-deep">
                       {selectedCasilla === 140 ? (val ? "Marcado (X)" : "No") : formatCOP(val)}
                     </p>
