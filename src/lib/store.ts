@@ -174,8 +174,8 @@ export const useAppStore = create<AppState>()(
       docs: [],
       normas: [],
       aiSettings: {
-        geminiApiKey: "",
-        geminiModel: "gemini-3.6-flash",
+        geminiApiKey: typeof window !== "undefined" ? localStorage.getItem("tributoapp_gemini_api_key") || "" : "",
+        geminiModel: (typeof window !== "undefined" ? (localStorage.getItem("tributoapp_gemini_model") as any) : null) || "gemini-3.6-flash",
       },
       profiles: [],
       activeProfileId: DEFAULT_PROFILE_ID,
@@ -195,8 +195,17 @@ export const useAppStore = create<AppState>()(
           const nextProfiles = syncCurrentProfile(s, nextDecl);
           return { declaration: nextDecl, profiles: nextProfiles };
         }),
-      setAiSettings: (settings) =>
-        set((s) => ({ aiSettings: { ...s.aiSettings, ...settings } })),
+      setAiSettings: (settings) => {
+        if (typeof window !== "undefined") {
+          if (settings.geminiApiKey !== undefined) {
+            localStorage.setItem("tributoapp_gemini_api_key", settings.geminiApiKey);
+          }
+          if (settings.geminiModel !== undefined) {
+            localStorage.setItem("tributoapp_gemini_model", settings.geminiModel);
+          }
+        }
+        set((s) => ({ aiSettings: { ...s.aiSettings, ...settings } }));
+      },
       patch: (fn) =>
         set((s) => {
           const next = structuredClone(hydrateDeclaration(s.declaration));
@@ -525,9 +534,11 @@ export const useAppStore = create<AppState>()(
         const decl = hydrateDeclaration((p?.declaration ?? current.declaration) as Declaration);
         const docs = Array.isArray(p?.docs) ? p.docs : current.docs;
         const normas = hydrateNormas(p?.normas);
+        const localKey = typeof window !== "undefined" ? localStorage.getItem("tributoapp_gemini_api_key") : null;
+        const localModel = typeof window !== "undefined" ? localStorage.getItem("tributoapp_gemini_model") : null;
         const aiSettings = {
-          geminiApiKey: p?.aiSettings?.geminiApiKey ?? current.aiSettings.geminiApiKey,
-          geminiModel: p?.aiSettings?.geminiModel ?? current.aiSettings.geminiModel,
+          geminiApiKey: localKey || p?.aiSettings?.geminiApiKey || current.aiSettings.geminiApiKey || "",
+          geminiModel: (localModel as any) || p?.aiSettings?.geminiModel || current.aiSettings.geminiModel || "gemini-3.6-flash",
         };
         const profiles = Array.isArray(p?.profiles)
           ? p.profiles.map((prof) => ({

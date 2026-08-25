@@ -8,8 +8,13 @@ import {
   FileText,
   AlertCircle,
   HelpCircle,
+  Eye,
+  EyeOff,
+  Trash2,
+  Lock,
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardHint, CardTitle } from "@/components/ui/card";
@@ -21,6 +26,7 @@ import {
   extractDocumentWithGemini,
   GEMINI_MODELS,
   testGeminiKey,
+  type GeminiModelId,
 } from "@/lib/ai/gemini";
 import { ExtractionPreviewModal } from "./extraction-preview-modal";
 import type { VaultDoc } from "@/lib/docs/types";
@@ -44,14 +50,25 @@ export function GeminiAsistenteModal({
   initialText?: string;
   initialKind?: string;
 }) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const aiSettings = useAppStore((s) => s.aiSettings);
   const setAiSettings = useAppStore((s) => s.setAiSettings);
   const d = useAppStore((s) => s.declaration);
   const normas = useAppStore((s) => s.normas);
   const c = useComputed();
 
-  const [inputKey, setInputKey] = useState(aiSettings.geminiApiKey || "");
-  const [selectedModel, setSelectedModel] = useState(aiSettings.geminiModel || "gemini-3.6-flash");
+  const savedKey =
+    aiSettings.geminiApiKey ||
+    (typeof window !== "undefined" ? localStorage.getItem("tributoapp_gemini_api_key") || "" : "");
+
+  const [inputKey, setInputKey] = useState(savedKey);
+  const [selectedModel, setSelectedModel] = useState<string>(aiSettings.geminiModel || "gemini-3.6-flash");
+  const [showKeyText, setShowKeyText] = useState(false);
   const [keySaved, setKeySaved] = useState(false);
   const [testStatus, setTestStatus] = useState<"idle" | "testing" | "ok" | "error">("idle");
   const [testError, setTestError] = useState<string | null>(null);
@@ -68,23 +85,50 @@ export function GeminiAsistenteModal({
     notes?: string;
   } | null>(null);
 
+  // Sincronizar al abrir o cambiar la clave
+  useEffect(() => {
+    if (isOpen) {
+      const currentKey =
+        aiSettings.geminiApiKey ||
+        (typeof window !== "undefined" ? localStorage.getItem("tributoapp_gemini_api_key") || "" : "");
+      setInputKey(currentKey);
+      setSelectedModel(aiSettings.geminiModel || "gemini-3.6-flash");
+      setTestStatus(currentKey ? "ok" : "idle");
+      setTestError(null);
+    }
+  }, [isOpen, aiSettings.geminiApiKey, aiSettings.geminiModel]);
+
   useEffect(() => {
     if (initialText) {
       setQuestion(initialText);
     }
   }, [initialText]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
-  const hasApiKey = Boolean(aiSettings.geminiApiKey?.trim());
+  const hasApiKey = Boolean(inputKey.trim() || aiSettings.geminiApiKey?.trim());
 
   function handleSaveKey() {
+    const key = inputKey.trim();
+    if (!key) return;
     setAiSettings({
-      geminiApiKey: inputKey.trim(),
+      geminiApiKey: key,
       geminiModel: selectedModel,
     });
     setKeySaved(true);
-    setTimeout(() => setKeySaved(false), 2000);
+    setTestStatus("ok");
+    setTimeout(() => setKeySaved(false), 2500);
+  }
+
+  function handleClearKey() {
+    if (confirm("¿Desea borrar la clave API Key guardada de Google Gemini?")) {
+      setInputKey("");
+      setAiSettings({ geminiApiKey: "" });
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("tributoapp_gemini_api_key");
+      }
+      setTestStatus("idle");
+    }
   }
 
   async function handleTestConnection() {
@@ -99,7 +143,7 @@ export function GeminiAsistenteModal({
     const res = await testGeminiKey(keyToTest, selectedModel);
     if (res.ok) {
       setTestStatus("ok");
-      // Auto-save if working
+      // Guardar automáticamente si pasa la prueba
       setAiSettings({ geminiApiKey: keyToTest, geminiModel: selectedModel });
     } else {
       setTestStatus("error");
@@ -111,9 +155,9 @@ export function GeminiAsistenteModal({
     const q = (queryText ?? question).trim();
     if (!q) return;
 
-    const key = aiSettings.geminiApiKey || inputKey.trim();
+    const key = inputKey.trim() || aiSettings.geminiApiKey;
     if (!key) {
-      setError("Configure su Google Gemini API Key para consultar.");
+      setError("Por favor configure y guarde su Google Gemini API Key para continuar.");
       return;
     }
 
@@ -133,292 +177,305 @@ export function GeminiAsistenteModal({
       `Obligado a declarar: ${c.obligado ? "Sí" : "No"} (${c.razonesObligado.join("; ")})`,
     ].join(" · ");
 
-    // Si el texto parece un certificado (contiene cifras o palabras clave), también ejecutamos extracción
+    // Extracción si parece un certificado
     const isCertificate =
       /formato 220|certificado|retenci[oó]n|extracto|bancario|cesant[ií]as|salarios|aval[uú]o/i.test(q) &&
       /\d{3,}/.test(q);
 
     if (isCertificate) {
-      const extractRes = await extractDocumentWithGemini({
-        apiKey: key,
-        model: selectedModel,
-        kind: initialKind || "certificado",
-        text: q,
-      });
-
-      if (extractRes.ok && Object.keys(extractRes.amounts).length > 0) {
-        const dummyDoc: VaultDoc = {
-          id: crypto.randomUUID(),
+      try {
+        const ext = await extractDocumentWithGemini({
+          text: q,
           kind: "formato220",
-          name: "Certificado analizado",
-          mime: "text/plain",
-          size: q.length,
-          addedAt: new Date().toISOString(),
-          notes: extractRes.notes,
-        };
-        setExtractedData({
-          doc: dummyDoc,
-          amounts: extractRes.amounts,
-          notes: extractRes.notes,
+          apiKey: key,
+          model: selectedModel,
         });
+
+        if (ext.ok && Object.keys(ext.amounts).length > 0) {
+          setExtractedData({
+            doc: {
+              id: `doc-ai-${Date.now()}`,
+              name: `Certificado Extraído IA`,
+              kind: "formato220",
+              mime: "text/plain",
+              size: q.length,
+              addedAt: new Date().toISOString(),
+              notes: ext.notes || "",
+            },
+            amounts: ext.amounts,
+            notes: ext.notes,
+          });
+        }
+      } catch (err) {
+        console.error("Fallo la extracción automática", err);
       }
     }
 
+    // Consulta tributaria normal con RAG
+    const normasTexto = normasCorpus(normas);
     const res = await askGeminiTributario({
-      apiKey: key,
-      model: selectedModel,
       question: q,
       context,
-      normas: normasCorpus(normas),
+      normas: normasTexto,
+      apiKey: key,
+      model: selectedModel,
     });
 
     setBusy(false);
-    if (!res.ok) {
-      setError(res.error);
-    } else {
+    if (res.ok) {
       setAnswer(res.text);
+    } else {
+      setError(res.error);
     }
   }
 
-  return (
-    <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-        <div className="relative max-h-[92vh] w-full max-w-3xl overflow-hidden rounded-2xl bg-surface shadow-2xl flex flex-col border border-line">
-          {/* Encabezado del Modal */}
-          <div className="border-b border-line bg-bg-raised px-6 py-4 flex items-start justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="flex size-7 items-center justify-center rounded-lg bg-forest text-primary-fg">
-                  <Sparkles className="size-4" />
-                </span>
-                <h2 className="font-display text-2xl font-bold text-ink">
-                  Asistente IA Google Gemini Pro
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 sm:p-6 backdrop-blur-sm animate-in fade-in overflow-y-auto">
+      <div className="relative my-auto flex max-h-[92vh] w-full max-w-3xl flex-col rounded-2xl border border-line bg-surface shadow-2xl overflow-hidden">
+        {/* Encabezado del Modal */}
+        <div className="flex items-start justify-between gap-4 border-b border-line bg-bg/60 px-6 py-4">
+          <div>
+            <div className="flex items-center gap-2.5">
+              <span className="flex size-9 items-center justify-center rounded-xl bg-forest text-primary-fg shadow-sm">
+                <Sparkles className="size-5" />
+              </span>
+              <div>
+                <h2 className="font-display text-xl font-bold text-ink leading-tight">
+                  Asistente IA Google Gemini
                 </h2>
+                <p className="text-xs text-muted">
+                  Copiloto de investigación, auditoría y análisis tributario del Formulario 210
+                </p>
               </div>
-              <p className="mt-1 text-xs text-muted">
-                Copiloto de investigación, redacción y análisis tributario del Formulario 210
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Badge tone={hasApiKey ? "ok" : "warn"} className="gap-1 py-1">
-                <Key className="size-3" />
-                {hasApiKey ? "API Key Guardada" : "Requiere API Key"}
-              </Badge>
-              <button
-                type="button"
-                onClick={onClose}
-                className="rounded-full p-1.5 text-muted hover:bg-surface transition-colors"
-                aria-label="Cerrar"
-              >
-                <X className="size-5" />
-              </button>
             </div>
           </div>
 
-          {/* Cuerpo con Scroll */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-6">
-            {/* Caja de Configuración de Gemini */}
-            <div className="rounded-2xl border border-line bg-bg-raised/70 p-5 space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line pb-3">
-                <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted">
-                  Configuración de Gemini
-                </p>
-                <a
-                  href="https://aistudio.google.com/app/apikey"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-xs font-medium text-forest hover:underline"
-                >
-                  Obtener API Key Gratis en Google AI Studio
-                  <ExternalLink className="size-3" />
-                </a>
-              </div>
+          <div className="flex items-center gap-2">
+            <Badge tone={hasApiKey ? "ok" : "warn"} className="gap-1 py-1">
+              <Key className="size-3" />
+              {hasApiKey ? "API Key Activa y Guardada" : "Requiere API Key"}
+            </Badge>
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-lg p-1.5 text-muted hover:bg-forest-mist hover:text-forest transition-colors"
+              aria-label="Cerrar"
+            >
+              <X className="size-5" />
+            </button>
+          </div>
+        </div>
 
-              {/* Input API Key */}
-              <div className="space-y-1.5">
+        {/* Cuerpo con Scroll */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          {/* Caja de Configuración de Gemini */}
+          <div className="rounded-2xl border border-line bg-bg/50 p-5 space-y-4 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line pb-3">
+              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted flex items-center gap-1.5">
+                <Lock className="size-3 text-forest" /> Configuración de Google Gemini
+              </p>
+              <a
+                href="https://aistudio.google.com/app/apikey"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-xs font-medium text-forest hover:underline"
+              >
+                Obtener API Key Gratis en Google AI Studio
+                <ExternalLink className="size-3" />
+              </a>
+            </div>
+
+            {/* Input API Key */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
                 <label className="text-xs font-semibold text-ink">
                   Google Gemini API Key
                 </label>
-                <div className="flex gap-2">
+                {hasApiKey && (
+                  <span className="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                    ✓ Guardada permanentemente en su navegador
+                  </span>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
                   <input
-                    type="password"
+                    type={showKeyText ? "text" : "password"}
                     placeholder="Pega tu clave AIzaSy..."
                     value={inputKey}
                     onChange={(e) => setInputKey(e.target.value)}
-                    className="h-10 flex-1 rounded-xl border border-line bg-surface px-3.5 text-xs font-mono text-ink focus:border-forest focus:outline-none"
+                    className="h-10 w-full rounded-xl border border-line bg-surface px-3.5 pr-10 text-xs font-mono text-ink focus:border-forest focus:outline-none shadow-sm"
                   />
-                  <Button
-                    size="sm"
-                    onClick={handleSaveKey}
-                    className="h-10 px-4 bg-forest text-primary-fg hover:bg-forest-deep"
-                  >
-                    {keySaved ? (
-                      <>
-                        <Check className="size-4 mr-1" />
-                        ¡Guardada!
-                      </>
-                    ) : (
-                      "Guardar Clave"
-                    )}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={handleTestConnection}
-                    disabled={testStatus === "testing"}
-                    className="h-10 text-xs"
-                  >
-                    {testStatus === "testing" ? "Probando..." : "Probar"}
-                  </Button>
-                </div>
-                {testStatus === "ok" && (
-                  <p className="text-xs text-forest font-medium flex items-center gap-1">
-                    <Check className="size-3.5" /> Conexión con Gemini exitosa.
-                  </p>
-                )}
-                {testStatus === "error" && testError && (
-                  <p className="text-xs text-stamp font-medium flex items-center gap-1">
-                    <AlertCircle className="size-3.5" /> {testError}
-                  </p>
-                )}
-                <p className="text-[11px] text-muted">
-                  Tu clave se almacena de forma privada en tu navegador (localStorage) y nunca se comparte públicamente.
-                </p>
-              </div>
-
-              {/* Selector de Modelo */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-ink">
-                  Modelo de Gemini
-                </label>
-                <select
-                  value={selectedModel}
-                  onChange={(e) => {
-                    setSelectedModel(e.target.value);
-                    setAiSettings({ geminiModel: e.target.value });
-                  }}
-                  className="h-10 w-full rounded-xl border border-line bg-surface px-3 text-xs font-medium text-ink focus:border-forest focus:outline-none"
-                >
-                  {GEMINI_MODELS.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.label} — {m.desc}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Prompts Rápidos */}
-            <div className="space-y-2">
-              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted">
-                Prompts rápidos para su declaración:
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {QUICK_PROMPTS.map((p) => (
                   <button
-                    key={p.label}
                     type="button"
-                    onClick={() => {
-                      setQuestion(p.prompt);
-                      void handleConsultar(p.prompt);
-                    }}
-                    className="flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-xs text-ink-soft hover:border-forest hover:bg-forest-mist/30 transition-colors"
+                    onClick={() => setShowKeyText((v) => !v)}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted hover:text-ink p-1"
+                    title={showKeyText ? "Ocultar clave" : "Mostrar clave"}
                   >
-                    <span>{p.emoji}</span>
-                    <span>{p.label}</span>
+                    {showKeyText ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                   </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Área de Entrada / Pregunta */}
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-ink">
-                Instrucción o Pregunta
-              </label>
-              <textarea
-                rows={4}
-                value={question}
-                onChange={(e) => setQuestion(e.target.value)}
-                placeholder="Escribe tu consulta tributaria o pega el texto de un certificado (Formato 220, extracto bancario, retención) para que Gemini lo interprete..."
-                className="w-full rounded-xl border border-line bg-surface p-3.5 text-xs leading-relaxed text-ink focus:border-forest focus:outline-none"
-              />
-              <div className="flex justify-end">
-                <Button
-                  onClick={() => handleConsultar()}
-                  disabled={busy || !question.trim()}
-                  className="gap-2"
-                >
-                  <Sparkles className="size-4" />
-                  {busy ? "Consultando a Gemini..." : "Consultar Asistente"}
-                </Button>
-              </div>
-            </div>
-
-            {/* Errores */}
-            {error && (
-              <div className="rounded-xl border border-stamp/30 bg-stamp-mist p-4 text-xs text-stamp flex items-start gap-2">
-                <AlertCircle className="size-4 shrink-0 mt-0.5" />
-                <span>{error}</span>
-              </div>
-            )}
-
-            {/* Notificación de Montos Extraídos */}
-            {extractedData && (
-              <div className="rounded-xl border border-forest/30 bg-forest-mist p-4 flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <p className="text-xs font-bold text-forest-deep">
-                    ⚡ Se detectaron montos tributarios en el texto
-                  </p>
-                  <p className="text-[11px] text-forest">
-                    {Object.keys(extractedData.amounts).length} conceptos identificados listos para aplicar al Formulario 210.
-                  </p>
                 </div>
                 <Button
                   size="sm"
-                  onClick={() => {}}
-                  className="text-xs"
+                  onClick={handleSaveKey}
+                  disabled={!inputKey.trim()}
+                  className="h-10 px-4 bg-forest text-primary-fg hover:bg-forest-deep shadow-sm text-xs font-semibold"
                 >
-                  <FileText className="size-3.5 mr-1" />
-                  Revisar y Validar Montos
+                  {keySaved ? (
+                    <>
+                      <Check className="size-4 mr-1" />
+                      ¡Guardada!
+                    </>
+                  ) : (
+                    "Guardar Clave"
+                  )}
                 </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleTestConnection}
+                  disabled={testStatus === "testing" || !inputKey.trim()}
+                  className="h-10 text-xs"
+                >
+                  {testStatus === "testing"
+                    ? "Probando..."
+                    : testStatus === "ok"
+                      ? "✓ Conectado"
+                      : "Probar"}
+                </Button>
+                {hasApiKey && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={handleClearKey}
+                    title="Borrar API Key"
+                    className="h-10 px-2.5 text-muted hover:text-red-600"
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                )}
               </div>
-            )}
+              {testError && (
+                <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                  <AlertCircle className="size-3.5" />
+                  {testError}
+                </p>
+              )}
+            </div>
 
-            {/* Respuesta Generada */}
-            {answer && (
-              <Card className="space-y-3 bg-surface border-line">
-                <div className="flex items-center justify-between border-b border-line pb-2">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Sparkles className="size-4 text-forest" />
-                    Respuesta de Gemini
-                  </CardTitle>
-                  <Badge tone="forest">
-                    {GEMINI_MODELS.find((m) => m.id === selectedModel)?.label.split(" ")[0]} {selectedModel}
-                  </Badge>
-                </div>
-                <div className="whitespace-pre-wrap text-xs leading-relaxed text-ink-soft">
-                  {answer}
-                </div>
-                <CardHint className="pt-2 text-[11px]">
-                  Orientación con base en el Estatuto Tributario colombiano (E.T.). Verifique siempre en el SI de Diligenciamiento de la DIAN.
-                </CardHint>
-              </Card>
-            )}
+            {/* Selector de Modelo Gemini */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-ink">
+                Modelo de Gemini
+              </label>
+              <select
+                value={selectedModel}
+                onChange={(e) => {
+                  const m = e.target.value as GeminiModelId;
+                  setSelectedModel(m);
+                  setAiSettings({ geminiModel: m });
+                }}
+                className="h-10 w-full rounded-xl border border-line bg-surface px-3.5 text-xs text-ink focus:border-forest focus:outline-none shadow-sm"
+              >
+                {GEMINI_MODELS.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.label} — {m.desc}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
-          {/* Pie del modal */}
-          <div className="border-t border-line bg-bg-raised px-6 py-3 flex items-center justify-between text-xs text-muted">
-            <span>Google Gemini AI · AG 2025/2026</span>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              Cerrar
-            </Button>
+          {/* Prompts Rápidos */}
+          <div className="space-y-2">
+            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted">
+              Prompts Rápidos para su Declaración:
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {QUICK_PROMPTS.map((p) => (
+                <button
+                  key={p.label}
+                  type="button"
+                  onClick={() => {
+                    setQuestion(p.prompt);
+                    handleConsultar(p.prompt);
+                  }}
+                  className="flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-xs text-ink-soft hover:border-forest hover:bg-forest-mist hover:text-forest transition-colors shadow-sm"
+                >
+                  <span>{p.emoji}</span>
+                  <span>{p.label}</span>
+                </button>
+              ))}
+            </div>
           </div>
+
+          {/* Input de Pregunta / Certificado */}
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-ink">
+              Instrucción, Pregunta o Texto de Certificado
+            </label>
+            <textarea
+              rows={3}
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              placeholder="Escriba su consulta tributaria o pegue el texto de un certificado para que Gemini lo interprete y auto-rellene la declaración..."
+              className="w-full rounded-xl border border-line bg-surface p-3.5 text-xs text-ink focus:border-forest focus:outline-none shadow-sm resize-none"
+            />
+            <div className="flex justify-end gap-2">
+              <Button
+                onClick={() => handleConsultar()}
+                disabled={busy || !question.trim()}
+                className="gap-2 bg-forest text-primary-fg hover:bg-forest-deep px-5 shadow-sm font-semibold text-xs"
+              >
+                <Sparkles className="size-4" />
+                {busy ? "Consultando con Gemini..." : "Analizar con IA"}
+              </Button>
+            </div>
+          </div>
+
+          {/* Error */}
+          {error && (
+            <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-xs text-red-800 flex items-start gap-2">
+              <AlertCircle className="size-4 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold">Error al consultar</p>
+                <p className="mt-0.5">{error}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Respuesta */}
+          {answer && (
+            <div className="rounded-2xl border border-forest/30 bg-forest-mist/30 p-5 space-y-3 animate-in fade-in shadow-sm">
+              <div className="flex items-center justify-between border-b border-forest/20 pb-2">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="size-4 text-forest" />
+                  <h4 className="font-display font-bold text-ink text-sm">
+                    Análisis Tributario Asistido por Gemini
+                  </h4>
+                </div>
+                <Badge tone="neutral" className="text-[10px]">
+                  {selectedModel}
+                </Badge>
+              </div>
+
+              <div className="prose prose-sm max-w-none text-xs leading-relaxed text-ink whitespace-pre-wrap">
+                {answer}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="border-t border-line bg-bg/40 px-6 py-3.5 flex items-center justify-between text-xs text-muted">
+          <span>Google Gemini AI · AG 2025/2026</span>
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            Cerrar
+          </Button>
         </div>
       </div>
 
-      {/* Modal de Validación de Extracción */}
+      {/* Modal de confirmación de extracción si aplica */}
       {extractedData && (
         <ExtractionPreviewModal
           doc={extractedData.doc}
@@ -427,6 +484,7 @@ export function GeminiAsistenteModal({
           onClose={() => setExtractedData(null)}
         />
       )}
-    </>
+    </div>,
+    document.body
   );
 }
