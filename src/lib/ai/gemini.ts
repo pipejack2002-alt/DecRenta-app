@@ -3,40 +3,28 @@ import { etMapForPrompt } from "@/lib/legal/estatuto-index";
 
 export const GEMINI_MODELS = [
   {
-    id: "gemini-3.6-flash",
-    label: "Gemini 3.6 Flash (Recomendado)",
-    desc: "Alta velocidad, máxima estabilidad y análisis formal de la declaración",
+    id: "gemini-1.5-flash",
+    label: "Gemini 1.5 Flash (Recomendado)",
+    desc: "Máxima velocidad, 100% estable y compatible con todas las claves de Google",
     badge: "Recomendado",
   },
   {
-    id: "gemini-3.7-flash",
-    label: "Gemini 3.7 Flash",
-    desc: "Última generación con razonamiento tributario avanzado",
-    badge: "Avanzado",
+    id: "gemini-2.0-flash",
+    label: "Gemini 2.0 Flash",
+    desc: "Nueva generación 2.0 de alta velocidad y precisión tributaria",
+    badge: "Nuevo 2.0",
   },
   {
-    id: "gemini-3.5-flash",
-    label: "Gemini 3.5 Flash",
-    desc: "Rendimiento balanceado y respuestas rápidas",
-    badge: "Rápido",
-  },
-  {
-    id: "gemini-3.1-flash-lite",
-    label: "Gemini 3.1 Flash Lite",
-    desc: "Modo ultra ligero para consultas directas",
-    badge: "Ultra Ligero",
-  },
-  {
-    id: "gemini-2.5-flash",
-    label: "Gemini 2.5 Flash",
-    desc: "Generación 2.5 de alta velocidad y precisión",
-    badge: "Estable",
-  },
-  {
-    id: "gemini-2.5-pro",
-    label: "Gemini 2.5 Pro",
-    desc: "Razonamiento profundo para expedientes complejos",
+    id: "gemini-1.5-pro",
+    label: "Gemini 1.5 Pro",
+    desc: "Razonamiento tributario profundo y auditoría exhaustiva del Formulario 210",
     badge: "Pro",
+  },
+  {
+    id: "gemini-2.0-flash-lite",
+    label: "Gemini 2.0 Flash Lite",
+    desc: "Modo ultra ligero optimizado para bajo consumo de cuota",
+    badge: "Ligero",
   },
 ] as const;
 
@@ -50,7 +38,7 @@ const ET_MAP = etMapForPrompt();
 
 export async function callGeminiApi({
   apiKey,
-  model = "gemini-3.6-flash",
+  model = "gemini-1.5-flash",
   systemPrompt,
   userPrompt,
   jsonMode = false,
@@ -80,7 +68,7 @@ export async function callGeminiApi({
     ],
     generationConfig: {
       temperature: 0.2,
-      maxOutputTokens: 2048,
+      maxOutputTokens: 8192,
       ...(jsonMode ? { responseMimeType: "application/json" } : {}),
     },
   };
@@ -101,13 +89,12 @@ export async function callGeminiApi({
     });
 
     if (!res.ok) {
-      // Si el modelo seleccionado no existe en los endpoints actuales de Google (404),
-      // reintentamos automáticamente con el modelo activo más reciente (gemini-2.5-flash / gemini-2.5-pro)
-      if (res.status === 404 && model !== "gemini-2.5-flash" && model !== "gemini-1.5-flash") {
-        const fallbackModel = model.includes("pro") ? "gemini-2.5-pro" : "gemini-2.5-flash";
+      // Si el modelo específico falla o no está disponible en la cuenta del usuario,
+      // reintentamos automáticamente con gemini-1.5-flash que es universal
+      if (model !== "gemini-1.5-flash") {
         return callGeminiApi({
-          apiKey,
-          model: fallbackModel,
+          apiKey: key,
+          model: "gemini-1.5-flash",
           systemPrompt,
           userPrompt,
           jsonMode,
@@ -137,7 +124,7 @@ export async function callGeminiApi({
 
 export async function testGeminiKey(
   apiKey: string,
-  model = "gemini-3.6-flash",
+  model = "gemini-1.5-flash",
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const res = await callGeminiApi({
     apiKey,
@@ -150,7 +137,7 @@ export async function testGeminiKey(
 
 export async function askGeminiTributario({
   apiKey,
-  model = "gemini-3.6-flash",
+  model = "gemini-1.5-flash",
   question,
   context,
   normas,
@@ -165,11 +152,11 @@ export async function askGeminiTributario({
 Tu labor es orientar al usuario con base estricta en el Estatuto Tributario (E.T.), la Ley 2277 de 2022, decretos reglamentarios (DUR 1625 de 2016) y conceptos de la DIAN.
 
 REGLAS DE RESPUESTA:
-1. Responde en español, claro, profesional, directo y elegantemente estructurado.
+1. Responde en español, de forma clara, detallada, completa, profesional y elegantemente estructurada.
 2. FORMATO LIMPIO: NUNCA uses sintaxis LaTeX como \\text{...}, $$...$$ o $...$. Para fórmulas matemáticas usa texto natural legible, por ejemplo: Base = Ingresos Brutos − INCRNGO.
-3. Organiza la respuesta con títulos claros, listas con viñetas limpias y párrafos legibles.
+3. Organiza la respuesta con títulos claros, listas con viñetas limpias y párrafos legibles bien desarrollados.
 4. CITA SIEMPRE los artículos aplicables del Estatuto Tributario (ej: Art. 103, Art. 206, Art. 336, Art. 241, Art. 115, Art. 119).
-5. Si el usuario pregunta por cifras o depuración, explica la fórmula paso a paso con las cifras reales del contexto.
+5. Si el usuario pregunta por cifras o depuración, explica la fórmula paso a paso con las cifras reales del contexto y desarrolla la explicación completa sin dejar ideas a medias.
 6. No des consejos ilegales ni inventes normas. Si una deducción requiere factura electrónica o pago bancarizado, recuérdalo (Art. 771-2 y 771-5).
 7. Concluye siempre con una nota breve de que la orientación se basa en el Estatuto Tributario y no sustituye la asesoría formal de un contador público.
 
@@ -198,7 +185,7 @@ ${normas ? `Normas aportadas al expediente:\n${normas}` : ""}`;
 
 export async function extractDocumentWithGemini({
   apiKey,
-  model = "gemini-3.6-flash",
+  model = "gemini-1.5-flash",
   kind,
   text,
 }: {
@@ -266,21 +253,25 @@ Todos los montos deben ser números enteros en pesos (sin comas ni puntos decima
   if (!res.ok) return { ok: false, error: res.error };
 
   try {
-    const raw = res.text.trim();
-    const jsonMatch = raw.match(/\{[\s\S]*\}/);
-    const parsed = JSON.parse(jsonMatch?.[0] ?? raw) as {
-      amounts?: Record<string, number>;
-      notes?: string;
-    };
+    const raw = JSON.parse(res.text);
+    const amounts: Record<string, number> = {};
+    if (raw && typeof raw.amounts === "object" && raw.amounts !== null) {
+      for (const [k, v] of Object.entries(raw.amounts)) {
+        const num = typeof v === "number" ? v : parseInt(String(v).replace(/\D/g, ""), 10);
+        if (Number.isFinite(num) && num > 0) {
+          amounts[k] = num;
+        }
+      }
+    }
     return {
       ok: true,
-      amounts: parsed.amounts ?? {},
-      notes: parsed.notes ?? "Extracción completada con éxito.",
+      amounts,
+      notes: typeof raw?.notes === "string" ? raw.notes : "Extracción automática completada.",
     };
-  } catch {
+  } catch (err) {
     return {
       ok: false,
-      error: "No se pudo estructurar la respuesta JSON de Gemini.",
+      error: "No se pudo interpretar la respuesta estructurada de Gemini. Intente nuevamente.",
     };
   }
 }

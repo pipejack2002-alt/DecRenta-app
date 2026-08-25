@@ -3,11 +3,11 @@ import React from "react";
 export function FormattedMarkdown({ content }: { content: string }) {
   if (!content) return null;
 
-  // 1. Limpieza de LaTeX matemático crudo a texto limpio y legible
+  // 1. Limpieza de bloques de LaTeX multilínea o fórmulas ($$ ... $$)
+  // ¡IMPORTANTE!: NO reemplazar '$' individuales porque en Colombia '$' es el signo de pesos ($ 49.799).
   let clean = content
     .replace(/\$\$\\text\{([^}]+)\}\s*=\s*\\text\{([^}]+)\}\s*-\s*\\text\{([^}]+)\}\$\$/g, "🔹 $1 = $2 − $3")
     .replace(/\$\$([^$]+)\$\$/g, (_, math) => cleanLatex(math))
-    .replace(/\$([^$]+)\$/g, (_, math) => cleanLatex(math))
     .replace(/\\text\{([^}]+)\}/g, "$1")
     .replace(/\\\$/g, "$");
 
@@ -161,7 +161,6 @@ function cleanLatex(math: string): string {
 }
 
 function renderInline(text: string): React.ReactNode {
-  // Dividir por enlaces, negritas, cursivas y código
   const parts: React.ReactNode[] = [];
   let remaining = text;
   let keyIdx = 0;
