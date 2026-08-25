@@ -101,6 +101,19 @@ export async function callGeminiApi({
     });
 
     if (!res.ok) {
+      // Si el modelo seleccionado no existe en los endpoints actuales de Google (404),
+      // reintentamos automáticamente con el modelo activo más reciente (gemini-2.5-flash / gemini-2.5-pro)
+      if (res.status === 404 && model !== "gemini-2.5-flash" && model !== "gemini-1.5-flash") {
+        const fallbackModel = model.includes("pro") ? "gemini-2.5-pro" : "gemini-2.5-flash";
+        return callGeminiApi({
+          apiKey,
+          model: fallbackModel,
+          systemPrompt,
+          userPrompt,
+          jsonMode,
+        });
+      }
+
       const errBody = await res.json().catch(() => ({}));
       const msg =
         (errBody as { error?: { message?: string } })?.error?.message ||
