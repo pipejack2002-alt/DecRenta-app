@@ -75,11 +75,29 @@ export type AiSettings = {
   geminiModel: string;
 };
 
+export type ProfileStatus = "borrador" | "revision" | "listo" | "presentado";
+
+export type ClientProfile = {
+  id: string;
+  name: string;
+  nit: string;
+  year: number;
+  status: ProfileStatus;
+  createdAt: string;
+  updatedAt: string;
+  declaration: Declaration;
+  docs: VaultDoc[];
+  normas: IngestedNorm[];
+};
+
 type AppState = {
   declaration: Declaration;
   docs: VaultDoc[];
   normas: IngestedNorm[];
   aiSettings: AiSettings;
+  profiles: ClientProfile[];
+  activeProfileId: string | null;
+
   setYear: (year: TaxYear) => void;
   setUvtOverride: (year: number, value: number | null) => void;
   setAiSettings: (settings: Partial<AiSettings>) => void;
@@ -92,11 +110,65 @@ type AppState = {
   addNorma: (n: IngestedNorm) => { ok: true } | { ok: false; error: string };
   removeNorma: (id: string) => void;
   applyAmounts: (amounts: Record<string, number>) => void;
+
+  // Multi-cliente
+  createProfile: (name?: string, nit?: string, year?: TaxYear) => string;
+  switchProfile: (id: string) => void;
+  duplicateProfile: (id: string) => string;
+  deleteProfile: (id: string) => void;
+  updateProfileStatus: (id: string, status: ProfileStatus) => void;
+  exportAllProfilesJson: () => string;
+  importProfilesJson: (jsonStr: string) => { ok: true; count: number } | { ok: false; error: string };
 };
+
+const DEFAULT_PROFILE_ID = "p-principal";
+
+function syncCurrentProfile(s: AppState, nextDecl?: Declaration, nextDocs?: VaultDoc[], nextNormas?: IngestedNorm[]): ClientProfile[] {
+  const activeId = s.activeProfileId || DEFAULT_PROFILE_ID;
+  const d = nextDecl ?? s.declaration;
+  const docs = nextDocs ?? s.docs;
+  const normas = nextNormas ?? s.normas;
+  const name = [d.identity.primerNombre, d.identity.primerApellido].filter(Boolean).join(" ") || "Cliente Principal";
+  const nit = d.identity.nit || "Sin NIT";
+
+  const existingIndex = s.profiles.findIndex((p) => p.id === activeId);
+  const now = new Date().toISOString();
+
+  if (existingIndex >= 0) {
+    const updated = [...s.profiles];
+    updated[existingIndex] = {
+      ...updated[existingIndex],
+      name,
+      nit,
+      year: d.year,
+      declaration: d,
+      docs,
+      normas,
+      updatedAt: now,
+    };
+    return updated;
+  }
+
+  return [
+    ...s.profiles,
+    {
+      id: activeId,
+      name,
+      nit,
+      year: d.year,
+      status: "borrador",
+      createdAt: now,
+      updatedAt: now,
+      declaration: d,
+      docs,
+      normas,
+    },
+  ];
+}
 
 export const useAppStore = create<AppState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       declaration: emptyDeclaration(2025),
       docs: [],
       normas: [],
@@ -104,14 +176,23 @@ export const useAppStore = create<AppState>()(
         geminiApiKey: "",
         geminiModel: "gemini-3.6-flash",
       },
+      profiles: [],
+      activeProfileId: DEFAULT_PROFILE_ID,
+
       setYear: (year) =>
-        set((s) => ({ declaration: { ...s.declaration, year } })),
+        set((s) => {
+          const nextDecl = { ...s.declaration, year };
+          const nextProfiles = syncCurrentProfile(s, nextDecl);
+          return { declaration: nextDecl, profiles: nextProfiles };
+        }),
       setUvtOverride: (year, value) =>
         set((s) => {
           const next: UvtOverrides = { ...normalizeOverrides(s.declaration.uvtOverrides) };
           if (value == null || value <= 0) delete next[year];
           else next[year] = Math.round(value);
-          return { declaration: { ...s.declaration, uvtOverrides: next } };
+          const nextDecl = { ...s.declaration, uvtOverrides: next };
+          const nextProfiles = syncCurrentProfile(s, nextDecl);
+          return { declaration: nextDecl, profiles: nextProfiles };
         }),
       setAiSettings: (settings) =>
         set((s) => ({ aiSettings: { ...s.aiSettings, ...settings } })),
@@ -119,16 +200,39 @@ export const useAppStore = create<AppState>()(
         set((s) => {
           const next = structuredClone(hydrateDeclaration(s.declaration));
           fn(next);
-          return { declaration: next };
+          const nextProfiles = syncCurrentProfile(s, next);
+          return { declaration: next, profiles: nextProfiles };
         }),
-      reset: () => set({ declaration: emptyDeclaration(2025) }),
-      loadExample: () => set({ declaration: exampleDeclaration() }),
-      addDoc: (doc) => set((s) => ({ docs: [doc, ...s.docs] })),
+      reset: () =>
+        set((s) => {
+          const nextDecl = emptyDeclaration(2025);
+          const nextProfiles = syncCurrentProfile(s, nextDecl);
+          return { declaration: nextDecl, profiles: nextProfiles };
+        }),
+      loadExample: () =>
+        set((s) => {
+          const nextDecl = exampleDeclaration();
+          const nextProfiles = syncCurrentProfile(s, nextDecl);
+          return { declaration: nextDecl, profiles: nextProfiles };
+        }),
+      addDoc: (doc) =>
+        set((s) => {
+          const nextDocs = [doc, ...s.docs];
+          const nextProfiles = syncCurrentProfile(s, undefined, nextDocs);
+          return { docs: nextDocs, profiles: nextProfiles };
+        }),
       updateDoc: (id, patch) =>
-        set((s) => ({
-          docs: s.docs.map((d) => (d.id === id ? { ...d, ...patch } : d)),
-        })),
-      removeDoc: (id) => set((s) => ({ docs: s.docs.filter((d) => d.id !== id) })),
+        set((s) => {
+          const nextDocs = s.docs.map((d) => (d.id === id ? { ...d, ...patch } : d));
+          const nextProfiles = syncCurrentProfile(s, undefined, nextDocs);
+          return { docs: nextDocs, profiles: nextProfiles };
+        }),
+      removeDoc: (id) =>
+        set((s) => {
+          const nextDocs = s.docs.filter((d) => d.id !== id);
+          const nextProfiles = syncCurrentProfile(s, undefined, nextDocs);
+          return { docs: nextDocs, profiles: nextProfiles };
+        }),
       addNorma: (n) => {
         let result: { ok: true } | { ok: false; error: string } = { ok: true };
         set((s) => {
@@ -136,23 +240,216 @@ export const useAppStore = create<AppState>()(
             result = { ok: false, error: `Tope de ${MAX_NORMAS} normas en este navegador.` };
             return s;
           }
-          const next: IngestedNorm = {
+          const nextNorma: IngestedNorm = {
             ...n,
             text: n.text.slice(0, MAX_NORMA_CHARS),
             title: n.title.slice(0, 200),
             citation: n.citation.slice(0, 200),
           };
-          return { normas: [next, ...s.normas] };
+          const nextNormas = [nextNorma, ...s.normas];
+          const nextProfiles = syncCurrentProfile(s, undefined, undefined, nextNormas);
+          return { normas: nextNormas, profiles: nextProfiles };
         });
         return result;
       },
-      removeNorma: (id) => set((s) => ({ normas: s.normas.filter((x) => x.id !== id) })),
+      removeNorma: (id) =>
+        set((s) => {
+          const nextNormas = s.normas.filter((x) => x.id !== id);
+          const nextProfiles = syncCurrentProfile(s, undefined, undefined, nextNormas);
+          return { normas: nextNormas, profiles: nextProfiles };
+        }),
       applyAmounts: (amounts) =>
         set((s) => {
           const next = structuredClone(hydrateDeclaration(s.declaration));
           applyPathAmounts(next, amounts);
-          return { declaration: next };
+          const nextProfiles = syncCurrentProfile(s, next);
+          return { declaration: next, profiles: nextProfiles };
         }),
+
+      // Acciones Multi-Cliente
+      createProfile: (name = "Nuevo Cliente", nit = "", year = 2025) => {
+        const id = `cli-${Date.now()}`;
+        const newDecl = emptyDeclaration(year);
+        if (nit) newDecl.identity.nit = nit;
+        const parts = name.split(" ");
+        if (parts[0]) newDecl.identity.primerNombre = parts[0];
+        if (parts[1]) newDecl.identity.primerApellido = parts[1];
+
+        const now = new Date().toISOString();
+        const profile: ClientProfile = {
+          id,
+          name,
+          nit: nit || "Sin NIT",
+          year,
+          status: "borrador",
+          createdAt: now,
+          updatedAt: now,
+          declaration: newDecl,
+          docs: [],
+          normas: [],
+        };
+
+        set((s) => {
+          const updated = syncCurrentProfile(s);
+          return {
+            profiles: [profile, ...updated],
+            activeProfileId: id,
+            declaration: newDecl,
+            docs: [],
+            normas: [],
+          };
+        });
+
+        return id;
+      },
+
+      switchProfile: (id) => {
+        const s = get();
+        const target = s.profiles.find((p) => p.id === id);
+        if (!target) return;
+
+        // Sincronizar el perfil actual antes de cambiar
+        const synced = syncCurrentProfile(s);
+
+        set({
+          profiles: synced,
+          activeProfileId: target.id,
+          declaration: hydrateDeclaration(target.declaration),
+          docs: target.docs || [],
+          normas: hydrateNormas(target.normas),
+        });
+      },
+
+      duplicateProfile: (id) => {
+        const s = get();
+        const source = s.profiles.find((p) => p.id === id) || {
+          id: DEFAULT_PROFILE_ID,
+          name: "Cliente",
+          nit: "",
+          year: s.declaration.year,
+          status: "borrador" as ProfileStatus,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          declaration: s.declaration,
+          docs: s.docs,
+          normas: s.normas,
+        };
+
+        const newId = `cli-${Date.now()}`;
+        const copyDecl = structuredClone(hydrateDeclaration(source.declaration));
+        const now = new Date().toISOString();
+
+        const copy: ClientProfile = {
+          id: newId,
+          name: `${source.name} (Copia)`,
+          nit: source.nit,
+          year: source.year,
+          status: "borrador",
+          createdAt: now,
+          updatedAt: now,
+          declaration: copyDecl,
+          docs: structuredClone(source.docs || []),
+          normas: structuredClone(source.normas || []),
+        };
+
+        set((state) => {
+          const synced = syncCurrentProfile(state);
+          return {
+            profiles: [copy, ...synced],
+            activeProfileId: newId,
+            declaration: copyDecl,
+            docs: copy.docs,
+            normas: copy.normas,
+          };
+        });
+
+        return newId;
+      },
+
+      deleteProfile: (id) => {
+        set((s) => {
+          const nextProfiles = s.profiles.filter((p) => p.id !== id);
+          if (s.activeProfileId === id) {
+            const fallback = nextProfiles[0];
+            if (fallback) {
+              return {
+                profiles: nextProfiles,
+                activeProfileId: fallback.id,
+                declaration: hydrateDeclaration(fallback.declaration),
+                docs: fallback.docs || [],
+                normas: hydrateNormas(fallback.normas),
+              };
+            }
+            const fresh = emptyDeclaration(2025);
+            return {
+              profiles: [],
+              activeProfileId: DEFAULT_PROFILE_ID,
+              declaration: fresh,
+              docs: [],
+              normas: [],
+            };
+          }
+          return { profiles: nextProfiles };
+        });
+      },
+
+      updateProfileStatus: (id, status) => {
+        set((s) => ({
+          profiles: s.profiles.map((p) => (p.id === id ? { ...p, status, updatedAt: new Date().toISOString() } : p)),
+        }));
+      },
+
+      exportAllProfilesJson: () => {
+        const s = get();
+        const synced = syncCurrentProfile(s);
+        return JSON.stringify(
+          {
+            version: "tributoapp-v2",
+            exportedAt: new Date().toISOString(),
+            profiles: synced,
+          },
+          null,
+          2
+        );
+      },
+
+      importProfilesJson: (jsonStr) => {
+        try {
+          const data = JSON.parse(jsonStr) as { profiles?: ClientProfile[] };
+          if (!Array.isArray(data.profiles) || data.profiles.length === 0) {
+            return { ok: false, error: "El archivo JSON no contiene un listado válido de clientes o declaraciones." };
+          }
+
+          const validProfiles = data.profiles.map((p) => ({
+            id: p.id || `cli-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+            name: p.name || "Cliente Importado",
+            nit: p.nit || "",
+            year: p.year || 2025,
+            status: (p.status as ProfileStatus) || "borrador",
+            createdAt: p.createdAt || new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            declaration: hydrateDeclaration(p.declaration),
+            docs: Array.isArray(p.docs) ? p.docs : [],
+            normas: hydrateNormas(p.normas),
+          }));
+
+          set((s) => {
+            const merged = [...validProfiles, ...s.profiles.filter((curr) => !validProfiles.some((vp) => vp.id === curr.id))];
+            const first = validProfiles[0];
+            return {
+              profiles: merged,
+              activeProfileId: first.id,
+              declaration: hydrateDeclaration(first.declaration),
+              docs: first.docs,
+              normas: first.normas,
+            };
+          });
+
+          return { ok: true, count: validProfiles.length };
+        } catch (err) {
+          return { ok: false, error: err instanceof Error ? err.message : "Error al parsear el archivo JSON." };
+        }
+      },
     }),
     {
       name: "cedulario-ag-2025",
@@ -162,19 +459,39 @@ export const useAppStore = create<AppState>()(
         docs: s.docs.map(({ dataUrl: _d, ...rest }) => rest),
         normas: s.normas,
         aiSettings: s.aiSettings,
+        profiles: s.profiles.map((p) => ({
+          ...p,
+          docs: (p.docs || []).map(({ dataUrl: _d, ...rest }) => rest),
+        })),
+        activeProfileId: s.activeProfileId,
       }),
       merge: (persisted, current) => {
         const p = persisted as Partial<AppState> | undefined;
+        const decl = hydrateDeclaration((p?.declaration ?? current.declaration) as Declaration);
+        const docs = Array.isArray(p?.docs) ? p.docs : current.docs;
+        const normas = hydrateNormas(p?.normas);
+        const aiSettings = {
+          geminiApiKey: p?.aiSettings?.geminiApiKey ?? current.aiSettings.geminiApiKey,
+          geminiModel: p?.aiSettings?.geminiModel ?? current.aiSettings.geminiModel,
+        };
+        const profiles = Array.isArray(p?.profiles)
+          ? p.profiles.map((prof) => ({
+              ...prof,
+              declaration: hydrateDeclaration(prof.declaration),
+              docs: Array.isArray(prof.docs) ? prof.docs : [],
+              normas: hydrateNormas(prof.normas),
+            }))
+          : [];
+
         return {
           ...current,
           ...p,
-          declaration: hydrateDeclaration((p?.declaration ?? current.declaration) as Declaration),
-          docs: Array.isArray(p?.docs) ? p.docs : current.docs,
-          normas: hydrateNormas(p?.normas),
-          aiSettings: {
-            geminiApiKey: p?.aiSettings?.geminiApiKey ?? current.aiSettings.geminiApiKey,
-            geminiModel: p?.aiSettings?.geminiModel ?? current.aiSettings.geminiModel,
-          },
+          declaration: decl,
+          docs,
+          normas,
+          aiSettings,
+          profiles,
+          activeProfileId: p?.activeProfileId || DEFAULT_PROFILE_ID,
         };
       },
     },

@@ -1,6 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AlertList } from "@/components/layout/alert-list";
 import { TaxCharts } from "@/components/layout/tax-charts";
+import { ComparacionPatrimonialCard } from "@/components/layout/comparacion-patrimonial-card";
+import { BeneficioAuditoriaCard } from "@/components/layout/beneficio-auditoria-card";
+import { AnticipoCard } from "@/components/layout/anticipo-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardHint, CardTitle } from "@/components/ui/card";
@@ -61,6 +64,15 @@ function LiquidacionPage() {
 
       {/* Analítica visual con Recharts */}
       <TaxCharts computed={c} declaration={d} />
+
+      {/* Conciliación Patrimonial (Arts. 236 a 239 E.T.) */}
+      <ComparacionPatrimonialCard />
+
+      {/* Beneficio de Auditoría y Sanciones (Arts. 689-3 y 641 E.T.) */}
+      <BeneficioAuditoriaCard />
+
+      {/* Anticipo de Renta AG 2026 (Art. 807 E.T.) */}
+      <AnticipoCard />
 
       <DepuracionCard />
 

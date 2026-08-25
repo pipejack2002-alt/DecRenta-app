@@ -61,6 +61,11 @@ export type Patrimonio = {
   impuestosPorPagar: number;
   otrasDeudas: number;
   patrimonioLiquidoAnterior: number;
+  consumosEstimadosAnio?: number;
+  valorizacionesJustificadas?: number;
+  desvalorizacionesJustificadas?: number;
+  herenciasLegadosDonaciones?: number;
+  otrosAjustesJustificativos?: number;
 };
 
 export type Trabajo = {

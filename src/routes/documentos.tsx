@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Check, Copy, FileText, FileUp, Sparkles, Trash2 } from "lucide-react";
+import { Check, Copy, FileText, FileUp, Sparkles, Trash2, BookOpen } from "lucide-react";
 import { useMemo, useState } from "react";
 import { extractDocument, revisarDocumento } from "@/lib/ai/ask";
 import { extractDocumentWithGemini } from "@/lib/ai/gemini";
 import { ExtractionPreviewModal } from "@/components/layout/extraction-preview-modal";
 import { GeminiAsistenteModal } from "@/components/layout/gemini-asistente-modal";
+import { FormatosLegalesModal } from "@/components/layout/formatos-legales-modal";
 import { auditExpediente, findingsSummary, type Finding } from "@/lib/docs/audit";
 import { cartaProveedor, providerAsks, type ProviderAsk } from "@/lib/docs/proveedores";
 import {
@@ -47,17 +48,29 @@ function DocumentosPage() {
   const missingCount = needed.reduce((n, a) => n + a.missing.length, 0);
 
   const [tab, setTab] = useState<TabId | null>(null);
+  const [formatosOpen, setFormatosOpen] = useState(false);
   const effective: TabId = tab ?? (sum.block + sum.warn > 0 ? "mal" : "pedir");
 
   return (
     <div className="space-y-6">
-      <header>
-        <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Procedimiento Probatorio · Art. 771-2 E.T.</p>
-        <h1 className="mt-1 font-display text-4xl font-bold">Expediente y Soportes Documentales</h1>
-        <p className="mt-2 max-w-2xl text-sm text-muted">
-          Audite la procedencia fiscal de sus deducciones, genere cartas de solicitud a entidades bancarias y empleadores, y gestione sus certificados con extracción automática asistida por Gemini AI.
-        </p>
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Procedimiento Probatorio · Art. 771-2 E.T.</p>
+          <h1 className="mt-1 font-display text-4xl font-bold">Expediente y Soportes Documentales</h1>
+          <p className="mt-2 max-w-2xl text-sm text-muted">
+            Audite la procedencia fiscal de sus deducciones, genere cartas de solicitud a entidades bancarias y empleadores, y gestione sus certificados con extracción automática asistida por Gemini AI.
+          </p>
+        </div>
+        <Button
+          onClick={() => setFormatosOpen(true)}
+          className="gap-2 bg-forest text-primary-fg hover:bg-forest-deep shadow-sm"
+        >
+          <FileText className="size-4" />
+          <span>Generar Formatos & Certificados</span>
+        </Button>
       </header>
+
+      <FormatosLegalesModal isOpen={formatosOpen} onClose={() => setFormatosOpen(false)} />
 
       <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
         {TABS.map((t) => {

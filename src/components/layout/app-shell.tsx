@@ -7,6 +7,7 @@ import { formatCOP } from "@/lib/tax/format";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { GeminiAsistenteModal } from "@/components/layout/gemini-asistente-modal";
+import { ClientSwitcher } from "@/components/layout/client-switcher";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -18,26 +19,29 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-bg text-ink">
       <a
-        href="#contenido"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-forest focus:px-3 focus:py-2 focus:text-primary-fg"
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-forest focus:px-3 focus:py-2 focus:text-primary-fg"
       >
-        Saltar al contenido
+        Saltar al contenido principal
       </a>
       <header className="sticky top-0 z-40 border-b border-line bg-bg/90 backdrop-blur-sm">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3">
-          <Link to="/" className="flex min-w-0 items-center gap-3">
-            <span className="flex size-9 items-center justify-center rounded-md bg-forest text-primary-fg font-display font-bold text-lg">
-              T
-            </span>
-            <span className="min-w-0">
-              <span className="block font-display text-lg leading-none tracking-tight font-bold">
-                TributoApp
+          <div className="flex items-center gap-3">
+            <Link to="/" className="flex min-w-0 items-center gap-3">
+              <span className="flex size-9 items-center justify-center rounded-md bg-forest text-primary-fg font-display font-bold text-lg">
+                T
               </span>
-              <span className="mt-0.5 block text-[11px] uppercase tracking-[0.16em] text-muted">
-                Renta 210 · AG {year}
+              <span className="min-w-0 hidden sm:block">
+                <span className="block font-display text-lg leading-none tracking-tight font-bold">
+                  TributoApp
+                </span>
+                <span className="mt-0.5 block text-[11px] uppercase tracking-[0.16em] text-muted">
+                  Renta 210 · AG {year}
+                </span>
               </span>
-            </span>
-          </Link>
+            </Link>
+            <ClientSwitcher />
+          </div>
           <div className="flex items-center gap-3">
             <div className="hidden text-right sm:block">
               <p className="text-[11px] uppercase tracking-[0.14em] text-muted">
