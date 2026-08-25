@@ -1,0 +1,612 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Columns2, Eye, FileText, History, Maximize2 } from "lucide-react";
+import { useMemo, useState } from "react";
+import { CompensacionesDialog } from "@/components/layout/compensaciones-dialog";
+import { LiveFormPreview } from "@/components/layout/live-form-preview";
+import { MoneyField, TextField, ToggleField } from "@/components/layout/money-field";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardHint, CardTitle } from "@/components/ui/card";
+import { CIIU_COMMON, SECCIONALES } from "@/lib/catalogs";
+import { useAppStore, useComputed } from "@/lib/store";
+import { formatCOP } from "@/lib/tax/format";
+import { CASILLA_LABELS } from "@/lib/tax/engine";
+import { deadlineForNit, daysUntil, isZonaSismo1226 } from "@/lib/tax/calendar";
+import { type TipoCompensacion } from "@/lib/tax/types";
+import { cn } from "@/lib/utils";
+
+export const Route = createFileRoute("/declaracion")({ component: DeclaracionPage });
+
+const SECTIONS = [
+  { id: "id", label: "Identificación" },
+  { id: "pat", label: "Patrimonio" },
+  { id: "tr", label: "Trabajo" },
+  { id: "hon", label: "Honorarios" },
+  { id: "cap", label: "Capital" },
+  { id: "nl", label: "No laborales" },
+  { id: "pen", label: "Pensiones" },
+  { id: "div", label: "Dividendos" },
+  { id: "go", label: "Ganancia ocasional" },
+  { id: "dsc", label: "Descuentos y cierre" },
+] as const;
+
+function DeclaracionPage() {
+  const [sec, setSec] = useState<(typeof SECTIONS)[number]["id"]>("id");
+  const [splitScreen, setSplitScreen] = useState(false);
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [compensacionesOpen, setCompensacionesOpen] = useState(false);
+  const [initialCompTipo, setInitialCompTipo] = useState<TipoCompensacion>("capital");
+  const d = useAppStore((s) => s.declaration);
+  const patch = useAppStore((s) => s.patch);
+  const c = useComputed();
+  const y = d.year;
+
+  function openCompensaciones(tipo: TipoCompensacion) {
+    setInitialCompTipo(tipo);
+    setCompensacionesOpen(true);
+  }
+
+  const live = useMemo(() => {
+    const pick = (n: number) => ({ n, v: c.casillas[n] ?? 0, l: CASILLA_LABELS[n] });
+    return [29, 31, 32, 42, 97, 126, 136, 137].map(pick);
+  }, [c.casillas]);
+
+  return (
+    <div className="space-y-6">
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Formulario 210 · AG {d.year}</p>
+          <h1 className="mt-1 font-display text-4xl">Cédulas</h1>
+          <p className="mt-2 max-w-2xl text-sm text-muted">
+            Cada campo cita la norma. Los topes (AFC, 25 %, 1.200 UVT de vivienda, 40 % / 1.340 UVT) se aplican solos y se explican en Liquidación.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant={splitScreen ? "default" : "outline"}
+            size="sm"
+            onClick={() => setSplitScreen(!splitScreen)}
+            title="Alternar vista dividida con el Formulario 210 en tiempo real"
+          >
+            <Columns2 className="mr-1.5 size-4" />
+            {splitScreen ? "Vista estándar" : "Modo dividido (210 en vivo)"}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPreviewModalOpen(true)}
+            title="Previsualizar el Formulario 210 en ventana flotante"
+          >
+            <Maximize2 className="mr-1.5 size-4" />
+            Previsualizar 210
+          </Button>
+        </div>
+      </header>
+
+      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+        {SECTIONS.map((s) => (
+          <button
+            key={s.id}
+            type="button"
+            onClick={() => setSec(s.id)}
+            className={cn(
+              "h-11 shrink-0 rounded-full px-4 text-sm transition-colors",
+              sec === s.id ? "bg-forest text-primary-fg" : "bg-surface text-ink-soft shadow-[0_0_0_1px_var(--color-line)]",
+            )}
+          >
+            {s.label}
+          </button>
+        ))}
+      </div>
+
+      <div className={cn("grid gap-6", splitScreen ? "lg:grid-cols-[1fr_1.15fr]" : "lg:grid-cols-[minmax(0,1fr)_18rem]")}>
+        <div className="space-y-4">
+          {sec === "id" && (
+            <Card className="space-y-4">
+              <CardTitle>Datos del declarante</CardTitle>
+              <CardHint>Deben coincidir con la hoja principal del RUT (casillas 5 a 12 y 24).</CardHint>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <TextField
+                  label="Cédula / NIT (sin DV)"
+                  value={d.identity.nit}
+                  inputMode="numeric"
+                  onChange={(v) => patch((x) => (x.identity.nit = v.replace(/\D/g, "")))}
+                  hint="Los dos últimos dígitos fijan el vencimiento del calendario DIAN 2026."
+                />
+                <TextField
+                  label="DV"
+                  value={d.identity.dv}
+                  onChange={(v) => patch((x) => (x.identity.dv = v.slice(0, 1)))}
+                />
+                <TextField label="Primer apellido" value={d.identity.primerApellido} onChange={(v) => patch((x) => (x.identity.primerApellido = v))} />
+                <TextField label="Segundo apellido" value={d.identity.segundoApellido} onChange={(v) => patch((x) => (x.identity.segundoApellido = v))} />
+                <TextField label="Primer nombre" value={d.identity.primerNombre} onChange={(v) => patch((x) => (x.identity.primerNombre = v))} />
+                <TextField label="Otros nombres" value={d.identity.otrosNombres} onChange={(v) => patch((x) => (x.identity.otrosNombres = v))} />
+              </div>
+              <DeadlineInline nit={d.identity.nit} seccional={d.identity.dirSeccional} zonaManual={d.identity.zonaSismo1226} />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted">Dirección seccional</p>
+                  <select
+                    className="h-11 w-full rounded-md border border-line bg-surface px-3 text-sm"
+                    value={d.identity.dirSeccional}
+                    onChange={(e) => patch((x) => (x.identity.dirSeccional = e.target.value))}
+                  >
+                    {SECCIONALES.map((s) => (
+                      <option key={s.code} value={s.code}>
+                        {s.code} · {s.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted">Actividad CIIU</p>
+                  <select
+                    className="h-11 w-full rounded-md border border-line bg-surface px-3 text-sm"
+                    value={d.identity.actividadCiiu}
+                    onChange={(e) => patch((x) => (x.identity.actividadCiiu = e.target.value))}
+                  >
+                    {CIIU_COMMON.map((s) => (
+                      <option key={s.code} value={s.code}>
+                        {s.code} · {s.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <ToggleField
+                label="Domicilio fiscal al 10 de agosto de 2026 en zona del sismo"
+                hint="Palmira, Tuluá, Buenaventura o Quibdó (además de Cali, Pereira, Armenia, Manizales y Popayán, que se detectan por seccional). Decreto 1226: plazo especial si el NIT termina en 01–26."
+                checked={d.identity.zonaSismo1226}
+                onChange={(v) => patch((x) => (x.identity.zonaSismo1226 = v))}
+              />
+              <ToggleField
+                label="Residente fiscal en Colombia"
+                hint="Si no lo es, el formulario correcto es el 110, no el 210 (arts. 9 y 10 E.T.)."
+                checked={d.identity.residente}
+                onChange={(v) => patch((x) => (x.identity.residente = v))}
+              />
+              <ToggleField
+                label="Obligado a llevar libros de contabilidad"
+                hint="Los no obligados solo pueden solicitar pasivos de fecha cierta (art. 283 E.T. y arts. 48-61 C. Co.)."
+                checked={d.identity.llevaLibros}
+                onChange={(v) => patch((x) => (x.identity.llevaLibros = v))}
+              />
+              <ToggleField
+                label="Declara por primera vez"
+                hint="El anticipo del año siguiente es 25 %, 50 % o 75 % según sea el 1.º, 2.º o 3.er año (instructivo casilla 133)."
+                checked={d.identity.primeraVez}
+                onChange={(v) => patch((x) => (x.identity.primeraVez = v))}
+              />
+              <div className="space-y-1.5">
+                <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted">Años que lleva declarando</p>
+                <div className="flex gap-2">
+                  {([1, 2, 3] as const).map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => patch((x) => (x.identity.aniosDeclarando = n))}
+                      className={cn(
+                        "h-11 flex-1 rounded-md border text-sm",
+                        d.identity.aniosDeclarando === n ? "border-forest bg-forest-mist" : "border-line bg-surface",
+                      )}
+                    >
+                      {n === 3 ? "3 o más" : n}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {sec === "pat" && (
+            <Card className="space-y-4">
+              <CardTitle>Patrimonio</CardTitle>
+              <CardHint>Art. 261 E.T. Valor patrimonial al 31 de diciembre. Inmuebles: el mayor entre costo fiscal, avalúo catastral y autoavalúo (arts. 72 y 277).</CardHint>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <MoneyField label="Efectivo" casilla={29} year={y} value={d.patrimonio.efectivo} onChange={(n) => patch((x) => (x.patrimonio.efectivo = n))} />
+                <MoneyField label="Cuentas bancarias" year={y} value={d.patrimonio.cuentas} onChange={(n) => patch((x) => (x.patrimonio.cuentas = n))} />
+                <MoneyField label="Inversiones" year={y} value={d.patrimonio.inversiones} onChange={(n) => patch((x) => (x.patrimonio.inversiones = n))} />
+                <MoneyField label="Inmuebles" year={y} value={d.patrimonio.inmuebles} onChange={(n) => patch((x) => (x.patrimonio.inmuebles = n))} hint="Incluya casa de habitación." />
+                <MoneyField label="De esa, vivienda de habitación" year={y} value={d.patrimonio.viviendaHabitacion} onChange={(n) => patch((x) => (x.patrimonio.viviendaHabitacion = n))} hint="Se excluyen 8.000 UVT de la base de renta presuntiva (art. 189)." />
+                <MoneyField label="Vehículos" year={y} value={d.patrimonio.vehiculos} onChange={(n) => patch((x) => (x.patrimonio.vehiculos = n))} />
+                <MoneyField label="Muebles y enseres" year={y} value={d.patrimonio.muebles} onChange={(n) => patch((x) => (x.patrimonio.muebles = n))} />
+                <MoneyField label="Cuentas por cobrar" year={y} value={d.patrimonio.cuentasPorCobrar} onChange={(n) => patch((x) => (x.patrimonio.cuentasPorCobrar = n))} />
+                <MoneyField label="Criptoactivos" year={y} value={d.patrimonio.cripto} onChange={(n) => patch((x) => (x.patrimonio.cripto = n))} />
+                <MoneyField label="Otros activos" year={y} value={d.patrimonio.otrosActivos} onChange={(n) => patch((x) => (x.patrimonio.otrosActivos = n))} />
+                <MoneyField label="Aportes en sociedades nacionales" year={y} value={d.patrimonio.aportesSociedadesNacionales} onChange={(n) => patch((x) => (x.patrimonio.aportesSociedadesNacionales = n))} hint="Se restan de la base de renta presuntiva." />
+              </div>
+              <h3 className="font-display text-lg">Deudas · casilla 30</h3>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <MoneyField label="Obligaciones financieras" casilla={30} year={y} value={d.patrimonio.obligacionesFinancieras} onChange={(n) => patch((x) => (x.patrimonio.obligacionesFinancieras = n))} />
+                <MoneyField label="Cuentas por pagar" year={y} value={d.patrimonio.cuentasPorPagar} onChange={(n) => patch((x) => (x.patrimonio.cuentasPorPagar = n))} />
+                <MoneyField label="Impuestos por pagar" year={y} value={d.patrimonio.impuestosPorPagar} onChange={(n) => patch((x) => (x.patrimonio.impuestosPorPagar = n))} />
+                <MoneyField label="Otras deudas" year={y} value={d.patrimonio.otrasDeudas} onChange={(n) => patch((x) => (x.patrimonio.otrasDeudas = n))} />
+                <MoneyField label="Patrimonio líquido 31/12 del año anterior" year={y} value={d.patrimonio.patrimonioLiquidoAnterior} onChange={(n) => patch((x) => (x.patrimonio.patrimonioLiquidoAnterior = n))} hint="Sirve para comparación patrimonial (arts. 236-239) y renta presuntiva." />
+              </div>
+            </Card>
+          )}
+
+          {sec === "tr" && (
+            <Card className="space-y-4">
+              <CardTitle>Rentas de trabajo</CardTitle>
+              <CardHint>Art. 103 E.T. Incluya honorarios aquí solo si NO va a restar costos (para tomar el 25 % del num. 10 art. 206).</CardHint>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <MoneyField label="Salarios" casilla={32} year={y} value={d.trabajo.salarios} onChange={(n) => patch((x) => (x.trabajo.salarios = n))} source="Formato 220, casilla de pagos laborales" />
+                <MoneyField label="Honorarios sin costos" year={y} value={d.trabajo.honorariosSinCostos} onChange={(n) => patch((x) => (x.trabajo.honorariosSinCostos = n))} hint="Independiente que opta por la renta exenta del 25 %." />
+                <MoneyField label="Cesantías pagadas o consignadas" year={y} value={d.trabajo.cesantiasPagadas} onChange={(n) => patch((x) => (x.trabajo.cesantiasPagadas = n))} />
+                <MoneyField label="Otras prestaciones y primas" year={y} value={d.trabajo.otrasPrestaciones} onChange={(n) => patch((x) => (x.trabajo.otrasPrestaciones = n))} />
+                <MoneyField label="Ingresos en especie" year={y} value={d.trabajo.ingresosEspecie} onChange={(n) => patch((x) => (x.trabajo.ingresosEspecie = n))} source="Art. 29-1 E.T." />
+                <MoneyField label="Ingresos del exterior" year={y} value={d.trabajo.ingresosExterior} onChange={(n) => patch((x) => (x.trabajo.ingresosExterior = n))} />
+                <MoneyField label="Promedio salarial últimos 6 meses" year={y} value={d.trabajo.promedioMensual6m} onChange={(n) => patch((x) => (x.trabajo.promedioMensual6m = n))} hint="Define el % exento de cesantías (tabla num. 4 art. 206). 100 % si ≤ 350 UVT." />
+                <MoneyField label="Cesantías acumuladas a 31/12/2016 (retiradas)" year={y} value={d.trabajo.cesantiasAcumuladas2016} onChange={(n) => patch((x) => (x.trabajo.cesantiasAcumuladas2016 = n))} />
+              </div>
+              <h3 className="font-display text-lg">INCRNGO · casilla 33</h3>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <MoneyField label="Aportes obligatorios a pensión" casilla={33} year={y} value={d.trabajo.aportesPensionObligatorios} onChange={(n) => patch((x) => (x.trabajo.aportesPensionObligatorios = n))} source="Art. 55 E.T." />
+                <MoneyField label="Aportes obligatorios a salud" year={y} value={d.trabajo.aportesSaludObligatorios} onChange={(n) => patch((x) => (x.trabajo.aportesSaludObligatorios = n))} source="Art. 56 E.T." />
+                <MoneyField label="Cotizaciones voluntarias RAIS" year={y} value={d.trabajo.aportesVoluntariosRais} onChange={(n) => patch((x) => (x.trabajo.aportesVoluntariosRais = n))} hint="Tope 25 % y 2.500 UVT, global entre cédulas." />
+                <MoneyField label="Apoyos económicos educativos" year={y} value={d.trabajo.apoyosEducativos} onChange={(n) => patch((x) => (x.trabajo.apoyosEducativos = n))} hint="INCRNGO. No aplica a honorarios ni a capital." source="Art. 46 E.T." />
+                <MoneyField label="Otros INCRNGO" year={y} value={d.trabajo.otrosINCRNGO} onChange={(n) => patch((x) => (x.trabajo.otrosINCRNGO = n))} />
+              </div>
+              <h3 className="font-display text-lg">Exentas y deducciones</h3>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <MoneyField label="Aportes AFC / FVP / AVC" casilla={35} year={y} value={d.trabajo.aportesAfcFvpAvc} onChange={(n) => patch((x) => (x.trabajo.aportesAfcFvpAvc = n))} hint="30 % del ingreso y 3.800 UVT. Permanencia 10 años." source="Arts. 126-1 y 126-4 E.T." />
+                <MoneyField label="Indemnizaciones exentas" year={y} value={d.trabajo.indemnizaciones} onChange={(n) => patch((x) => (x.trabajo.indemnizaciones = n))} hint="Accidente de trabajo, maternidad, entierro. No entran al 40 %." source="Nums. 1-3 art. 206." />
+                <MoneyField label="Gastos de representación" year={y} value={d.trabajo.gastosRepresentacion} onChange={(n) => patch((x) => (x.trabajo.gastosRepresentacion = n))} hint="Magistrados 50 %, jueces 25 %, rectores públicos 50 %. Fuera del 40 %." source="Nums. 6 y 8 art. 206." />
+                <MoneyField label="Prestaciones / seguro de muerte FF.MM. y Policía" year={y} value={d.trabajo.ffmmPrestaciones} onChange={(n) => patch((x) => (x.trabajo.ffmmPrestaciones = n))} source="Num. 7 art. 206." />
+                <MoneyField label="Exceso del salario básico FF.MM. y POLINAL" year={y} value={d.trabajo.ffmmExcesoSalario} onChange={(n) => patch((x) => (x.trabajo.ffmmExcesoSalario = n))} source="Num. 7 art. 206." />
+                <MoneyField label="Rentas CAN (exentas, fuera del 40 %)" year={y} value={d.trabajo.rentasCan} onChange={(n) => patch((x) => (x.trabajo.rentasCan = n))} source="Decisión 578 CAN" />
+                <MoneyField label="Primas diplomáticas / costo de vida" year={y} value={d.trabajo.primasDiplomaticas} onChange={(n) => patch((x) => (x.trabajo.primasDiplomaticas = n))} source="Art. 206-1 E.T." />
+                <MoneyField label="Otras exentas ilimitadas" year={y} value={d.trabajo.otrasExentasIlimitadas} onChange={(n) => patch((x) => (x.trabajo.otrasExentasIlimitadas = n))} />
+                <MoneyField label="Otras exentas limitadas" year={y} value={d.trabajo.otrasExentas} onChange={(n) => patch((x) => (x.trabajo.otrasExentas = n))} />
+                <MoneyField label="Intereses de vivienda" casilla={38} year={y} value={d.trabajo.interesesVivienda} onChange={(n) => patch((x) => (x.trabajo.interesesVivienda = n))} hint="Tope 1.200 UVT, art. 119. Global entre cédulas." />
+                <MoneyField label="Medicina prepagada / seguro de salud" year={y} value={d.trabajo.medicinaPrepagada} onChange={(n) => patch((x) => (x.trabajo.medicinaPrepagada = n))} hint="16 UVT mensuales. Art. 387." />
+                <MoneyField label="GMF pagado (se toma el 50 %)" year={y} value={d.trabajo.gmf} onChange={(n) => patch((x) => (x.trabajo.gmf = n))} source="Art. 115 E.T. Certificado del banco." />
+                <MoneyField label="Intereses ICETEX" year={y} value={d.trabajo.icetex} onChange={(n) => patch((x) => (x.trabajo.icetex = n))} hint="Tope 100 UVT, art. 119." />
+                <MoneyField label="Deducción anual FNCE / vehículo eléctrico" year={y} value={d.trabajo.fnceAnual} onChange={(n) => patch((x) => (x.trabajo.fnceAnual = n))} hint="50 % de la inversión en 15 años. Certificado UPME." source="Art. 11 Ley 1715/2014" />
+                <MoneyField label="Otras deducciones imputables" year={y} value={d.trabajo.otrasDeducciones} onChange={(n) => patch((x) => (x.trabajo.otrasDeducciones = n))} />
+                <MoneyField label="Compras con factura electrónica (base del 1 %)" casilla={28} year={y} value={d.trabajo.comprasFacturaElectronica} onChange={(n) => patch((x) => (x.trabajo.comprasFacturaElectronica = n))} hint="Pagadas con tarjeta o medio electrónico. Tope de la deducción: 240 UVT. No se pueden haber tomado como costo." source="Num. 5 art. 336 E.T." />
+              </div>
+              <div className="space-y-1.5">
+                <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted">Dependientes económicos (máx. 4)</p>
+                <div className="flex gap-2">
+                  {[0, 1, 2, 3, 4].map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => patch((x) => (x.trabajo.dependientes = n))}
+                      className={cn(
+                        "h-11 flex-1 rounded-md border text-sm tabular-nums",
+                        d.trabajo.dependientes === n ? "border-forest bg-forest-mist" : "border-line bg-surface",
+                      )}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-muted">
+                  Art. 387: 10 % de la renta de trabajo (máx. 32 UVT/mes = {formatCOP((c.uvt || 0) * 32)} ) entra al 40 %. Además, 72 UVT anuales por persona salen del 40 % (casilla 139). Un mismo dependiente no se duplica. DUR 1.2.1.20.3.
+                </p>
+              </div>
+            </Card>
+          )}
+
+          {sec === "hon" && (
+            <Card className="space-y-4">
+              <CardTitle>Honorarios con costos</CardTitle>
+              <CardHint>
+                Si resta costos, pierde la renta exenta del 25 % sobre esos ingresos (par. 5 art. 206). Los costos deben cumplir art. 107 y 771-2 (factura electrónica). Si superan el 60 % de los ingresos, se marca la casilla 140 (art. 336-1).
+              </CardHint>
+              <ToggleField
+                label="Voy a imputar costos y gastos (casilla 43)"
+                hint="Desactive si prefiere llevar los honorarios a la casilla 32 y tomar el 25 %."
+                checked={d.honorarios.usarCostos}
+                onChange={(v) => patch((x) => (x.honorarios.usarCostos = v))}
+              />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <MoneyField label="Ingresos brutos" casilla={43} year={y} value={d.honorarios.ingresos} onChange={(n) => patch((x) => (x.honorarios.ingresos = n))} />
+                <MoneyField label="INCRNGO (otros)" casilla={44} year={y} value={d.honorarios.incrngo} onChange={(n) => patch((x) => (x.honorarios.incrngo = n))} />
+                <MoneyField label="Aportes pensión obligatorios" year={y} value={d.honorarios.aportesPension} onChange={(n) => patch((x) => (x.honorarios.aportesPension = n))} source="Art. 55 E.T." />
+                <MoneyField label="Aportes salud obligatorios" year={y} value={d.honorarios.aportesSalud} onChange={(n) => patch((x) => (x.honorarios.aportesSalud = n))} source="Art. 56 E.T." />
+                <MoneyField label="Cotización voluntaria RAIS" year={y} value={d.honorarios.aportesRais} onChange={(n) => patch((x) => (x.honorarios.aportesRais = n))} hint="25 % y 2.500 UVT globales." />
+                <MoneyField label="Costos y deducciones procedentes" casilla={45} year={y} value={d.honorarios.costos} onChange={(n) => patch((x) => (x.honorarios.costos = n))} />
+                <MoneyField label="AFC / FVP / AVC" casilla={47} year={y} value={d.honorarios.aportesAfc} onChange={(n) => patch((x) => (x.honorarios.aportesAfc = n))} />
+                <MoneyField label="Rentas CAN (fuera del 40 %)" year={y} value={d.honorarios.rentasCan} onChange={(n) => patch((x) => (x.honorarios.rentasCan = n))} />
+                <MoneyField label="Otras exentas" year={y} value={d.honorarios.otrasExentas} onChange={(n) => patch((x) => (x.honorarios.otrasExentas = n))} />
+                <MoneyField label="Intereses de vivienda" casilla={50} year={y} value={d.honorarios.interesesVivienda} onChange={(n) => patch((x) => (x.honorarios.interesesVivienda = n))} />
+                <MoneyField label="GMF pagado (50 %)" year={y} value={d.honorarios.gmf} onChange={(n) => patch((x) => (x.honorarios.gmf = n))} source="Art. 115 E.T." />
+                <MoneyField label="Intereses ICETEX" year={y} value={d.honorarios.icetex} onChange={(n) => patch((x) => (x.honorarios.icetex = n))} hint="Tope 100 UVT globales." />
+                <MoneyField label="Medicina prepagada" year={y} value={d.honorarios.medicinaPrepagada} onChange={(n) => patch((x) => (x.honorarios.medicinaPrepagada = n))} hint="16 UVT/mes, compartido con trabajo." />
+                <MoneyField label="Aportes a cesantías (independiente)" year={y} value={d.honorarios.aportesCesantiasIndependiente} onChange={(n) => patch((x) => (x.honorarios.aportesCesantiasIndependiente = n))} hint="2.500 UVT y 1/12 del ingreso gravable. Art. 126-1. No aplica a asalariados." />
+                <MoneyField label="FNCE / vehículo eléctrico (cuota anual)" year={y} value={d.honorarios.fnceAnual} onChange={(n) => patch((x) => (x.honorarios.fnceAnual = n))} />
+                <MoneyField label="Otras deducciones" year={y} value={d.honorarios.otrasDeducciones} onChange={(n) => patch((x) => (x.honorarios.otrasDeducciones = n))} />
+                <MoneyField label="Compensación de pérdidas de años anteriores" casilla={56} year={y} value={d.honorarios.compensacionPerdidas} onChange={(n) => patch((x) => (x.honorarios.compensacionPerdidas = n))} />
+                <div className="sm:col-span-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-start text-xs text-forest"
+                    onClick={() => openCompensaciones("honorarios")}
+                  >
+                    <History className="mr-1.5 size-3.5" />
+                    Gestionar historial de pérdidas de honorarios (Art. 147 E.T.)
+                  </Button>
+                </div>
+              </div>
+              {c.casillas[140] ? (
+                <p className="rounded-md bg-warn-mist px-3 py-2 text-sm text-warn">
+                  Casilla 140 marcada: los costos superan el 60 % de los ingresos. Deben estar soportados con factura o nómina electrónica.
+                </p>
+              ) : null}
+            </Card>
+          )}
+
+          {sec === "cap" && (
+            <Card className="space-y-4">
+              <CardTitle>Rentas de capital</CardTitle>
+              <CardHint>Art. 335: intereses, arrendamientos, regalías, rendimientos financieros y explotación de intangibles.</CardHint>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <MoneyField label="Intereses" casilla={58} year={y} value={d.capital.intereses} onChange={(n) => patch((x) => (x.capital.intereses = n))} />
+                <MoneyField label="Arrendamientos" year={y} value={d.capital.arrendamientos} onChange={(n) => patch((x) => (x.capital.arrendamientos = n))} />
+                <MoneyField label="Regalías" year={y} value={d.capital.regalias} onChange={(n) => patch((x) => (x.capital.regalias = n))} />
+                <MoneyField label="Rendimientos financieros" year={y} value={d.capital.rendimientosFinancieros} onChange={(n) => patch((x) => (x.capital.rendimientosFinancieros = n))} />
+                <MoneyField label="Explotación de intangibles" year={y} value={d.capital.explotacionIntangibles} onChange={(n) => patch((x) => (x.capital.explotacionIntangibles = n))} />
+                <MoneyField label="Ingresos del exterior" year={y} value={d.capital.ingresosExterior} onChange={(n) => patch((x) => (x.capital.ingresosExterior = n))} />
+                <MoneyField label="Componente inflacionario (INCRNGO)" casilla={59} year={y} value={d.capital.componenteInflacionario} onChange={(n) => patch((x) => (x.capital.componenteInflacionario = n))} source="Arts. 38 a 41 E.T. Solo capital, y si no está obligado a llevar libros." />
+                <MoneyField label="Aportes pensión / salud / RAIS" year={y} value={d.capital.aportesPension} onChange={(n) => patch((x) => (x.capital.aportesPension = n))} hint="Arts. 55 y 56. RAIS en el campo siguiente." />
+                <MoneyField label="Cotización voluntaria RAIS" year={y} value={d.capital.aportesRais} onChange={(n) => patch((x) => (x.capital.aportesRais = n))} />
+                <MoneyField label="Aportes salud" year={y} value={d.capital.aportesSalud} onChange={(n) => patch((x) => (x.capital.aportesSalud = n))} />
+                <MoneyField label="Otros INCRNGO" year={y} value={d.capital.incrngo} onChange={(n) => patch((x) => (x.capital.incrngo = n))} />
+                <MoneyField label="Costos y gastos" casilla={60} year={y} value={d.capital.costos} onChange={(n) => patch((x) => (x.capital.costos = n))} />
+                <MoneyField label="Rentas pasivas ECE" casilla={62} year={y} value={d.capital.ecePasiva} onChange={(n) => patch((x) => (x.capital.ecePasiva = n))} />
+                <MoneyField label="AFC / FVP / AVC" year={y} value={d.capital.aportesAfc} onChange={(n) => patch((x) => (x.capital.aportesAfc = n))} />
+                <MoneyField label="Rentas CAN" year={y} value={d.capital.rentasCan} onChange={(n) => patch((x) => (x.capital.rentasCan = n))} />
+                <MoneyField label="Otras exentas" year={y} value={d.capital.otrasExentas} onChange={(n) => patch((x) => (x.capital.otrasExentas = n))} />
+                <MoneyField label="Intereses de vivienda" year={y} value={d.capital.interesesVivienda} onChange={(n) => patch((x) => (x.capital.interesesVivienda = n))} />
+                <MoneyField label="GMF pagado (50 %)" year={y} value={d.capital.gmf} onChange={(n) => patch((x) => (x.capital.gmf = n))} />
+                <MoneyField label="Intereses ICETEX" year={y} value={d.capital.icetex} onChange={(n) => patch((x) => (x.capital.icetex = n))} />
+                <MoneyField label="Aportes cesantías (independiente)" year={y} value={d.capital.aportesCesantiasIndependiente} onChange={(n) => patch((x) => (x.capital.aportesCesantiasIndependiente = n))} hint="2.500 UVT y 1/12. No para asalariados." />
+                <MoneyField label="FNCE / vehículo eléctrico" year={y} value={d.capital.fnceAnual} onChange={(n) => patch((x) => (x.capital.fnceAnual = n))} />
+                <MoneyField label="Otras deducciones" year={y} value={d.capital.otrasDeducciones} onChange={(n) => patch((x) => (x.capital.otrasDeducciones = n))} />
+                <MoneyField label="Compensación de pérdidas" casilla={72} year={y} value={d.capital.compensacionPerdidas} onChange={(n) => patch((x) => (x.capital.compensacionPerdidas = n))} />
+                <div className="sm:col-span-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-start text-xs text-forest"
+                    onClick={() => openCompensaciones("capital")}
+                  >
+                    <History className="mr-1.5 size-3.5" />
+                    Gestionar historial de pérdidas de capital (Art. 147 E.T.)
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {sec === "nl" && (
+            <Card className="space-y-4">
+              <CardTitle>Rentas no laborales</CardTitle>
+              <CardHint>Ventas de activos poseídos menos de 2 años, notarios, curadores, apoyos, recompensas y lo no clasificado en otra cédula.</CardHint>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <MoneyField label="Ingresos brutos (otros)" casilla={74} year={y} value={d.noLaborales.ingresos} onChange={(n) => patch((x) => (x.noLaborales.ingresos = n))} hint="Use los campos de abajo para desglosar. Se suman." />
+                <MoneyField label="Ventas de muebles o inmuebles" year={y} value={d.noLaborales.ventas} onChange={(n) => patch((x) => (x.noLaborales.ventas = n))} hint="Si el activo se poseyó ≥ 2 años, es ganancia ocasional." />
+                <MoneyField label="Recompensas" year={y} value={d.noLaborales.recompensas} onChange={(n) => patch((x) => (x.noLaborales.recompensas = n))} />
+                <MoneyField label="Apoyos económicos" year={y} value={d.noLaborales.apoyosEconomicos} onChange={(n) => patch((x) => (x.noLaborales.apoyosEconomicos = n))} />
+                <MoneyField label="Notarios" year={y} value={d.noLaborales.notarios} onChange={(n) => patch((x) => (x.noLaborales.notarios = n))} />
+                <MoneyField label="Curadores" year={y} value={d.noLaborales.curadores} onChange={(n) => patch((x) => (x.noLaborales.curadores = n))} />
+                <MoneyField label="Donaciones a campañas políticas" year={y} value={d.noLaborales.donacionesCampanas} onChange={(n) => patch((x) => (x.noLaborales.donacionesCampanas = n))} />
+                <MoneyField label="Demás no clasificados" year={y} value={d.noLaborales.demas} onChange={(n) => patch((x) => (x.noLaborales.demas = n))} />
+                <MoneyField label="Devoluciones, rebajas y descuentos" casilla={75} year={y} value={d.noLaborales.devoluciones} onChange={(n) => patch((x) => (x.noLaborales.devoluciones = n))} />
+                <MoneyField label="Apoyos educativos (INCRNGO art. 46)" year={y} value={d.noLaborales.apoyosEducativos} onChange={(n) => patch((x) => (x.noLaborales.apoyosEducativos = n))} />
+                <MoneyField label="Indemnizaciones por seguro de daño" year={y} value={d.noLaborales.indemnizacionesSeguroDano} onChange={(n) => patch((x) => (x.noLaborales.indemnizacionesSeguroDano = n))} source="Art. 45 E.T." hint="INCRNGO. El seguro de vida va a ganancia ocasional (art. 303-1)." />
+                <MoneyField label="Aportes pensión" year={y} value={d.noLaborales.aportesPension} onChange={(n) => patch((x) => (x.noLaborales.aportesPension = n))} />
+                <MoneyField label="Aportes salud" year={y} value={d.noLaborales.aportesSalud} onChange={(n) => patch((x) => (x.noLaborales.aportesSalud = n))} />
+                <MoneyField label="RAIS voluntario" year={y} value={d.noLaborales.aportesRais} onChange={(n) => patch((x) => (x.noLaborales.aportesRais = n))} />
+                <MoneyField label="Otros INCRNGO" year={y} value={d.noLaborales.incrngo} onChange={(n) => patch((x) => (x.noLaborales.incrngo = n))} />
+                <MoneyField label="Costos y gastos" casilla={77} year={y} value={d.noLaborales.costos} onChange={(n) => patch((x) => (x.noLaborales.costos = n))} />
+                <MoneyField label="Rentas pasivas ECE" casilla={79} year={y} value={d.noLaborales.ecePasiva} onChange={(n) => patch((x) => (x.noLaborales.ecePasiva = n))} />
+                <MoneyField label="AFC / FVP / AVC" year={y} value={d.noLaborales.aportesAfc} onChange={(n) => patch((x) => (x.noLaborales.aportesAfc = n))} />
+                <MoneyField label="Rentas CAN" year={y} value={d.noLaborales.rentasCan} onChange={(n) => patch((x) => (x.noLaborales.rentasCan = n))} />
+                <MoneyField label="Otras exentas (hoteles)" year={y} value={d.noLaborales.otrasExentas} onChange={(n) => patch((x) => (x.noLaborales.otrasExentas = n))} />
+                <MoneyField label="Intereses de vivienda" year={y} value={d.noLaborales.interesesVivienda} onChange={(n) => patch((x) => (x.noLaborales.interesesVivienda = n))} />
+                <MoneyField label="GMF pagado (50 %)" year={y} value={d.noLaborales.gmf} onChange={(n) => patch((x) => (x.noLaborales.gmf = n))} />
+                <MoneyField label="Intereses ICETEX" year={y} value={d.noLaborales.icetex} onChange={(n) => patch((x) => (x.noLaborales.icetex = n))} />
+                <MoneyField label="Aportes cesantías (independiente)" year={y} value={d.noLaborales.aportesCesantiasIndependiente} onChange={(n) => patch((x) => (x.noLaborales.aportesCesantiasIndependiente = n))} />
+                <MoneyField label="FNCE / vehículo eléctrico" year={y} value={d.noLaborales.fnceAnual} onChange={(n) => patch((x) => (x.noLaborales.fnceAnual = n))} />
+                <MoneyField label="Otras deducciones" year={y} value={d.noLaborales.otrasDeducciones} onChange={(n) => patch((x) => (x.noLaborales.otrasDeducciones = n))} />
+                <MoneyField label="Compensación de pérdidas" casilla={89} year={y} value={d.noLaborales.compensacionPerdidas} onChange={(n) => patch((x) => (x.noLaborales.compensacionPerdidas = n))} />
+                <div className="sm:col-span-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-start text-xs text-forest"
+                    onClick={() => openCompensaciones("noLaborales")}
+                  >
+                    <History className="mr-1.5 size-3.5" />
+                    Gestionar historial de pérdidas no laborales (Art. 147 E.T.)
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {sec === "pen" && (
+            <Card className="space-y-4">
+              <CardTitle>Cédula de pensiones</CardTitle>
+              <CardHint>Num. 5 art. 206: exenta la parte que no supere 1.000 UVT mensuales, después de aportes a salud y solidaridad.</CardHint>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <MoneyField label="Ingresos por pensiones (país y exterior)" casilla={99} year={y} value={d.pensiones.ingresos} onChange={(n) => patch((x) => (x.pensiones.ingresos = n))} />
+                <MoneyField label="INCRNGO (salud / FSP)" casilla={100} year={y} value={d.pensiones.incrngo} onChange={(n) => patch((x) => (x.pensiones.incrngo = n))} />
+              </div>
+              <div className="space-y-1.5">
+                <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted">Meses de mesada en el año</p>
+                <input
+                  type="range"
+                  min={1}
+                  max={12}
+                  value={d.pensiones.meses}
+                  onChange={(e) => patch((x) => (x.pensiones.meses = Number(e.target.value)))}
+                  className="w-full accent-[var(--color-forest)]"
+                />
+                <p className="text-sm tabular-nums">{d.pensiones.meses} meses · exención máx. {formatCOP((c.casillas[102] ?? 0))}</p>
+              </div>
+            </Card>
+          )}
+
+          {sec === "div" && (
+            <Card className="space-y-4">
+              <CardTitle>Dividendos y participaciones</CardTitle>
+              <CardHint>El certificado de la sociedad dice si son num. 3 o par. 2 del art. 49, y el año de origen.</CardHint>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <MoneyField label="Dividendos 2016 y anteriores" casilla={104} year={y} value={d.dividendos.div2016} onChange={(n) => patch((x) => (x.dividendos.div2016 = n))} />
+                <MoneyField label="INCRNGO de esos dividendos" casilla={105} year={y} value={d.dividendos.incrngo2016} onChange={(n) => patch((x) => (x.dividendos.incrngo2016 = n))} />
+                <MoneyField label="1ª subcédula 2017+ (num. 3 art. 49)" casilla={107} year={y} value={d.dividendos.subcedula1} onChange={(n) => patch((x) => (x.dividendos.subcedula1 = n))} hint="Se suman a la base del art. 241." />
+                <MoneyField label="2ª subcédula 2017+ (par. 2 art. 49)" casilla={108} year={y} value={d.dividendos.subcedula2} onChange={(n) => patch((x) => (x.dividendos.subcedula2 = n))} hint="Se gravan a la tarifa del art. 240 (35 % general)." />
+                <MoneyField label="Dividendos del exterior" casilla={109} year={y} value={d.dividendos.exterior} onChange={(n) => patch((x) => (x.dividendos.exterior = n))} />
+                <MoneyField label="Exentas del exterior (CAN / CDI)" casilla={110} year={y} value={d.dividendos.exentasExterior} onChange={(n) => patch((x) => (x.dividendos.exentasExterior = n))} />
+              </div>
+            </Card>
+          )}
+
+          {sec === "go" && (
+            <Card className="space-y-4">
+              <CardTitle>Ganancias ocasionales</CardTitle>
+              <CardHint>15 % general, 20 % loterías. Poseídos ≥ 2 años. Escritura = momento de realización (art. 27-2).</CardHint>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <MoneyField label="Enajenación de activos fijos ≥ 2 años" casilla={112} year={y} value={d.gananciasOcasionales.enajenacionActivos} onChange={(n) => patch((x) => (x.gananciasOcasionales.enajenacionActivos = n))} />
+                <MoneyField label="Herencias, legados, porción conyugal" year={y} value={d.gananciasOcasionales.herencias} onChange={(n) => patch((x) => (x.gananciasOcasionales.herencias = n))} />
+                <MoneyField label="Donaciones" year={y} value={d.gananciasOcasionales.donaciones} onChange={(n) => patch((x) => (x.gananciasOcasionales.donaciones = n))} />
+                <MoneyField label="Loterías, rifas y apuestas" year={y} value={d.gananciasOcasionales.loterias} onChange={(n) => patch((x) => (x.gananciasOcasionales.loterias = n))} hint="Tarifa 20 %." />
+                <MoneyField label="Seguro de vida" year={y} value={d.gananciasOcasionales.seguroVida} onChange={(n) => patch((x) => (x.gananciasOcasionales.seguroVida = n))} hint="No gravado hasta 3.250 UVT (art. 303-1)." />
+                <MoneyField label="Venta de casa de habitación" year={y} value={d.gananciasOcasionales.ventaVivienda} onChange={(n) => patch((x) => (x.gananciasOcasionales.ventaVivienda = n))} hint="Hasta 5.000 UVT exentas si van a AFC o hipoteca (art. 311-1)." />
+                <MoneyField label="Otros ingresos ocasionales" year={y} value={d.gananciasOcasionales.otros} onChange={(n) => patch((x) => (x.gananciasOcasionales.otros = n))} />
+                <MoneyField label="Costos fiscales" casilla={113} year={y} value={d.gananciasOcasionales.costos} onChange={(n) => patch((x) => (x.gananciasOcasionales.costos = n))} />
+                <MoneyField label="GO no gravadas y exentas" casilla={114} year={y} value={d.gananciasOcasionales.goNoGravadas} onChange={(n) => patch((x) => (x.gananciasOcasionales.goNoGravadas = n))} />
+                <MoneyField label="Impuesto pagado en el exterior (GO)" casilla={128} year={y} value={d.gananciasOcasionales.impuestoExterior} onChange={(n) => patch((x) => (x.gananciasOcasionales.impuestoExterior = n))} />
+              </div>
+            </Card>
+          )}
+
+          {sec === "dsc" && (
+            <Card className="space-y-4">
+              <CardTitle>Descuentos, retenciones y cierre</CardTitle>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <MoneyField label="Impuestos pagados en el exterior" casilla={122} year={y} value={d.descuentos.impuestosExterior} onChange={(n) => patch((x) => (x.descuentos.impuestosExterior = n))} source="Art. 254 E.T." />
+                <MoneyField label="Donaciones (base del descuento)" casilla={123} year={y} value={d.descuentos.donaciones} onChange={(n) => patch((x) => (x.descuentos.donaciones = n))} hint="ESAL régimen especial: 25 %. I+D+i: 30 %. Tope conjunto 30 % del impuesto." />
+                <MoneyField label="IVA de activos fijos reales productivos" year={y} value={d.descuentos.ivaActivosFijos} onChange={(n) => patch((x) => (x.descuentos.ivaActivosFijos = n))} />
+                <MoneyField label="Otros descuentos" year={y} value={d.descuentos.otros} onChange={(n) => patch((x) => (x.descuentos.otros = n))} />
+                <MoneyField label="Retenciones del año" casilla={132} year={y} value={d.extra.retenciones} onChange={(n) => patch((x) => (x.extra.retenciones = n))} />
+                <MoneyField label="Anticipo liquidado el año anterior" casilla={130} year={y} value={d.extra.anticipoAnterior} onChange={(n) => patch((x) => (x.extra.anticipoAnterior = n))} />
+                <MoneyField label="Saldo a favor anterior (sin devolución)" casilla={131} year={y} value={d.extra.saldoFavorAnterior} onChange={(n) => patch((x) => (x.extra.saldoFavorAnterior = n))} />
+                <MoneyField label="Impuesto neto del año anterior" year={y} value={d.extra.impuestoNetoAnterior} onChange={(n) => patch((x) => (x.extra.impuestoNetoAnterior = n))} hint="Para beneficio de auditoría art. 689-3." />
+                <MoneyField label="Rentas gravables (omitidos, comparación)" casilla={96} year={y} value={d.extra.rentasGravables} onChange={(n) => patch((x) => (x.extra.rentasGravables = n))} />
+                <MoneyField label="Compensación pérdidas 2018 y anteriores" casilla={94} year={y} value={d.extra.compensacionPerdidas2018} onChange={(n) => patch((x) => (x.extra.compensacionPerdidas2018 = n))} />
+                <MoneyField label="Compensación exceso renta presuntiva" casilla={95} year={y} value={d.extra.compensacionExcesoPresuntiva} onChange={(n) => patch((x) => (x.extra.compensacionExcesoPresuntiva = n))} />
+                <div className="sm:col-span-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-start text-xs text-forest"
+                    onClick={() => openCompensaciones("presuntiva")}
+                  >
+                    <History className="mr-1.5 size-3.5" />
+                    Gestionar historial de pérdidas 2018 y excesos de renta presuntiva (Arts. 147, 189 y 330 E.T.)
+                  </Button>
+                </div>
+                <MoneyField label="Renta presuntiva (si la liquida)" casilla={98} year={y} value={d.extra.rentaPresuntivaManual} onChange={(n) => patch((x) => (x.extra.rentaPresuntivaManual = n))} hint="Tarifa 0 %; informe renta de activos exceptuados." />
+                <MoneyField label="Sanciones" casilla={135} year={y} value={d.extra.sanciones} onChange={(n) => patch((x) => (x.extra.sanciones = n))} hint={`Mínima 10 UVT ${formatCOP(c.uvtFiling * 10)} (UVT ${c.filingYear}).`} />
+                <MoneyField label="Aporte voluntario art. 244-1" casilla={141} year={y} value={d.extra.aporteVoluntario} onChange={(n) => patch((x) => (x.extra.aporteVoluntario = n))} />
+              </div>
+            </Card>
+          )}
+        </div>
+
+        {splitScreen ? (
+          <aside className="sticky top-20 h-[calc(100vh-6rem)] hidden lg:block">
+            <LiveFormPreview />
+          </aside>
+        ) : (
+          <aside className="space-y-3 lg:sticky lg:top-24 h-fit">
+            <Card>
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] uppercase tracking-[0.16em] text-muted">Cifras vivas</p>
+                <Badge tone="ok">En tiempo real</Badge>
+              </div>
+              <ul className="mt-3 space-y-2">
+                {live.map((r) => (
+                  <li key={r.n} className="flex items-baseline justify-between gap-2 text-sm">
+                    <span className="text-muted">
+                      <span className="font-mono text-[10px] text-faint">{r.n}</span> {r.l}
+                    </span>
+                    <span className="tabular-nums font-medium">{formatCOP(r.v)}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-4 pt-3 border-t border-line space-y-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPreviewModalOpen(true)}
+                  className="w-full justify-center text-xs"
+                >
+                  <Eye className="mr-1.5 size-3.5" />
+                  Previsualizar 210
+                </Button>
+                <Button asChild variant="secondary" size="sm" className="w-full justify-center text-xs">
+                  <Link to="/formulario">
+                    <FileText className="mr-1.5 size-3.5" />
+                    Ir al Formulario 210
+                  </Link>
+                </Button>
+              </div>
+            </Card>
+          </aside>
+        )}
+      </div>
+
+      {previewModalOpen && (
+        <LiveFormPreview isModal onClose={() => setPreviewModalOpen(false)} />
+      )}
+
+      <CompensacionesDialog
+        open={compensacionesOpen}
+        onClose={() => setCompensacionesOpen(false)}
+        initialTipo={initialCompTipo}
+      />
+    </div>
+  );
+}
+
+function DeadlineInline({
+  nit,
+  seccional,
+  zonaManual,
+}: {
+  nit: string;
+  seccional: string;
+  zonaManual: boolean;
+}) {
+  const zona = isZonaSismo1226(seccional, zonaManual);
+  const hit = deadlineForNit(nit, { zonaSismo1226: zona, seccional });
+  if (!hit) return null;
+  const days = daysUntil(hit.iso);
+  return (
+    <div className={cn("rounded-lg px-4 py-3", hit.regime === "decreto-1226" ? "bg-warn-mist" : "bg-forest-mist")}>
+      <p className="text-[11px] uppercase tracking-[0.14em] text-muted">
+        Vencimiento · dígitos {hit.digits.join(" y ")}
+      </p>
+      <p className="mt-1 font-display text-2xl leading-none">{hit.date}</p>
+      <p className="mt-1 text-xs text-ink-soft">
+        {days > 0 ? `Faltan ${days} días.` : days === 0 ? "Vence hoy." : `Venció hace ${Math.abs(days)} días.`}
+        {hit.regime === "decreto-1226" ? " Plazo especial del Decreto 1226." : ""}
+      </p>
+    </div>
+  );
+}

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <style>
+    @font-face {
+      font-family: Ledger;
+      src: url("FONT_BOLD") format("truetype");
+      font-weight: 700;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: Ledger;
+      src: url("FONT_REGULAR") format("truetype");
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: Ledger;
+      src: url("FONT_ITALIC") format("truetype");
+      font-weight: 400;
+      font-style: italic;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 1200px; height: 630px; overflow: hidden; background: #F3EEE4; }
+    .card {
+      position: relative;
+      width: 1200px;
+      height: 630px;
+      background: #F3EEE4;
+      color: #1C241F;
+    }
+    .spine {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 56px;
+      background: #1F4F47;
+    }
+    .spine::after {
+      content: "";
+      position: absolute;
+      right: 0; top: 0; bottom: 0;
+      width: 1px;
+      background: #8A7355;
+    }
+    .grain {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.11;
+      mix-blend-mode: multiply;
+    }
+    .wash {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(1200px 520px at 58% 46%, rgba(255,252,245,0.35), transparent 62%),
+        linear-gradient(90deg, rgba(28,36,31,0.045) 56px, transparent 180px);
+      pointer-events: none;
+    }
+    .lockup {
+      position: absolute;
+      left: 56px;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0 72px;
+    }
+    .badge {
+      display: inline-block;
+      background: #1F4F47;
+      color: #F3EEE4;
+      font-family: Ledger, "Liberation Serif", serif;
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: 0.22em;
+      padding: 7px 14px 6px 16px;
+      margin-bottom: 28px;
+      line-height: 1;
+    }
+    h1 {
+      font-family: Ledger, "Liberation Serif", serif;
+      font-weight: 700;
+      font-size: 108px;
+      letter-spacing: 0.02em;
+      line-height: 0.92;
+      color: #1C241F;
+      text-align: center;
+    }
+    .rule {
+      width: 280px;
+      height: 1px;
+      background: #8A7355;
+      margin: 26px 0 22px;
+      border: 0;
+    }
+    .sub {
+      font-family: Ledger, "Liberation Serif", serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: 23px;
+      letter-spacing: 0.04em;
+      color: #1C241F;
+      text-align: center;
+      max-width: 820px;
+      line-height: 1.35;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="spine"></div>
+    <svg class="grain" xmlns="http://www.w3.org/2000/svg" width="1200" height="630">
+      <filter id="n" x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.72" numOctaves="4" stitchTiles="stitch" seed="12"/>
+        <feColorMatrix type="matrix" values="0 0 0 0 0.55  0 0 0 0 0.48  0 0 0 0 0.36  0 0 0 0.55 0"/>
+      </filter>
+      <rect width="1200" height="630" filter="url(#n)"/>
+    </svg>
+    <div class="wash"></div>
+    <div class="lockup">
+      <div class="badge">AG 2025</div>
+      <h1>Cedulario</h1>
+      <hr class="rule" />
+      <p class="sub">Declaración de renta · Persona natural · Formulario 210</p>
+    </div>
+  </div>
+</body>
+</html>
