@@ -29,10 +29,10 @@ export const Route = createFileRoute("/documentos")({ component: DocumentosPage 
 type TabId = "mal" | "pedir" | "subir" | "normas";
 
 const TABS: { id: TabId; label: string }[] = [
-  { id: "mal", label: "Qué está mal" },
-  { id: "pedir", label: "Pedir" },
-  { id: "subir", label: "Subir" },
-  { id: "normas", label: "Normas" },
+  { id: "mal", label: "Auditoría y Hallazgos" },
+  { id: "pedir", label: "Solicitud a Terceros" },
+  { id: "subir", label: "Cargue de Soportes" },
+  { id: "normas", label: "Normativa del Expediente" },
 ];
 
 function DocumentosPage() {
@@ -52,10 +52,10 @@ function DocumentosPage() {
   return (
     <div className="space-y-6">
       <header>
-        <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Art. 771-2 E.T. · expediente</p>
-        <h1 className="mt-1 font-display text-4xl">Soportes</h1>
+        <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Procedimiento Probatorio · Art. 771-2 E.T.</p>
+        <h1 className="mt-1 font-display text-4xl font-bold">Expediente y Soportes Documentales</h1>
         <p className="mt-2 max-w-2xl text-sm text-muted">
-          Cedulario le dice qué está mal, qué pedirle a cada proveedor y se vuelve experto en las resoluciones y conceptos que usted suba. Nada se envía a la DIAN: queda en este navegador.
+          Audite la procedencia fiscal de sus deducciones, genere cartas de solicitud a entidades bancarias y empleadores, y gestione sus certificados con extracción automática asistida por Gemini AI.
         </p>
       </header>
 

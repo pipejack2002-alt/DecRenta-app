@@ -30,7 +30,7 @@ function FormularioPage() {
 
   function exportJson() {
     const jsonStr = JSON.stringify({ identity: id, casillas: c.casillas, year: d.year }, null, 2);
-    downloadFile(`cedulario-210-${d.year}.json`, jsonStr, "application/json");
+    downloadFile(`tributoapp-210-ag${d.year}-${id.nit || "dian"}.json`, jsonStr, "application/json");
   }
 
   function exportXml() {
@@ -47,10 +47,10 @@ function FormularioPage() {
     <div className="space-y-6">
       <header className="flex flex-wrap items-end justify-between gap-3" data-print-hide>
         <div>
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Resolución 000044 de 2024</p>
-          <h1 className="mt-1 font-display text-4xl">Formulario 210</h1>
+          <p className="text-[11px] uppercase tracking-[0.18em] text-muted">DIAN · Formulario Oficial · AG {d.year}</p>
+          <h1 className="mt-1 font-display text-4xl font-bold">Borrador Formulario 210</h1>
           <p className="mt-2 max-w-xl text-sm text-muted">
-            Vista de trabajo. El formulario oficial se diligencia en el portal transaccional de la DIAN. Esta hoja no es presentable.
+            Hoja de trabajo y liquidación del Formulario 210. Exportable a XML Prevalidador, CSV Excel y JSON para facilitar la presentación en los servicios informáticos de la DIAN.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">

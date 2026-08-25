@@ -45,10 +45,10 @@ function CedulasPage() {
   return (
     <div className="space-y-6">
       <header>
-        <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Determinación cedular · DIAN Renta {y}</p>
-        <h1 className="mt-1 font-display text-4xl">Qué cabe en cada cédula</h1>
+        <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Sistema Cedular · Estatuto Tributario · AG {y}</p>
+        <h1 className="mt-1 font-display text-4xl font-bold">Depuración Cedular Integral</h1>
         <p className="mt-2 max-w-2xl text-sm text-muted">
-          Matriz oficial de ingresos no constitutivos, rentas exentas y deducciones. Pulse una fila para ver por qué un beneficio aplica o no. Topes en UVT {y} = {formatCOP(c.uvt)}.
+          Matriz legal de depuración para la Cédula General (Trabajo, Honorarios, Capital y No Laborales), Pensiones y Dividendos. Consolida ingresos no constitutivos de renta (INCRNGO), rentas exentas y deducciones imputables con el límite conjunto del 40 % o 1.340 UVT (Art. 336 E.T.).
         </p>
       </header>
 

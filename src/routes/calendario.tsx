@@ -29,10 +29,10 @@ function CalendarioPage() {
   return (
     <div className="space-y-6">
       <header>
-        <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Calendario tributario 2026</p>
-        <h1 className="mt-1 font-display text-4xl">Vencimientos</h1>
+        <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Calendario Tributario DIAN · Año 2026</p>
+        <h1 className="mt-1 font-display text-4xl font-bold">Vencimientos Declaración de Renta</h1>
         <p className="mt-2 max-w-2xl text-sm text-muted">
-          Personas naturales, AG 2025. Dos últimos dígitos del NIT del RUT, sin DV. Una sola cuota. Fuente: calendario DIAN 2026 y Comunicado de Prensa No. 090.
+          Plazos oficiales de presentación y pago del Formulario 210 (Personas Naturales, AG 2025) según los dos últimos dígitos del NIT del RUT, sin dígito de verificación. Incluye plazos especiales del Decreto 1226.
         </p>
       </header>
 

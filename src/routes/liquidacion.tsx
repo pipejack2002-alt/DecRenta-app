@@ -30,10 +30,10 @@ function LiquidacionPage() {
   return (
     <div className="space-y-6">
       <header>
-        <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Liquidación privada</p>
-        <h1 className="mt-1 font-display text-4xl">Del 210 a la plata</h1>
+        <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Determinación del Impuesto · Formulario 210</p>
+        <h1 className="mt-1 font-display text-4xl font-bold">Liquidación Privada del Impuesto</h1>
         <p className="mt-2 max-w-2xl text-sm text-muted">
-          Impuesto según tabla del art. 241 E.T. (Ley 2277 de 2022). UVT AG {c.year} = {formatCOP(c.uvt)}. UVT de presentación {c.filingYear} = {formatCOP(c.uvtFiling)}.
+          Cálculo del impuesto sobre la renta y complementarios según la tabla progresiva del art. 241 E.T. (Ley 2277 de 2022). UVT AG {c.year} = {formatCOP(c.uvt)}. UVT de presentación {c.filingYear} = {formatCOP(c.uvtFiling)}.
         </p>
       </header>
 

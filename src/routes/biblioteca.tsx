@@ -41,10 +41,10 @@ function BibliotecaPage() {
   return (
     <div className="space-y-6">
       <header>
-        <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Fuentes oficiales</p>
-        <h1 className="mt-1 font-display text-4xl">Normativa</h1>
+        <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Marco Legal · DIAN & Congreso de la República</p>
+        <h1 className="mt-1 font-display text-4xl font-bold">Estatuto Tributario y Normativa</h1>
         <p className="mt-2 max-w-2xl text-sm text-muted">
-          El Estatuto Tributario (Decreto 624 de 1989) es la base. Cedulario indexa todos los libros y títulos y opera el corpus del Formulario 210. El texto íntegro —900+ artículos— está en Secretaría del Senado, Función Pública y el Normograma DIAN. Lo que usted suba en Soportes se suma a este expediente.
+          Compendio legal para la liquidación del impuesto sobre la renta (Decreto 624 de 1989, DUR 1625 de 2016 y Ley 2277 de 2022). Incluye el articulado del Formulario 210 y enlaces directos a las fuentes oficiales de la Secretaría del Senado y la DIAN.
         </p>
       </header>
 

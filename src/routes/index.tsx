@@ -32,28 +32,28 @@ function Home() {
     <div className="space-y-8">
       <section className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
         <div className="relative order-2 overflow-hidden rounded-xl bg-forest px-6 py-7 text-primary-fg shadow-[var(--shadow-page)] sm:px-8 sm:py-10 lg:order-1">
-          <p className="text-[11px] uppercase tracking-[0.22em] text-primary-fg/70">Persona natural residente</p>
-          <h1 className="mt-2 max-w-xl font-display text-4xl leading-[1.1] sm:text-5xl">
-            Su declaración de renta, cédula por cédula.
+          <p className="text-[11px] uppercase tracking-[0.22em] text-primary-fg/70">Persona natural residente · Formulario 210</p>
+          <h1 className="mt-2 max-w-xl font-display text-4xl leading-[1.1] sm:text-5xl font-bold">
+            Declaración de Renta Persona Natural
           </h1>
-          <p className="mt-4 max-w-xl text-sm leading-relaxed text-primary-fg/80">
-            Cedulario liquida el Formulario 210 del año gravable {d.year} con la UVT de {formatCOP(c.uvt)}, aplica topes del Estatuto Tributario y le dice por qué un beneficio cabe o no. La presentación oficial se hace en el portal de la DIAN.
+          <p className="mt-4 max-w-xl text-sm leading-relaxed text-primary-fg/85">
+            Sistema profesional de liquidación y depuración cedular del Formulario 210 (Año Gravable {d.year}) con la UVT oficial de {formatCOP(c.uvt)}. Aplica de forma automática los límites y exenciones de la Ley 2277 de 2022 y genera los archivos listos para el prevalidador de la DIAN.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Button asChild className="bg-surface text-forest hover:bg-bg-raised">
+            <Button asChild className="bg-surface text-forest hover:bg-bg-raised font-medium">
               <Link to="/topes">
-                ¿Debo declarar?
+                ¿Debo declarar renta?
                 <ArrowRight />
               </Link>
             </Button>
             <Button asChild variant="outline" className="border-primary-fg/25 text-primary-fg hover:bg-forest-deep">
-              <Link to="/declaracion">Llenar cédulas</Link>
+              <Link to="/declaracion">Diligenciar Formulario 210</Link>
             </Button>
             <Button asChild variant="outline" className="border-primary-fg/25 text-primary-fg hover:bg-forest-deep">
-              <Link to="/cedulas">Matriz cedular</Link>
+              <Link to="/cedulas">Depuración cedular</Link>
             </Button>
             <Button variant="ghost" className="text-primary-fg/80 hover:bg-forest-deep" onClick={loadExample}>
-              Cargar ejemplo
+              Cargar caso de ejemplo
             </Button>
           </div>
         </div>

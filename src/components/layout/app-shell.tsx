@@ -26,13 +26,15 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-40 border-b border-line bg-bg/90 backdrop-blur-sm">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3">
           <Link to="/" className="flex min-w-0 items-center gap-3">
-            <span className="flex size-9 items-center justify-center rounded-md bg-forest text-primary-fg">
-              <BookOpen className="size-4" strokeWidth={1.75} />
+            <span className="flex size-9 items-center justify-center rounded-md bg-forest text-primary-fg font-display font-bold text-lg">
+              T
             </span>
             <span className="min-w-0">
-              <span className="block font-display text-lg leading-none tracking-tight">Cedulario</span>
+              <span className="block font-display text-lg leading-none tracking-tight font-bold">
+                TributoApp
+              </span>
               <span className="mt-0.5 block text-[11px] uppercase tracking-[0.16em] text-muted">
-                Formulario 210 · AG {year}
+                Renta 210 · AG {year}
               </span>
             </span>
           </Link>

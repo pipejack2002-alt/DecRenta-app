@@ -4,7 +4,7 @@ import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { AppShell } from "@/components/layout/app-shell";
 import appCss from "../styles.css?url";
 
-const APP_NAME = "Cedulario";
+const APP_NAME = "TributoApp · Declaración de Renta 210";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -15,9 +15,9 @@ export const Route = createRootRoute({
       {
         name: "description",
         content:
-          "Asistente de declaración de renta de persona natural en Colombia. Formulario 210, año gravable 2025.",
+          "Plataforma profesional para la liquidación de la Declaración de Renta Persona Natural en Colombia (Formulario 210 DIAN, Año Gravable 2025/2026).",
       },
-      { name: "theme-color", content: "#1F4F47" },
+      { name: "theme-color", content: "#064E3B" },
     ],
     links: [
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },

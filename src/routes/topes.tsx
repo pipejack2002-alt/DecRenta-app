@@ -58,10 +58,10 @@ function TopesPage() {
   return (
     <div className="space-y-6">
       <header>
-        <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Arts. 592, 593, 594-1 y 594-3 E.T.</p>
-        <h1 className="mt-1 font-display text-4xl">¿Está obligado a declarar?</h1>
+        <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Criterios de Obligación · Arts. 592, 593 y 594-3 E.T.</p>
+        <h1 className="mt-1 font-display text-4xl font-bold">Obligación de Declarar Renta</h1>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
-          Basta con que se cumpla <em>una</em> de estas condiciones al 31 de diciembre de {year}. Los pesos se liquidan con UVT {year} = {formatCOP(c.uvt)}. Aunque no esté obligado, puede presentar declaración voluntaria (por ejemplo, para solicitar saldo a favor).
+          Evaluación técnica de topes al 31 de diciembre de {year} con la UVT oficial de {formatCOP(c.uvt)}. Basta con superar <em>uno</em> de los umbrales legales para estar obligado a presentar el Formulario 210 en el calendario oficial de la DIAN.
         </p>
       </header>
 

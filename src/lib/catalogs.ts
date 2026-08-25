@@ -52,14 +52,14 @@ export const CIIU_COMMON: { code: string; name: string }[] = [
 ];
 
 export const NAV = [
-  { to: "/", label: "Tablero", hint: "Resumen del año gravable" },
-  { to: "/topes", label: "¿Debo declarar?", hint: "Arts. 592 a 594-3" },
-  { to: "/declaracion", label: "Declaración", hint: "Cédulas del 210" },
-  { to: "/cedulas", label: "Matriz cedular", hint: "INCR, exentas, 40 %" },
-  { to: "/documentos", label: "Soportes", hint: "Pedir, auditar, normas" },
-  { to: "/liquidacion", label: "Liquidación", hint: "Impuesto y saldo" },
-  { to: "/formulario", label: "Formulario 210", hint: "Vista del formulario" },
-  { to: "/calendario", label: "Calendario", hint: "Vencimientos 2026" },
-  { to: "/biblioteca", label: "Normativa", hint: "Índice del E.T. y corpus 210" },
-  { to: "/asistente", label: "Asistente", hint: "Consulta sobre la norma" },
+  { to: "/", label: "Panel Principal", hint: "Resumen y estado de la declaración" },
+  { to: "/topes", label: "Obligados y Topes", hint: "Evaluación de topes Arts. 592 a 594-3" },
+  { to: "/declaracion", label: "Diligenciamiento 210", hint: "Captura de cédulas y rentas" },
+  { to: "/cedulas", label: "Depuración Cedular", hint: "INCRNGO, exentas y límite del 40 %" },
+  { to: "/documentos", label: "Expediente y Soportes", hint: "Auditoría, certificados y gestión" },
+  { to: "/liquidacion", label: "Liquidación Privada", hint: "Cálculo de impuesto y saldos" },
+  { to: "/formulario", label: "Formulario 210 DIAN", hint: "Hoja de trabajo y exportación" },
+  { to: "/calendario", label: "Calendario Tributario", hint: "Vencimientos oficiales 2026" },
+  { to: "/biblioteca", label: "Estatuto Tributario", hint: "Artículos y conceptos DIAN" },
+  { to: "/asistente", label: "Asistente IA Gemini", hint: "Copiloto tributario inteligente" },
 ] as const;

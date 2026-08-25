@@ -55,10 +55,10 @@ function DeclaracionPage() {
     <div className="space-y-6">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Formulario 210 · AG {d.year}</p>
-          <h1 className="mt-1 font-display text-4xl">Cédulas</h1>
+          <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Formulario 210 · Año Gravable {d.year}</p>
+          <h1 className="mt-1 font-display text-4xl font-bold">Diligenciamiento de Cédulas</h1>
           <p className="mt-2 max-w-2xl text-sm text-muted">
-            Cada campo cita la norma. Los topes (AFC, 25 %, 1.200 UVT de vivienda, 40 % / 1.340 UVT) se aplican solos y se explican en Liquidación.
+            Diligencie la información patrimonial y cedular con soporte normativo por casilla. Las rentas exentas (25 % laboral, AFC), deducciones imputables (vivienda, dependientes, GMF) y el límite conjunto del 40 % o 1.340 UVT se aplican automáticamente.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
