@@ -22,10 +22,10 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/cedulas")({ component: CedulasPage });
 
 const TABS: { id: "incr" | "exenta" | "deduccion" | "depuracion"; label: string }[] = [
-  { id: "incr", label: "INCRNGO" },
+  { id: "incr", label: "No Constitutivos de Renta (Salud/Pensión)" },
   { id: "exenta", label: "Rentas exentas" },
-  { id: "deduccion", label: "Deducciones" },
-  { id: "depuracion", label: "40 % / 1.340 UVT" },
+  { id: "deduccion", label: "Deducciones imputables" },
+  { id: "depuracion", label: "Límite 40 % / 1.340 UVT" },
 ];
 
 function CedulasPage() {
@@ -48,7 +48,7 @@ function CedulasPage() {
         <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Sistema Cedular · Estatuto Tributario · AG {y}</p>
         <h1 className="mt-1 font-display text-4xl font-bold">Depuración Cedular Integral</h1>
         <p className="mt-2 max-w-2xl text-sm text-muted">
-          Matriz legal de depuración para la Cédula General (Trabajo, Honorarios, Capital y No Laborales), Pensiones y Dividendos. Consolida ingresos no constitutivos de renta (INCRNGO), rentas exentas y deducciones imputables con el límite conjunto del 40 % o 1.340 UVT (Art. 336 E.T.).
+          Matriz legal de depuración para la Cédula General (Trabajo, Honorarios, Capital y No Laborales), Pensiones y Dividendos. Consolida ingresos no constitutivos de renta (aportes obligatorios), rentas exentas y deducciones imputables con el límite conjunto del 40 % o 1.340 UVT (Art. 336 E.T.).
         </p>
       </header>
 

@@ -140,20 +140,20 @@ function DepuracionCard() {
   const d = c.depuracion;
   const rows: { k: string; v: number; hint?: string }[] = [
     { k: "Ingresos brutos cédula general", v: d.ingresosBrutos },
-    { k: "(−) INCRNGO", v: d.incrngo },
-    { k: "Subtotal", v: d.subtotal },
-    { k: "40 % (tope 1.340 UVT)", v: d.poolLimit, hint: `40 % = ${formatCOP(d.cuarentaPct)} · 1.340 UVT = ${formatCOP(d.tope1340)}` },
-    { k: "Exentas no sometidas al 40 %", v: d.ilimitadas, hint: "Nums. 1-3 y 6-8 art. 206, primas, CAN." },
-    { k: "72 UVT × dependientes (casilla 139)", v: d.dependientes72 },
-    { k: "1 % factura electrónica (casilla 28)", v: d.facturaElectronica, hint: "Fuera del 40 %." },
-    { k: "Casilla 92", v: d.total92 },
+    { k: "(−) Ingresos no constitutivos de renta (Salud/Pensión)", v: d.incrngo },
+    { k: "Base para el límite del 40 %", v: d.subtotal },
+    { k: "Tope conjunto del 40 % (máx. 1.340 UVT)", v: d.poolLimit, hint: `40 % = ${formatCOP(d.cuarentaPct)} · 1.340 UVT = ${formatCOP(d.tope1340)}` },
+    { k: "Exentas y deducciones independientes (fuera del 40 %)", v: d.ilimitadas, hint: "Indemnizaciones laborales, gastos de representación, CAN." },
+    { k: "Deducción dependientes adicionales (72 UVT c/u · Casilla 139)", v: d.dependientes72 },
+    { k: "1 % compras con factura electrónica (Casilla 28)", v: d.facturaElectronica, hint: "Deducción especial independiente (Art. 336 par. 5)." },
+    { k: "Rentas exentas y deducciones imputables (Casilla 92)", v: d.total92 },
   ];
   return (
     <Card>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <CardTitle>Depuración del 40 % / 1.340 UVT</CardTitle>
-          <CardHint>Art. 336 num. 3 · art. 1.2.1.20.4 DUR. Igual a la determinación cedular de la DIAN.</CardHint>
+          <CardTitle>Depuración y Límite del 40 % / 1.340 UVT</CardTitle>
+          <CardHint>Art. 336 E.T. y Art. 1.2.1.20.4 DUR 1625. Metodología oficial de depuración de la Cédula General DIAN.</CardHint>
         </div>
         <Link to="/cedulas" className="text-sm text-forest underline-offset-2 hover:underline">
           Ver matriz cedular

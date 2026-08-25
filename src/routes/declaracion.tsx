@@ -294,19 +294,19 @@ function DeclaracionPage() {
 
           {sec === "hon" && (
             <Card className="space-y-4">
-              <CardTitle>Honorarios con costos</CardTitle>
+              <CardTitle>Honorarios y compensación de servicios personales</CardTitle>
               <CardHint>
-                Si resta costos, pierde la renta exenta del 25 % sobre esos ingresos (par. 5 art. 206). Los costos deben cumplir art. 107 y 771-2 (factura electrónica). Si superan el 60 % de los ingresos, se marca la casilla 140 (art. 336-1).
+                Parágrafo 5 art. 206 y art. 336: el contribuyente puede restar costos y deducciones procedentes (art. 107) O tomar la renta exenta del 25 %, no ambas simultáneamente sobre el mismo ingreso.
               </CardHint>
               <ToggleField
-                label="Voy a imputar costos y gastos (casilla 43)"
-                hint="Desactive si prefiere llevar los honorarios a la casilla 32 y tomar el 25 %."
+                label="Resta costos y deducciones procedentes en honorarios"
+                hint="Si está activo, se habilitan costos (casilla 45) y se inhabilita el 25 % de renta exenta laboral sobre esta subcédula."
                 checked={d.honorarios.usarCostos}
-                onChange={(v) => patch((x) => (x.honorarios.usarCostos = v))}
+                onChange={(v: boolean) => patch((x) => (x.honorarios.usarCostos = v))}
               />
               <div className="grid gap-4 sm:grid-cols-2">
                 <MoneyField label="Ingresos brutos" casilla={43} year={y} value={d.honorarios.ingresos} onChange={(n) => patch((x) => (x.honorarios.ingresos = n))} />
-                <MoneyField label="INCRNGO (otros)" casilla={44} year={y} value={d.honorarios.incrngo} onChange={(n) => patch((x) => (x.honorarios.incrngo = n))} />
+                <MoneyField label="Otros ingresos no constitutivos de renta" casilla={44} year={y} value={d.honorarios.incrngo} onChange={(n) => patch((x) => (x.honorarios.incrngo = n))} />
                 <MoneyField label="Aportes pensión obligatorios" year={y} value={d.honorarios.aportesPension} onChange={(n) => patch((x) => (x.honorarios.aportesPension = n))} source="Art. 55 E.T." />
                 <MoneyField label="Aportes salud obligatorios" year={y} value={d.honorarios.aportesSalud} onChange={(n) => patch((x) => (x.honorarios.aportesSalud = n))} source="Art. 56 E.T." />
                 <MoneyField label="Cotización voluntaria RAIS" year={y} value={d.honorarios.aportesRais} onChange={(n) => patch((x) => (x.honorarios.aportesRais = n))} hint="25 % y 2.500 UVT globales." />
@@ -354,11 +354,11 @@ function DeclaracionPage() {
                 <MoneyField label="Rendimientos financieros" year={y} value={d.capital.rendimientosFinancieros} onChange={(n) => patch((x) => (x.capital.rendimientosFinancieros = n))} />
                 <MoneyField label="Explotación de intangibles" year={y} value={d.capital.explotacionIntangibles} onChange={(n) => patch((x) => (x.capital.explotacionIntangibles = n))} />
                 <MoneyField label="Ingresos del exterior" year={y} value={d.capital.ingresosExterior} onChange={(n) => patch((x) => (x.capital.ingresosExterior = n))} />
-                <MoneyField label="Componente inflacionario (INCRNGO)" casilla={59} year={y} value={d.capital.componenteInflacionario} onChange={(n) => patch((x) => (x.capital.componenteInflacionario = n))} source="Arts. 38 a 41 E.T. Solo capital, y si no está obligado a llevar libros." />
+                <MoneyField label="Componente inflacionario no gravado" casilla={59} year={y} value={d.capital.componenteInflacionario} onChange={(n) => patch((x) => (x.capital.componenteInflacionario = n))} source="Arts. 38 a 41 E.T. Solo capital, y si no está obligado a llevar libros." />
                 <MoneyField label="Aportes pensión / salud / RAIS" year={y} value={d.capital.aportesPension} onChange={(n) => patch((x) => (x.capital.aportesPension = n))} hint="Arts. 55 y 56. RAIS en el campo siguiente." />
                 <MoneyField label="Cotización voluntaria RAIS" year={y} value={d.capital.aportesRais} onChange={(n) => patch((x) => (x.capital.aportesRais = n))} />
                 <MoneyField label="Aportes salud" year={y} value={d.capital.aportesSalud} onChange={(n) => patch((x) => (x.capital.aportesSalud = n))} />
-                <MoneyField label="Otros INCRNGO" year={y} value={d.capital.incrngo} onChange={(n) => patch((x) => (x.capital.incrngo = n))} />
+                <MoneyField label="Otros ingresos no constitutivos de renta" year={y} value={d.capital.incrngo} onChange={(n) => patch((x) => (x.capital.incrngo = n))} />
                 <MoneyField label="Costos y gastos" casilla={60} year={y} value={d.capital.costos} onChange={(n) => patch((x) => (x.capital.costos = n))} />
                 <MoneyField label="Rentas pasivas ECE" casilla={62} year={y} value={d.capital.ecePasiva} onChange={(n) => patch((x) => (x.capital.ecePasiva = n))} />
                 <MoneyField label="AFC / FVP / AVC" year={y} value={d.capital.aportesAfc} onChange={(n) => patch((x) => (x.capital.aportesAfc = n))} />
@@ -401,12 +401,12 @@ function DeclaracionPage() {
                 <MoneyField label="Donaciones a campañas políticas" year={y} value={d.noLaborales.donacionesCampanas} onChange={(n) => patch((x) => (x.noLaborales.donacionesCampanas = n))} />
                 <MoneyField label="Demás no clasificados" year={y} value={d.noLaborales.demas} onChange={(n) => patch((x) => (x.noLaborales.demas = n))} />
                 <MoneyField label="Devoluciones, rebajas y descuentos" casilla={75} year={y} value={d.noLaborales.devoluciones} onChange={(n) => patch((x) => (x.noLaborales.devoluciones = n))} />
-                <MoneyField label="Apoyos educativos (INCRNGO art. 46)" year={y} value={d.noLaborales.apoyosEducativos} onChange={(n) => patch((x) => (x.noLaborales.apoyosEducativos = n))} />
-                <MoneyField label="Indemnizaciones por seguro de daño" year={y} value={d.noLaborales.indemnizacionesSeguroDano} onChange={(n) => patch((x) => (x.noLaborales.indemnizacionesSeguroDano = n))} source="Art. 45 E.T." hint="INCRNGO. El seguro de vida va a ganancia ocasional (art. 303-1)." />
+                <MoneyField label="Apoyos educativos no gravados (Art. 46 E.T.)" year={y} value={d.noLaborales.apoyosEducativos} onChange={(n) => patch((x) => (x.noLaborales.apoyosEducativos = n))} />
+                <MoneyField label="Indemnizaciones por seguro de daño" year={y} value={d.noLaborales.indemnizacionesSeguroDano} onChange={(n) => patch((x) => (x.noLaborales.indemnizacionesSeguroDano = n))} source="Art. 45 E.T." hint="Ingreso no constitutivo de renta. El seguro de vida va a ganancia ocasional (art. 303-1)." />
                 <MoneyField label="Aportes pensión" year={y} value={d.noLaborales.aportesPension} onChange={(n) => patch((x) => (x.noLaborales.aportesPension = n))} />
                 <MoneyField label="Aportes salud" year={y} value={d.noLaborales.aportesSalud} onChange={(n) => patch((x) => (x.noLaborales.aportesSalud = n))} />
                 <MoneyField label="RAIS voluntario" year={y} value={d.noLaborales.aportesRais} onChange={(n) => patch((x) => (x.noLaborales.aportesRais = n))} />
-                <MoneyField label="Otros INCRNGO" year={y} value={d.noLaborales.incrngo} onChange={(n) => patch((x) => (x.noLaborales.incrngo = n))} />
+                <MoneyField label="Otros ingresos no constitutivos de renta" year={y} value={d.noLaborales.incrngo} onChange={(n) => patch((x) => (x.noLaborales.incrngo = n))} />
                 <MoneyField label="Costos y gastos" casilla={77} year={y} value={d.noLaborales.costos} onChange={(n) => patch((x) => (x.noLaborales.costos = n))} />
                 <MoneyField label="Rentas pasivas ECE" casilla={79} year={y} value={d.noLaborales.ecePasiva} onChange={(n) => patch((x) => (x.noLaborales.ecePasiva = n))} />
                 <MoneyField label="AFC / FVP / AVC" year={y} value={d.noLaborales.aportesAfc} onChange={(n) => patch((x) => (x.noLaborales.aportesAfc = n))} />
@@ -441,7 +441,7 @@ function DeclaracionPage() {
               <CardHint>Num. 5 art. 206: exenta la parte que no supere 1.000 UVT mensuales, después de aportes a salud y solidaridad.</CardHint>
               <div className="grid gap-4 sm:grid-cols-2">
                 <MoneyField label="Ingresos por pensiones (país y exterior)" casilla={99} year={y} value={d.pensiones.ingresos} onChange={(n) => patch((x) => (x.pensiones.ingresos = n))} />
-                <MoneyField label="INCRNGO (salud / FSP)" casilla={100} year={y} value={d.pensiones.incrngo} onChange={(n) => patch((x) => (x.pensiones.incrngo = n))} />
+                <MoneyField label="Aportes obligatorios a salud y solidaridad" casilla={100} year={y} value={d.pensiones.incrngo} onChange={(n) => patch((x) => (x.pensiones.incrngo = n))} />
               </div>
               <div className="space-y-1.5">
                 <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted">Meses de mesada en el año</p>
@@ -464,7 +464,7 @@ function DeclaracionPage() {
               <CardHint>El certificado de la sociedad dice si son num. 3 o par. 2 del art. 49, y el año de origen.</CardHint>
               <div className="grid gap-4 sm:grid-cols-2">
                 <MoneyField label="Dividendos 2016 y anteriores" casilla={104} year={y} value={d.dividendos.div2016} onChange={(n) => patch((x) => (x.dividendos.div2016 = n))} />
-                <MoneyField label="INCRNGO de esos dividendos" casilla={105} year={y} value={d.dividendos.incrngo2016} onChange={(n) => patch((x) => (x.dividendos.incrngo2016 = n))} />
+                <MoneyField label="Dividendos no gravados (2016 y anteriores)" casilla={105} year={y} value={d.dividendos.incrngo2016} onChange={(n) => patch((x) => (x.dividendos.incrngo2016 = n))} />
                 <MoneyField label="1ª subcédula 2017+ (num. 3 art. 49)" casilla={107} year={y} value={d.dividendos.subcedula1} onChange={(n) => patch((x) => (x.dividendos.subcedula1 = n))} hint="Se suman a la base del art. 241." />
                 <MoneyField label="2ª subcédula 2017+ (par. 2 art. 49)" casilla={108} year={y} value={d.dividendos.subcedula2} onChange={(n) => patch((x) => (x.dividendos.subcedula2 = n))} hint="Se gravan a la tarifa del art. 240 (35 % general)." />
                 <MoneyField label="Dividendos del exterior" casilla={109} year={y} value={d.dividendos.exterior} onChange={(n) => patch((x) => (x.dividendos.exterior = n))} />

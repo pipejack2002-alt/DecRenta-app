@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AlertCircle, Check, ExternalLink, Key, Sparkles } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardHint, CardTitle } from "@/components/ui/card";
@@ -9,16 +9,17 @@ import { askGeminiTributario, GEMINI_MODELS, testGeminiKey } from "@/lib/ai/gemi
 import { normasCorpus } from "@/lib/docs/types";
 import { useAppStore, useComputed } from "@/lib/store";
 import { formatCOP } from "@/lib/tax/format";
+import { FormattedMarkdown } from "@/components/ui/formatted-markdown";
 
 export const Route = createFileRoute("/asistente")({ component: AsistentePage });
 
 const PROMPTS = [
-  { emoji: "📝", label: "Explicar liquidación y saldo", prompt: "¿Cómo se calculó mi impuesto neto y saldo final según la tabla del art. 241 E.T.?" },
-  { emoji: "📊", label: "Resumir cifras clave y estado", prompt: "Haz un resumen ejecutivo de mi patrimonio, ingresos de trabajo, depuración y retenciones con mis cifras actuales." },
-  { emoji: "⚖️", label: "Análisis del 40 % y límite 1.340 UVT", prompt: "¿Cómo opera el límite del 40 % y las 1.340 UVT en mi cédula general? ¿Tengo deducciones fuera de la bolsa?" },
-  { emoji: "🛡️", label: "Auditoría y soportes requeridos", prompt: "¿Qué documentos y soportes probatorios exige la DIAN para blindar mi declaración ante una fiscalización?" },
-  { emoji: "💡", label: "Optimización y planeación legal", prompt: "¿Qué estrategias legales (AFC, dependientes, 1% factura electrónica) puedo aplicar para optimizar mi impuesto?" },
-  { emoji: "💼", label: "25 % exención vs. costos en honorarios", prompt: "¿Por qué no puedo tomar el 25 % de renta exenta sobre honorarios si también imputo costos y gastos?" },
+  { emoji: "📝", label: "Explicar cálculo del impuesto y saldo", prompt: "¿Cómo se calculó mi impuesto neto y saldo final según la tabla del art. 241 E.T.?" },
+  { emoji: "📊", label: "Resumen de cifras clave y estado", prompt: "Haz un resumen ejecutivo de mi patrimonio, ingresos de trabajo, depuración y retenciones con mis cifras actuales." },
+  { emoji: "⚖️", label: "Tope del 40 % (1.340 UVT) y deducciones", prompt: "¿Cómo se calcula el límite conjunto del 40 % y las 1.340 UVT en la cédula general? ¿Cuáles deducciones y rentas exentas aplican de forma independiente?" },
+  { emoji: "🛡️", label: "Soportes y auditoría DIAN", prompt: "¿Qué documentos y soportes probatorios exige la DIAN para blindar mi declaración ante una fiscalización?" },
+  { emoji: "💡", label: "Optimización y beneficios tributarios", prompt: "¿Qué estrategias legales (cuentas AFC, dependientes económicos, 1 % de compras con factura electrónica) puedo aplicar para optimizar mi impuesto?" },
+  { emoji: "💼", label: "25 % exención vs. costos en honorarios", prompt: "¿Por qué no puedo tomar el 25 % de renta exenta laboral sobre honorarios si también resto costos y gastos de la actividad?" },
 ];
 
 function AsistentePage() {
@@ -34,7 +35,7 @@ function AsistentePage() {
   const c = useComputed();
 
   const [inputKey, setInputKey] = useState(aiSettings.geminiApiKey || "");
-  const [selectedModel, setSelectedModel] = useState(aiSettings.geminiModel || "gemini-3.6-flash");
+  const [selectedModel, setSelectedModel] = useState(aiSettings.geminiModel || "gemini-1.5-flash");
   const [keySaved, setKeySaved] = useState(false);
   const [testStatus, setTestStatus] = useState<"idle" | "testing" | "ok" | "error">("idle");
   const [testError, setTestError] = useState<string | null>(null);
@@ -272,7 +273,9 @@ function AsistentePage() {
               {GEMINI_MODELS.find((m) => m.id === selectedModel)?.label.split(" ")[0]} {selectedModel}
             </Badge>
           </div>
-          <div className="whitespace-pre-wrap text-xs leading-relaxed text-ink-soft">{a}</div>
+          <div className="bg-surface/90 rounded-xl p-4 border border-line/70 shadow-sm">
+            <FormattedMarkdown content={a} />
+          </div>
           <CardHint className="mt-4 pt-2">
             Orientación con base en el Estatuto Tributario y fuentes oficiales. Verifique siempre en el SI de Diligenciamiento de la DIAN.
           </CardHint>
