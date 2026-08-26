@@ -174,10 +174,13 @@ export function parseCertificadoBancarioText(text: string): { amounts: Record<st
   }
 
   // 2. GMF (4x1.000) Nu / Nequi / Bancolombia / Bogotá / Otros
-  const gmf = extractPattern(/Grav[aá]men(?:es)?\s*a\s*los\s*movimientos\s*financieros[\s\S]{0,100}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i) ||
+  // Priorizar "Vr Gravamen" / "Valor Gravamen" para nunca capturar la "Base gravable"
+  const gmf = extractPattern(/Base\s*gravable[\s\S]{1,60}?Vr\s*(?:del\s*)?Gravamen[\s\S]{1,40}?\$\s*[0-9,\.]+\s+\$\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{1,2})?|[0-9]{1,3}(?:\.[0-9]{3})*(?:,[0-9]{1,2})?)/i) ||
+    extractPattern(/Vr\s*(?:del\s*)?Gravamen[\s\S]{1,40}?\$\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{1,2})?|[0-9]{1,3}(?:\.[0-9]{3})*(?:,[0-9]{1,2})?)/i) ||
+    extractPattern(/Valor\s*(?:del\s*)?Gravamen[\s\S]{1,40}?\$\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{1,2})?|[0-9]{1,3}(?:\.[0-9]{3})*(?:,[0-9]{1,2})?)/i) ||
+    extractPattern(/Grav[aá]men(?:es)?\s*a\s*los\s*movimientos\s*financieros[\s\S]{0,60}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i) ||
     extractPattern(/Total\s*GMF[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i) ||
-    extractPattern(/GMF\s*(?:o\s*4x1000)?[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i) ||
-    extractPattern(/Vr\s*Gravamen[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.\d{2})?)/i);
+    extractPattern(/GMF\s*(?:o\s*4x1000)?[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i);
   if (gmf > 0) {
     amounts["trabajo.gmf"] = (amounts["trabajo.gmf"] || 0) + gmf;
     notesLines.push(`GMF (4x1000): $${gmf.toLocaleString("es-CO")}`);
@@ -194,6 +197,7 @@ export function parseCertificadoBancarioText(text: string): { amounts: Record<st
   const rend = extractPattern(/Rendimientos\s*(?:totales|financieros|causados|abonados|brutos|pagados)?(?:\s*del\s*a[ñn]o)?[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i) ||
     extractPattern(/Rendimientos\s*\|\s*[\d,]+%\s*Efectivo[\s\S]{0,30}?\+\$?\s*([0-9]{1,3}(?:\.[0-9]{3})*(?:,[0-9]{2})?)/i) ||
     extractPattern(/Valor\s+de\s+intereses\s+pagados\s+\$([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{1,2})?)/i) ||
+    extractPattern(/Intereses\s*pagados[\s\S]{0,30}?\$\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{1,2})?|[0-9]{1,3}(?:\.[0-9]{3})*(?:,[0-9]{1,2})?)/i) ||
     extractPattern(/Intereses\s*(?:totales|financieros|causados|abonados|pagados)?(?:\s*del\s*a[ñn]o)?[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i) ||
     extractPattern(/Total\s*Rendimientos[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i);
   if (rend > 0) {
@@ -208,16 +212,16 @@ export function parseCertificadoBancarioText(text: string): { amounts: Record<st
     notesLines.push(`Intereses (Banco Bogotá): $${bogIntereses.toLocaleString("es-CO")}`);
   }
 
-  // 4. Retenciones bancarias practicadas
-  const retBan = extractPattern(/Retenci[oó]n\s*en\s*la\s*fuente(?:\s*practicada)?[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i);
-  if (retBan > 0) {
+  // 4. Retenciones bancarias practicadas (debe venir con signo $ o explícito, descartando 2024/2025/2026)
+  const retBan = extractPattern(/Retenci[oó]n\s*en\s*la\s*fuente(?:\s*(?:practicada|asumida|del\s*a[ñn]o))?[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i);
+  if (retBan > 0 && retBan !== 2024 && retBan !== 2025 && retBan !== 2026) {
     amounts["extra.retenciones"] = (amounts["extra.retenciones"] || 0) + retBan;
     notesLines.push(`Retención bancaria: $${retBan.toLocaleString("es-CO")}`);
   }
 
   // 4b. Banco Bogotá extracto retención — "Total   Retencion:   123.45" (formato US)
   const bogRet = extractPattern(/Total\s+Retenci[oó]n:\s+([0-9]+(?:,[0-9]{3})*(?:\.[0-9]{1,2})?)/i);
-  if (bogRet > 0 && !amounts["extra.retenciones"]) {
+  if (bogRet > 0 && !amounts["extra.retenciones"] && bogRet !== 2024 && bogRet !== 2025 && bogRet !== 2026) {
     amounts["extra.retenciones"] = (amounts["extra.retenciones"] || 0) + bogRet;
     notesLines.push(`Retención (Banco Bogotá): $${bogRet.toLocaleString("es-CO")}`);
   }

@@ -265,18 +265,6 @@ export async function parseDocumentInBrowser(
       /cuenta\s*de\s*ahorros?|rendimientos|gravamen|4x1000|saldo\s*cuenta|bancolombia|nu\s*colombia/i.test(fullText)
     ) {
       parsedData = parseCertificadoBancarioText(fullText);
-
-      // Si no encontró retención en banco y es certificado general de retención
-      if (!parsedData.amounts["extra.retenciones"]) {
-        const retMatch = fullText.match(/(?:retenci[oó]n|valor\s*retenido|total\s*retenido)[\s\S]{1,50}?\$?\s*([0-9]{1,3}(?:[\.,][0-9]{3})+|[0-9]{4,12})/i);
-        if (retMatch) {
-          const val = cleanCurrency(retMatch[1]);
-          if (val > 0) {
-            parsedData.amounts["extra.retenciones"] = val;
-            if (!parsedData.notes) parsedData.notes = `Retención en la fuente extraída: $${val.toLocaleString("es-CO")}`;
-          }
-        }
-      }
     }
     // 16. RUT / Cédula
     else if (detectedKind === "rut" || /rut|cedula/i.test(fileName)) {
