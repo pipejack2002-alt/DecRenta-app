@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import {
   FileText,
   Printer,
@@ -73,9 +74,69 @@ export function InformeClienteModal({ isOpen, onClose, computed: c, declaration:
     window.print();
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
-      <div className="relative w-full max-w-4xl rounded-2xl border border-line bg-surface p-6 sm:p-8 shadow-2xl animate-in zoom-in-95 my-8 max-h-[90vh] overflow-y-auto">
+  return createPortal(
+    <div className="print-modal-container fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
+      {/* Estilos específicos de aislamiento de impresión para que NUNCA se monte el fondo */}
+      <style>{`
+        @media print {
+          @page {
+            size: portrait !important;
+            margin: 10mm 12mm !important;
+          }
+          html, body {
+            background: white !important;
+            color: black !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            overflow: visible !important;
+          }
+          #app,
+          body > *:not(.print-modal-container) {
+            display: none !important;
+          }
+          .print-modal-container {
+            position: static !important;
+            inset: auto !important;
+            background: white !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            overflow: visible !important;
+            display: block !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            box-shadow: none !important;
+            border: none !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+          }
+          .print-modal-inner {
+            position: static !important;
+            max-width: 100% !important;
+            max-height: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            background: white !important;
+            overflow: visible !important;
+          }
+          .no-print {
+            display: none !important;
+          }
+          #informe-cliente-print {
+            display: block !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            color: #111827 !important;
+            font-size: 11px !important;
+            line-height: 1.35 !important;
+          }
+        }
+      `}</style>
+
+      <div className="print-modal-inner relative w-full max-w-4xl rounded-2xl border border-line bg-surface p-6 sm:p-8 shadow-2xl animate-in zoom-in-95 my-8 max-h-[90vh] overflow-y-auto">
         {/* Barra superior de control (Oculta al imprimir) */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4 no-print">
           <div className="flex items-center gap-2">
@@ -310,6 +371,7 @@ export function InformeClienteModal({ isOpen, onClose, computed: c, declaration:
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

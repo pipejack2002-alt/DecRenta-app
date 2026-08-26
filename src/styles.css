@@ -104,8 +104,8 @@
 }
 
 @page {
-  size: landscape;
-  margin: 3mm 4mm;
+  size: auto;
+  margin: 6mm 8mm;
 }
 
 @media print {
@@ -126,8 +126,13 @@
     width: 100% !important;
     height: auto !important;
     overflow: visible !important;
-    font-size: 8px !important;
     -webkit-font-smoothing: antialiased !important;
+  }
+
+  /* Ocultar el app de fondo cuando se imprime un modal como el Informe para el Cliente */
+  body:has(.print-modal-container) #app,
+  body:has(#informe-cliente-print) #app {
+    display: none !important;
   }
 
   header,
@@ -146,6 +151,62 @@
     width: 100% !important;
     max-width: 100% !important;
     overflow: visible !important;
+  }
+
+  /* Reset para modales imprimibles */
+  .print-modal-container {
+    position: static !important;
+    inset: auto !important;
+    background: white !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-shadow: none !important;
+    border: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .print-modal-container > div {
+    position: static !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: white !important;
+    overflow: visible !important;
+  }
+
+  #informe-cliente-print {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    color: #111827 !important;
+    font-size: 11px !important;
+    line-height: 1.35 !important;
+  }
+
+  #informe-cliente-print h2 {
+    font-size: 19px !important;
+    color: #1F4F47 !important;
+  }
+
+  #informe-cliente-print table {
+    width: 100% !important;
+    font-size: 10.5px !important;
+    border-collapse: collapse !important;
+  }
+
+  #informe-cliente-print table td {
+    padding: 3.5px 6px !important;
   }
 
   /* Reset outer container and background wrappers */
