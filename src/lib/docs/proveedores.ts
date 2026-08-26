@@ -82,18 +82,17 @@ export function providerAsks(d: Declaration, c: ComputedDeclaration, docs: Vault
     {
       id: "banco",
       provider: "Banco / cooperativa / fiduciaria / comisionista",
-      role: "Entidad vigilada donde tiene cuentas, CDT, tarjeta o hipoteca",
-      needed:
-        true,
-      reason: "Aunque no tenga rendimientos, el certificado de GMF y los extractos cubren el tope de consignaciones (1.400 UVT) y el 50 % deducible.",
+      role: "Entidad vigilada donde tiene cuentas, préstamos o inversiones",
+      needed: true,
+      reason: "Los extractos y certificados bancarios soportan el saldo patrimonial a 31 de diciembre, el GMF y el tope de consignaciones.",
       documents: [
-        { kind: "certGmf", what: "Certificado de GMF (4×1.000) del año", why: "El 50 % es deducible sin causalidad.", article: "Art. 115 E.T." },
-        { kind: "extractoBanco", what: "Extractos de todo el año (todas las cuentas)", why: "Tope de consignaciones, depósitos e inversiones, art. 594-3.", article: "Art. 594-3 E.T." },
-        { kind: "saldoCuentas", what: "Certificado de saldos a 31 de diciembre", why: "Patrimonio bruto de cuentas e inversiones.", article: "Art. 267 E.T." },
-        { kind: "certRendimientos", what: "Certificado de rendimientos financieros e INCRNGO inflacionario", why: "Renta de capital y componente inflacionario (arts. 38-41).", article: "Arts. 38 a 41 E.T." },
-        { kind: "interesesHipoteca", what: "Certificado de intereses de crédito hipotecario de vivienda", why: "Deducción hasta 1.200 UVT.", article: "Art. 119 E.T." },
+        { kind: "saldoCuentas", what: "Certificado tributario de saldos a 31 de diciembre", why: "Soporte de cuentas de ahorro, corrientes, CDTs y créditos.", article: "Art. 267 E.T." },
+        { kind: "certGmf", what: "Certificado de GMF (4×1.000) del año", why: "El 50 % es deducible.", article: "Art. 115 E.T." },
+        { kind: "extractoBanco", what: "Extractos bancarios del año (todas las cuentas)", why: "Soporte del tope de consignaciones y depósitos.", article: "Art. 594-3 E.T." },
+        ...((k.intereses > 0 || k.rendimientosFinancieros > 0 || (C[58] ?? 0) > 0) ? [{ kind: "certRendimientos" as const, what: "Certificado de rendimientos financieros y retenciones bancarias", why: "Rendimientos gravados y no constitutivos de renta.", article: "Arts. 38 a 41 E.T." }] : []),
+        ...((t.interesesVivienda > 0 || h.interesesVivienda > 0 || k.interesesVivienda > 0 || nl.interesesVivienda > 0) ? [{ kind: "interesesHipoteca" as const, what: "Certificado de intereses de crédito de vivienda", why: "Deducción hasta 1.200 UVT.", article: "Art. 119 E.T." }] : []),
       ],
-      howToAsk: "En la sucursal o la app del banco pida: (1) certificado de GMF del año gravable, (2) certificado de retención y rendimientos, (3) saldos a 31 de diciembre, (4) si tiene vivienda, el certificado de intereses hipotecarios. Los extractos bájelos en PDF de los 12 meses.",
+      howToAsk: "En la sucursal o la app del banco descargue el Certificado Tributario del año gravable (con saldos a 31 de diciembre, retenciones y movimientos).",
     },
     {
       id: "fondoCesantias",
@@ -243,15 +242,17 @@ export function providerAsks(d: Declaration, c: ComputedDeclaration, docs: Vault
     },
     {
       id: "dian",
-      provider: "DIAN (usted mismo, del año anterior)",
-      role: "Su declaración anterior y el RUT",
+      provider: "DIAN (Dirección de Impuestos y Aduanas Nacionales)",
+      role: "Registro Único Tributario (RUT) y declaraciones anteriores",
       needed: true,
-      reason: "El RUT fija seccional, CIIU y responsabilidades. El 210 anterior da anticipo, saldo a favor, impuesto neto (689-3) y patrimonio líquido inicial.",
+      reason: "El RUT acredita la identificación, actividad económica CIIU y responsabilidades tributarias vigentes.",
       documents: [
-        { kind: "rut", what: "RUT vigente (hoja principal)", why: "NIT, DV, seccional, CIIU, IVA.", article: "DUR 1625 de 2016" },
-        { kind: "form210Anterior", what: "Formulario 210 del año anterior (presentado)", why: "Casillas 130, 131, 126 anterior, patrimonio líquido.", article: "Instructivo 210 · art. 689-3 E.T." },
+        { kind: "rut", what: "RUT vigente (hoja principal)", why: "Identificación, seccional DIAN, código CIIU y responsabilidades.", article: "DUR 1625 de 2016" },
+        ...(!d.identity.primeraVez && d.identity.aniosDeclarando > 1
+          ? [{ kind: "form210Anterior" as const, what: "Formulario 210 del año anterior (presentado)", why: "Anticipo de renta anterior (Casilla 130), saldo a favor anterior y patrimonio líquido.", article: "Instructivo 210 · art. 689-3 E.T." }]
+          : []),
       ],
-      howToAsk: "En el portal DIAN: descargue el RUT y la declaración de renta del año anterior (copia de la presentada). No pida cita para esto.",
+      howToAsk: "En el portal transaccional de la DIAN (www.dian.gov.co) descargue la copia del RUT actualizado.",
     },
   ];
 
