@@ -156,7 +156,7 @@ export function OfficialDian210({
       {!hideHeaderActions && (
         <div
           data-print-hide
-          className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-surface p-3 shadow-xs"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-surface p-3 shadow-xs print:hidden no-print"
         >
           {/* Búsqueda y Zoom */}
           <div className="flex flex-1 items-center gap-2 min-w-[280px]">

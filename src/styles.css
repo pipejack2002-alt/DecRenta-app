@@ -104,8 +104,8 @@
 }
 
 @page {
-  size: auto;
-  margin: 6mm 8mm;
+  size: landscape !important;
+  margin: 3mm 4mm !important;
 }
 
 @media print {
@@ -144,6 +144,10 @@
   main {
     background: #ffffff !important;
     background-color: #ffffff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
   }
 
   /* Ocultar el app de fondo cuando se imprime un modal como el Informe para el Cliente */
@@ -152,14 +156,28 @@
     display: none !important;
   }
 
+  /* Ocultar ABSOLUTAMENTE todo elemento marcado con no-print o data-print-hide */
   header,
   aside,
   nav,
   footer,
   [data-print-hide],
+  [data-print-hide] *,
   .no-print,
-  button {
+  .no-print *,
+  .print\:hidden,
+  button,
+  input,
+  select,
+  textarea {
     display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    max-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
   }
 
   main {

@@ -49,9 +49,9 @@ function FormularioPage() {
   }
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6 pb-12 print:space-y-0 print:p-0 print:m-0">
       {/* Encabezado Principal */}
-      <header className="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-4" data-print-hide>
+      <header className="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-4 print:hidden no-print" data-print-hide>
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Link
@@ -141,7 +141,7 @@ function FormularioPage() {
       {/* Resumen Superior Rápido */}
       <div
         data-print-hide
-        className="grid grid-cols-2 gap-3 sm:grid-cols-4 rounded-2xl border border-line bg-surface p-4 shadow-xs text-xs"
+        className="grid grid-cols-2 gap-3 sm:grid-cols-4 rounded-2xl border border-line bg-surface p-4 shadow-xs text-xs print:hidden no-print"
       >
         <div>
           <span className="text-muted">Patrimonio Líquido (31):</span>
@@ -170,10 +170,12 @@ function FormularioPage() {
       </div>
 
       {/* Componente Central del Formulario Oficial DIAN 210 */}
-      <OfficialDian210 />
+      <div className="dian-form-wrapper w-full print:w-full print:m-0 print:p-0">
+        <OfficialDian210 />
+      </div>
 
       {/* Información Legal y Control de Recaudo */}
-      <div className="rounded-2xl border border-line bg-surface p-4 text-xs text-muted space-y-1" data-print-hide>
+      <div className="rounded-2xl border border-line bg-surface p-4 text-xs text-muted space-y-1 print:hidden no-print" data-print-hide>
         <div className="flex items-center gap-2 text-ink font-semibold">
           <ShieldCheck className="size-4 text-forest" />
           <span>Cumplimiento Legal y Verificación Formal DIAN</span>
