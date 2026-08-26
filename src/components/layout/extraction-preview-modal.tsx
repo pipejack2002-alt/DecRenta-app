@@ -12,6 +12,7 @@ const FIELD_LABELS: Record<string, { label: string; casilla?: number; source?: s
   "trabajo.otrasPrestaciones": { label: "Otras prestaciones y primas", casilla: 32, source: "Art. 103 E.T." },
   "trabajo.cesantiasPagadas": { label: "Cesantías pagadas directamente al empleado", casilla: 32, source: "Art. 206 num. 4" },
   "trabajo.cesantiasFondo": { label: "Cesantías consignadas al fondo", casilla: 32, source: "Art. 206 num. 4" },
+  "trabajo.promedioMensual6m": { label: "Ingreso laboral promedio últimos 6 meses (para exención cesantías)", casilla: 59, source: "Art. 206 num. 4 E.T." },
   "trabajo.aportesSaludObligatorios": { label: "Aportes obligatorios a salud", casilla: 33, source: "Art. 56 E.T." },
   "trabajo.aportesPensionObligatorios": { label: "Aportes obligatorios a pensión", casilla: 33, source: "Art. 55 E.T." },
   "trabajo.aportesVoluntariosRais": { label: "Aportes voluntarios RAIS", casilla: 33, source: "Art. 55 E.T." },

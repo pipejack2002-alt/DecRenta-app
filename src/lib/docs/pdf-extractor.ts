@@ -106,6 +106,14 @@ export function parseFormato220Text(text: string): { amounts: Record<string, num
     notesLines.push(`Retención en la fuente: $${ret.toLocaleString("es-CO")}`);
   }
 
+  // 8. Ingreso laboral promedio últimos 6 meses (Casilla 59 en Formato 220 - Art. 206 num. 4 E.T.)
+  const prom6m = extractPattern(/Ingreso\s*laboral\s*promedio\s*de\s*los\s*[uú]ltimos\s*seis\s*meses[\s\S]{0,50}?(\d{1,3}(?:\.\d{3})+)/i) ||
+    extractPattern(/promedio[\s\S]{0,30}?[uú]ltimos\s*seis\s*meses[\s\S]{0,40}?(\d{1,3}(?:\.\d{3})+)/i);
+  if (prom6m > 0 && prom6m !== 202511) {
+    amounts["trabajo.promedioMensual6m"] = prom6m;
+    notesLines.push(`Ingreso promedio 6m (C59): $${prom6m.toLocaleString("es-CO")}`);
+  }
+
   return {
     amounts,
     notes: notesLines.join(" | ") || "Valores extraídos de Formato 220.",
