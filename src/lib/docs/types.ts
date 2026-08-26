@@ -8,6 +8,7 @@ export type DocKind =
   | "certGmf"
   | "extractoBanco"
   | "saldoCuentas"
+  | "certDeudas"
   | "avaluoCatastral"
   | "certTradicion"
   | "predial"
@@ -19,6 +20,8 @@ export type DocKind =
   | "arrendamiento"
   | "facturaElectronica"
   | "form210Anterior"
+  | "exogenaDian"
+  | "certDependientes"
   | "rut"
   | "icetex"
   | "donaciones"
@@ -137,6 +140,13 @@ export const DOC_CATALOG: {
     source: "Art. 267 E.T.",
   },
   {
+    kind: "certDeudas",
+    label: "Certificado de deudas / obligaciones financieras",
+    help: "Saldos a 31/12 de créditos de consumo, libranzas, tarjetas de crédito, créditos hipotecarios y leasing.",
+    maps: [{ path: "patrimonio.obligacionesFinancieras", label: "Deudas y créditos financieros" }],
+    source: "Art. 283 E.T. · Casilla 30 Formulario 210",
+  },
+  {
     kind: "avaluoCatastral",
     label: "Avalúo catastral",
     help: "Valor patrimonial mínimo de inmuebles (el mayor entre avalúo, costo fiscal y autoavalúo).",
@@ -229,9 +239,27 @@ export const DOC_CATALOG: {
     source: "Instructivo Formulario 210, casillas 130 y 131",
   },
   {
+    kind: "exogenaDian",
+    label: "Información Exógena DIAN (Reporte de Terceros)",
+    help: "Reporte anual descargado del portal DIAN con cuentas, salarios, retenciones y compras reportadas.",
+    maps: [
+      { path: "trabajo.salarios", label: "Salarios reportados" },
+      { path: "extra.retenciones", label: "Retenciones reportadas" },
+      { path: "patrimonio.cuentas", label: "Cuentas bancarias reportadas" },
+    ],
+    source: "Resolución DIAN · Consulta de Información Reportada por Terceros",
+  },
+  {
+    kind: "certDependientes",
+    label: "Certificado / soporte de dependientes económicos",
+    help: "Certificados de estudio o declaración juramentada para deducir hasta 72 UVT por dependiente (art. 336 / 387 E.T.).",
+    maps: [{ path: "deducciones.dependientes", label: "Dependientes económicos" }],
+    source: "Art. 387 y num. 2 art. 336 E.T. (Ley 2277 de 2022)",
+  },
+  {
     kind: "rut",
-    label: "RUT",
-    help: "NIT, DV, actividad CIIU, dirección seccional y responsabilidades.",
+    label: "RUT (Registro Único Tributario)",
+    help: "NIT, DV, actividad CIIU, dirección seccional y responsabilidades tributarias.",
     maps: [],
     source: "Decreto 1625 de 2016 · RUT DIAN",
   },

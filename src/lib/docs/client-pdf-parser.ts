@@ -1,5 +1,22 @@
 import * as pdfjs from "pdfjs-dist/legacy/build/pdf.mjs";
-import { cleanCurrency, parseFormato220Text, parseCertificadoBancarioText } from "./pdf-extractor";
+import {
+  cleanCurrency,
+  parseFormato220Text,
+  parseCertificadoBancarioText,
+  parseCertCesantiasText,
+  parseCertAfcFvpText,
+  parseInteresesViviendaText,
+  parseMedicinaPrepagadaText,
+  parsePilaText,
+  parseCertDeudasText,
+  parseCertDividendosText,
+  parseCertHonorariosText,
+  parseAvaluoPredialText,
+  parseIcetexText,
+  parseDonacionesText,
+  parsePensionJubilacionText,
+  parseForm210AnteriorText,
+} from "./pdf-extractor";
 import type { DocKind } from "./types";
 
 // Configurar el worker de pdf.js para navegador
@@ -19,7 +36,6 @@ export interface ClientParsedDocResult {
 
 /**
  * Parsea un archivo directamente en el navegador del cliente (sin depender de red ni límites de servidor)
- * Idéntico al motor de importación de Exógena
  */
 export async function parseDocumentInBrowser(
   buffer: ArrayBuffer,
@@ -50,7 +66,6 @@ export async function parseDocumentInBrowser(
         }
         fullText = pageTexts.join("\n");
       } catch (pdfErr: any) {
-        // Fallback a decodificación de texto utf-8 si falla el parser
         const decoder = new TextDecoder("utf-8");
         fullText = decoder.decode(buffer);
       }
@@ -94,6 +109,35 @@ export async function parseDocumentInBrowser(
       ) {
         detectedKind = "rut";
       } else if (
+        /cesant[ií]as?|fondo\s*de\s*cesant[ií]as?|porvenir|protecci[oó]n|colfondos|skandia|fna/i.test(fullText) &&
+        /cesant[ií]a/i.test(fullText)
+      ) {
+        detectedKind = "certCesantias";
+      } else if (/afc|avc|voluntari[ao]s?\s*de\s*pensi[oó]n|fvp/i.test(fullText)) {
+        detectedKind = "certAfc";
+      } else if (/cr[eé]dito\s*hipotecario|intereses\s*de\s*vivienda|leasing\s*habitacional/i.test(fullText)) {
+        detectedKind = "interesesHipoteca";
+      } else if (/medicina\s*prepagada|plan\s*complementario|p[oó]liza\s*de\s*salud|sura|colsanitas|colmedica|coomeva|sanitas|allianz/i.test(fullText) && /salud|cuota|pago/i.test(fullText)) {
+        detectedKind = "medicinaPrepagada";
+      } else if (/planilla\s*[uú]nica|pila|aportes\s*en\s*l[ií]nea|soi|arus|simple|miplanilla/i.test(fullText) || /pila/i.test(fileName)) {
+        detectedKind = "pila";
+      } else if (/dividendos|participaciones|subc[eé]dula/i.test(fullText)) {
+        detectedKind = "certDividendos";
+      } else if (/honorarios|servicios\s*profesionales|cuenta\s*de\s*cobro/i.test(fullText)) {
+        detectedKind = "certHonorarios";
+      } else if (/aval[uú]o\s*catastral|impuesto\s*predial|predio/i.test(fullText)) {
+        detectedKind = "avaluoCatastral";
+      } else if (/icetex/i.test(fullText) || /icetex/i.test(fileName)) {
+        detectedKind = "icetex";
+      } else if (/donaci[oó]n|donante/i.test(fullText)) {
+        detectedKind = "donaciones";
+      } else if (/mesada\s*pensional|colpensiones|resoluci[oó]n\s*de\s*pensi[oó]n/i.test(fullText)) {
+        detectedKind = "pensionJubilacion";
+      } else if (/obligaci[oó]n\s*financiera|cr[eé]dito\s*de\s*consumo|tarjeta\s*de\s*cr[eé]dito|libranza|saldo\s*deuda/i.test(fullText)) {
+        detectedKind = "certDeudas";
+      } else if (/declaraci[oó]n\s*de\s*renta|formulario\s*210/i.test(fullText) && /2024|2023/i.test(fullText)) {
+        detectedKind = "form210Anterior";
+      } else if (
         /extracto|cuenta\s*de\s*ahorro|cuenta\s*corriente|bancolombia|nu\s*colombia|tu\s*cuenta\s*de\s*ahorros|davivienda|banco|costos\s*totales|dep[oó]sito|saldo\s*final:|4x1000\s*gmf:|nequi|rendimientos\s*totales/i.test(
           fullText
         ) ||
@@ -108,17 +152,71 @@ export async function parseDocumentInBrowser(
     // Extracción de montos estructurados
     let parsedData: { amounts: Record<string, number>; notes: string } = { amounts: {}, notes: "" };
 
+    // 1. Formato 220
     if (detectedKind === "formato220" || /220/i.test(fileName)) {
       parsedData = parseFormato220Text(fullText);
-    } else if (
+    }
+    // 2. Cesantías
+    else if (detectedKind === "certCesantias" || /cesant[ií]a/i.test(fileName)) {
+      parsedData = parseCertCesantiasText(fullText);
+    }
+    // 3. AFC / FVP
+    else if (["certAfc", "certPensionVoluntaria"].includes(detectedKind) || /afc|fvp|voluntari/i.test(fileName)) {
+      parsedData = parseCertAfcFvpText(fullText);
+    }
+    // 4. Intereses Vivienda / Hipoteca
+    else if (detectedKind === "interesesHipoteca" || /vivienda|hipoteca|leasing/i.test(fileName)) {
+      parsedData = parseInteresesViviendaText(fullText);
+    }
+    // 5. Medicina Prepagada
+    else if (detectedKind === "medicinaPrepagada" || /prepagada|poliza|salud/i.test(fileName)) {
+      parsedData = parseMedicinaPrepagadaText(fullText);
+    }
+    // 6. PILA
+    else if (detectedKind === "pila" || /pila|planilla/i.test(fileName)) {
+      parsedData = parsePilaText(fullText);
+    }
+    // 7. Deudas y obligaciones financieras
+    else if (detectedKind === "certDeudas" || /deuda|obligaci/i.test(fileName)) {
+      parsedData = parseCertDeudasText(fullText);
+    }
+    // 8. Dividendos
+    else if (detectedKind === "certDividendos" || /dividendo/i.test(fileName)) {
+      parsedData = parseCertDividendosText(fullText);
+    }
+    // 9. Honorarios
+    else if (detectedKind === "certHonorarios" || /honorario/i.test(fileName)) {
+      parsedData = parseCertHonorariosText(fullText);
+    }
+    // 10. Avalúo / Predial
+    else if (["avaluoCatastral", "predial", "certTradicion"].includes(detectedKind) || /avaluo|predial|catastral|tradicion/i.test(fileName)) {
+      parsedData = parseAvaluoPredialText(fullText);
+    }
+    // 11. ICETEX
+    else if (detectedKind === "icetex" || /icetex/i.test(fileName)) {
+      parsedData = parseIcetexText(fullText);
+    }
+    // 12. Donaciones
+    else if (detectedKind === "donaciones" || /donaci/i.test(fileName)) {
+      parsedData = parseDonacionesText(fullText);
+    }
+    // 13. Pensiones
+    else if (detectedKind === "pensionJubilacion" || /pension/i.test(fileName)) {
+      parsedData = parsePensionJubilacionText(fullText);
+    }
+    // 14. Declaración 210 anterior
+    else if (detectedKind === "form210Anterior" || /210.*anterior|renta.*anterior/i.test(fileName)) {
+      parsedData = parseForm210AnteriorText(fullText);
+    }
+    // 15. Bancario / Extracto / Rendimientos / GMF / Retención
+    else if (
       ["extractoBanco", "saldoCuentas", "certGmf", "certRendimientos", "certRetencion"].includes(detectedKind) ||
-      /extracto|cuenta|banco|costos|nu|nequi|bogota|retencion/i.test(fileName) ||
+      /extracto|cuenta|banco|costos|nu|nequi|bogota|retencion|rendimiento/i.test(fileName) ||
       /cuenta\s*de\s*ahorros?|rendimientos|gravamen|4x1000|saldo\s*cuenta|bancolombia|nu\s*colombia/i.test(fullText)
     ) {
-      // 1. Ejecutar extractor bancario universal (saldo, rendimientos, GMF, retención bancaria)
       parsedData = parseCertificadoBancarioText(fullText);
 
-      // 2. Si no encontró retención en banco y es un certificado general de retención, buscar retención estándar
+      // Si no encontró retención en banco y es certificado general de retención
       if (!parsedData.amounts["extra.retenciones"]) {
         const retMatch = fullText.match(/(?:retenci[oó]n|valor\s*retenido|total\s*retenido)[\s\S]{1,50}?\$?\s*([0-9]{1,3}(?:[\.,][0-9]{3})+|[0-9]{4,12})/i);
         if (retMatch) {
@@ -129,8 +227,9 @@ export async function parseDocumentInBrowser(
           }
         }
       }
-    } else if (detectedKind === "rut") {
-      // RUT / Cédula: extraer nombre y NIT para nota pero sin montos
+    }
+    // 16. RUT / Cédula
+    else if (detectedKind === "rut" || /rut|cedula/i.test(fileName)) {
       const nitMatch = fullText.match(/(?:NIT|N[uú]mero\s*de\s*Identificaci[oó]n)[^\d]*(\d{7,12})/i);
       const nameMatch = fullText.match(/([A-Z]{2,}(?:\s+[A-Z]{2,}){1,3})\s*(?:CL|CR|KR|AV|TV|DG|CQ|\d{2})/i);
       const nit = nitMatch ? nitMatch[1] : "";
@@ -138,8 +237,7 @@ export async function parseDocumentInBrowser(
       parsedData.notes = `RUT / Documento DIAN registrado.${name ? ` Nombre: ${name}.` : ""}${nit ? ` NIT/CC: ${nit}.` : ""} Este documento no contiene montos tributarios — es un soporte de identidad.`;
     }
 
-    // Si no hay notas útiles, mostrar vista previa del texto extraído
-    // para que el usuario pueda verificar que el documento sí fue leído
+    // Heurística general: si no detectó montos pero hay números de moneda en el texto, dar nota de vista previa
     let finalNotes = parsedData.notes;
     if (!finalNotes || finalNotes === "Valores extraídos de certificado bancario.") {
       const preview = fullText.replace(/\s+/g, " ").trim().slice(0, 300);
