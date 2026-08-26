@@ -666,31 +666,31 @@ export function OfficialDian210({
                     <Cell num={86} className="col-span-2" />
                   </div>
 
-                  {/* Renta líquida ordinaria del ejercicio (Deshabilitado en Trabajo) */}
+                  {/* Bloque de 3 filas con columna de trabajo unificada continua (sin líneas divisorias interiores) */}
                   <div className="grid grid-cols-12 divide-x divide-black">
-                    <div className="col-span-4 px-2 py-0.5 bg-[#f9fbfd]">Renta líquida ordinaria del ejercicio</div>
+                    <div className="col-span-4 divide-y divide-gray-300">
+                      <div className="px-2 py-0.5 bg-[#f9fbfd]">Renta líquida ordinaria del ejercicio</div>
+                      <div className="px-2 py-0.5 bg-[#f9fbfd]">Pérdida líquida del ejercicio</div>
+                      <div className="px-2 py-0.5 bg-[#f9fbfd]">Compensaciones por pérdidas</div>
+                    </div>
+                    {/* Columna Rentas de Trabajo bloqueada 100% continua */}
                     <div className="col-span-2 bg-[#b4c6d4]" />
-                    <Cell num={54} className="col-span-2" />
-                    <Cell num={70} className="col-span-2" />
-                    <Cell num={87} className="col-span-2" />
-                  </div>
-
-                  {/* Pérdida líquida del ejercicio (Deshabilitado en Trabajo) */}
-                  <div className="grid grid-cols-12 divide-x divide-black">
-                    <div className="col-span-4 px-2 py-0.5 bg-[#f9fbfd]">Pérdida líquida del ejercicio</div>
-                    <div className="col-span-2 bg-[#b4c6d4]" />
-                    <Cell num={55} className="col-span-2" />
-                    <Cell num={71} className="col-span-2" />
-                    <Cell num={88} className="col-span-2" />
-                  </div>
-
-                  {/* Compensaciones por pérdidas (Deshabilitado en Trabajo) */}
-                  <div className="grid grid-cols-12 divide-x divide-black">
-                    <div className="col-span-4 px-2 py-0.5 bg-[#f9fbfd]">Compensaciones por pérdidas</div>
-                    <div className="col-span-2 bg-[#b4c6d4]" />
-                    <Cell num={56} className="col-span-2" />
-                    <Cell num={72} className="col-span-2" />
-                    <Cell num={89} className="col-span-2" />
+                    {/* Columnas Honorarios, Capital y No Laborales con sus casillas */}
+                    <div className="col-span-2 divide-y divide-gray-300">
+                      <Cell num={54} />
+                      <Cell num={55} />
+                      <Cell num={56} />
+                    </div>
+                    <div className="col-span-2 divide-y divide-gray-300">
+                      <Cell num={70} />
+                      <Cell num={71} />
+                      <Cell num={72} />
+                    </div>
+                    <div className="col-span-2 divide-y divide-gray-300">
+                      <Cell num={87} />
+                      <Cell num={88} />
+                      <Cell num={89} />
+                    </div>
                   </div>
 
                   {/* Renta líquida ordinaria */}

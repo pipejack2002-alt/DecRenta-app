@@ -955,13 +955,21 @@ export async function downloadStyledFormulario210Xlsx(
       ws.mergeCells(`I${R}:J${R}`);
       renderCasilla(`I${R}`, cN as number, vN, { formula: fN, bg: rowBg, bold: isBold, border: { top: T, left: T, bottom: T, right: TK } });
     } else {
-      ws.mergeCells(`C${R}:D${R}`);
-      if (cT !== null) {
-        renderCasilla(`C${R}`, cT as number, vT, { formula: fT, bg: rowBg, bold: isBold });
-      } else {
-        const disCell = ws.getCell(`C${R}`);
+      const isTrabajoVertBlocked = (R === 21 || R === 22 || R === 23);
+      if (R === 21) {
+        ws.mergeCells("C21:D23");
+        const disCell = ws.getCell("C21");
         disCell.fill = fill(CLR.disabledGray);
         disCell.border = BDR_BOX;
+      } else if (!isTrabajoVertBlocked) {
+        ws.mergeCells(`C${R}:D${R}`);
+        if (cT !== null) {
+          renderCasilla(`C${R}`, cT as number, vT, { formula: fT, bg: rowBg, bold: isBold });
+        } else {
+          const disCell = ws.getCell(`C${R}`);
+          disCell.fill = fill(CLR.disabledGray);
+          disCell.border = BDR_BOX;
+        }
       }
 
       ws.mergeCells(`E${R}:F${R}`);
