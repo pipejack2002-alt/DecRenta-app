@@ -555,13 +555,11 @@ export function OfficialDian210({
                     <Cell num={74} className="col-span-2" />
                   </div>
 
-                  {/* Devoluciones, rebajas y descuentos */}
-                  <div className="grid grid-cols-12 divide-x divide-black bg-[#f4f4f4]">
-                    <div className="col-span-4 px-2 py-0.5">Devoluciones, rebajas y descuentos</div>
-                    <div className="col-span-2 bg-gray-100" />
-                    <div className="col-span-2 bg-gray-100" />
-                    <div className="col-span-2 bg-gray-100" />
-                    <Cell num={75} className="col-span-2 bg-white" />
+                  {/* Devoluciones, rebajas y descuentos (Bloque continuo deshabilitado en Trabajo, Honorarios y Capital) */}
+                  <div className="grid grid-cols-12 divide-x divide-black">
+                    <div className="col-span-4 px-2 py-0.5 bg-[#f9fbfd]">Devoluciones, rebajas y descuentos</div>
+                    <div className="col-span-6 bg-[#b4c6d4]" />
+                    <Cell num={75} className="col-span-2" />
                   </div>
 
                   {/* Ingresos no constitutivos de renta */}
@@ -573,10 +571,10 @@ export function OfficialDian210({
                     <Cell num={76} className="col-span-2" />
                   </div>
 
-                  {/* Costos y deducciones procedentes */}
+                  {/* Costos y deducciones procedentes (Deshabilitado en Trabajo) */}
                   <div className="grid grid-cols-12 divide-x divide-black">
                     <div className="col-span-4 px-2 py-0.5 bg-[#f9fbfd]">Costos y deducciones procedentes</div>
-                    <div className="col-span-2 bg-gray-100" />
+                    <div className="col-span-2 bg-[#b4c6d4]" />
                     <Cell num={45} className="col-span-2" />
                     <Cell num={60} className="col-span-2" />
                     <Cell num={77} className="col-span-2" />
@@ -591,11 +589,10 @@ export function OfficialDian210({
                     <Cell num={78} className="col-span-2 font-bold" />
                   </div>
 
-                  {/* Rentas líquidas pasivas - ECE */}
+                  {/* Rentas líquidas pasivas - ECE (Bloque continuo deshabilitado en Trabajo y Honorarios) */}
                   <div className="grid grid-cols-12 divide-x divide-black">
                     <div className="col-span-4 px-2 py-0.5 bg-[#f9fbfd]">Rentas líquidas pasivas - ECE</div>
-                    <div className="col-span-2 bg-gray-100" />
-                    <div className="col-span-2 bg-gray-100" />
+                    <div className="col-span-4 bg-[#b4c6d4]" />
                     <Cell num={62} className="col-span-2" />
                     <Cell num={79} className="col-span-2" />
                   </div>
@@ -669,28 +666,28 @@ export function OfficialDian210({
                     <Cell num={86} className="col-span-2" />
                   </div>
 
-                  {/* Renta líquida ordinaria del ejercicio */}
+                  {/* Renta líquida ordinaria del ejercicio (Deshabilitado en Trabajo) */}
                   <div className="grid grid-cols-12 divide-x divide-black">
                     <div className="col-span-4 px-2 py-0.5 bg-[#f9fbfd]">Renta líquida ordinaria del ejercicio</div>
-                    <div className="col-span-2 bg-gray-100" />
+                    <div className="col-span-2 bg-[#b4c6d4]" />
                     <Cell num={54} className="col-span-2" />
                     <Cell num={70} className="col-span-2" />
                     <Cell num={87} className="col-span-2" />
                   </div>
 
-                  {/* Pérdida líquida del ejercicio */}
+                  {/* Pérdida líquida del ejercicio (Deshabilitado en Trabajo) */}
                   <div className="grid grid-cols-12 divide-x divide-black">
                     <div className="col-span-4 px-2 py-0.5 bg-[#f9fbfd]">Pérdida líquida del ejercicio</div>
-                    <div className="col-span-2 bg-gray-100" />
+                    <div className="col-span-2 bg-[#b4c6d4]" />
                     <Cell num={55} className="col-span-2" />
                     <Cell num={71} className="col-span-2" />
                     <Cell num={88} className="col-span-2" />
                   </div>
 
-                  {/* Compensaciones por pérdidas */}
+                  {/* Compensaciones por pérdidas (Deshabilitado en Trabajo) */}
                   <div className="grid grid-cols-12 divide-x divide-black">
                     <div className="col-span-4 px-2 py-0.5 bg-[#f9fbfd]">Compensaciones por pérdidas</div>
-                    <div className="col-span-2 bg-gray-100" />
+                    <div className="col-span-2 bg-[#b4c6d4]" />
                     <Cell num={56} className="col-span-2" />
                     <Cell num={72} className="col-span-2" />
                     <Cell num={89} className="col-span-2" />

@@ -583,7 +583,7 @@ export async function downloadStyledFormulario210Xlsx(
     blueLight:    "FFF4F7F9",
     blueTotal:    "FFEAF1F7",
     tabGray:      "FFE5E7EB",
-    disabledGray: "FFF4F4F4",
+    disabledGray: "FFB4C6D4",
     borderGray:   "FFD1D5DB",
     redPayBg:     "FFFBEAE8",
     redPayText:   "FF7F1D1D",
@@ -933,40 +933,63 @@ export async function downloadStyledFormulario210Xlsx(
     cLabel.border = BDR_BOX;
     cLabel.alignment = aln("left", "middle", true);
 
-    ws.mergeCells(`C${R}:D${R}`);
-    if (cT !== null) {
-      renderCasilla(`C${R}`, cT as number, vT, { formula: fT, bg: rowBg, bold: isBold });
-    } else {
+    if (cT === null && cH === null && cC === null && cN !== null) {
+      // Devoluciones, rebajas y descuentos (Bloque continuo deshabilitado Trabajo, Honorarios y Capital)
+      ws.mergeCells(`C${R}:H${R}`);
       const disCell = ws.getCell(`C${R}`);
       disCell.fill = fill(CLR.disabledGray);
       disCell.border = BDR_BOX;
-    }
 
-    ws.mergeCells(`E${R}:F${R}`);
-    if (cH !== null) {
-      renderCasilla(`E${R}`, cH as number, vH, { formula: fH, bg: rowBg, bold: isBold });
-    } else {
-      const disCell = ws.getCell(`E${R}`);
+      ws.mergeCells(`I${R}:J${R}`);
+      renderCasilla(`I${R}`, cN as number, vN, { formula: fN, bg: rowBg, bold: isBold, border: { top: T, left: T, bottom: T, right: TK } });
+    } else if (cT === null && cH === null && cC !== null && cN !== null) {
+      // Rentas pasivas ECE (Bloque continuo deshabilitado Trabajo y Honorarios)
+      ws.mergeCells(`C${R}:F${R}`);
+      const disCell = ws.getCell(`C${R}`);
       disCell.fill = fill(CLR.disabledGray);
       disCell.border = BDR_BOX;
-    }
 
-    ws.mergeCells(`G${R}:H${R}`);
-    if (cC !== null) {
+      ws.mergeCells(`G${R}:H${R}`);
       renderCasilla(`G${R}`, cC as number, vC, { formula: fC, bg: rowBg, bold: isBold });
-    } else {
-      const disCell = ws.getCell(`G${R}`);
-      disCell.fill = fill(CLR.disabledGray);
-      disCell.border = BDR_BOX;
-    }
 
-    ws.mergeCells(`I${R}:J${R}`);
-    if (cN !== null) {
+      ws.mergeCells(`I${R}:J${R}`);
       renderCasilla(`I${R}`, cN as number, vN, { formula: fN, bg: rowBg, bold: isBold, border: { top: T, left: T, bottom: T, right: TK } });
     } else {
-      const disCell = ws.getCell(`I${R}`);
-      disCell.fill = fill(CLR.disabledGray);
-      disCell.border = { top: T, left: T, bottom: T, right: TK };
+      ws.mergeCells(`C${R}:D${R}`);
+      if (cT !== null) {
+        renderCasilla(`C${R}`, cT as number, vT, { formula: fT, bg: rowBg, bold: isBold });
+      } else {
+        const disCell = ws.getCell(`C${R}`);
+        disCell.fill = fill(CLR.disabledGray);
+        disCell.border = BDR_BOX;
+      }
+
+      ws.mergeCells(`E${R}:F${R}`);
+      if (cH !== null) {
+        renderCasilla(`E${R}`, cH as number, vH, { formula: fH, bg: rowBg, bold: isBold });
+      } else {
+        const disCell = ws.getCell(`E${R}`);
+        disCell.fill = fill(CLR.disabledGray);
+        disCell.border = BDR_BOX;
+      }
+
+      ws.mergeCells(`G${R}:H${R}`);
+      if (cC !== null) {
+        renderCasilla(`G${R}`, cC as number, vC, { formula: fC, bg: rowBg, bold: isBold });
+      } else {
+        const disCell = ws.getCell(`G${R}`);
+        disCell.fill = fill(CLR.disabledGray);
+        disCell.border = BDR_BOX;
+      }
+
+      ws.mergeCells(`I${R}:J${R}`);
+      if (cN !== null) {
+        renderCasilla(`I${R}`, cN as number, vN, { formula: fN, bg: rowBg, bold: isBold, border: { top: T, left: T, bottom: T, right: TK } });
+      } else {
+        const disCell = ws.getCell(`I${R}`);
+        disCell.fill = fill(CLR.disabledGray);
+        disCell.border = { top: T, left: T, bottom: T, right: TK };
+      }
     }
     R++;
   }
