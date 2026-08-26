@@ -27,7 +27,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       >
         Saltar al contenido principal
       </a>
-      <header className="sticky top-0 z-40 border-b border-line bg-bg/90 backdrop-blur-sm">
+      <header className="sticky top-0 z-40 border-b border-line bg-bg/90 backdrop-blur-sm print:hidden no-print" data-print-hide>
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3">
           <div className="flex items-center gap-3">
             <Link to="/" className="flex min-w-0 items-center gap-3">
@@ -59,9 +59,10 @@ export function AppShell({ children }: { children: ReactNode }) {
               </p>
             </div>
             <Button
+              variant="outline"
               size="sm"
               onClick={() => setAsistenteOpen(true)}
-              className="gap-1.5 bg-forest text-primary-fg hover:bg-forest-deep shadow-sm"
+              className="gap-1.5 border-forest/30 bg-forest-mist/50 text-forest hover:bg-forest-mist"
               title="Abrir Asistente IA Google Gemini"
             >
               <Sparkles className="size-3.5" />
@@ -83,10 +84,11 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <GeminiAsistenteModal isOpen={asistenteOpen} onClose={() => setAsistenteOpen(false)} />
 
-      <div className="mx-auto flex max-w-7xl gap-8 px-4 py-6">
+      <div className="mx-auto flex max-w-7xl gap-8 px-4 py-6 print:m-0 print:p-0 print:block print:max-w-none">
         <aside
+          data-print-hide
           className={cn(
-            "z-30 flex-col",
+            "z-30 flex-col print:hidden no-print",
             open
               ? "fixed inset-0 flex bg-bg p-6 pt-20"
               : "hidden lg:static lg:flex lg:w-56 lg:shrink-0 lg:bg-transparent lg:p-0",
@@ -113,11 +115,11 @@ export function AppShell({ children }: { children: ReactNode }) {
               );
             })}
           </nav>
-          <p className="mt-8 hidden text-[11px] leading-relaxed text-faint lg:block">
+          <p className="mt-8 hidden text-[11px] leading-relaxed text-faint lg:block print:hidden no-print" data-print-hide>
             Orientación con base en fuentes oficiales. No sustituye el SI de Diligenciamiento de la DIAN ni a un contador público.
           </p>
         </aside>
-        <main id="contenido" className="min-w-0 flex-1 pb-16">
+        <main id="contenido" className="min-w-0 flex-1 pb-16 print:p-0 print:m-0 print:w-full print:max-w-none">
           {activeProfile?.status === "presentado" && (
             <div className="mb-4 rounded-xl border border-purple-200 bg-purple-50/90 px-4 py-2.5 text-xs text-purple-900 flex items-center justify-between gap-3 shadow-xs animate-in fade-in">
               <div className="flex items-center gap-2">

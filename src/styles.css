@@ -282,8 +282,10 @@
     width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
-    transform: none !important;
+    transform: scale(0.91) !important;
+    transform-origin: top center !important;
     margin: 0 auto !important;
+    margin-bottom: -90px !important;
     border: 1.5px solid black !important;
     box-shadow: none !important;
     page-break-inside: avoid !important;
