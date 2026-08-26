@@ -22,6 +22,7 @@ import {
 } from "@/lib/docs/types";
 import { useAppStore, useComputed } from "@/lib/store";
 import { extractUniversalDocServerFn } from "@/lib/docs/universal-extractor";
+import { parseFormato220Text, parseCertificadoBancarioText } from "@/lib/docs/pdf-extractor";
 import { formatCOP, formatNumber } from "@/lib/tax/format";
 import { Button } from "@/components/ui/button";
 import { Card, CardHint, CardTitle } from "@/components/ui/card";
@@ -584,9 +585,24 @@ function SubirPanel() {
   }
 
   async function extraerDocExistente(doc: VaultDoc) {
-    if (!doc.notes) return;
     setBusy(true);
     setErr(null);
+
+    const textToScan = doc.notes || doc.name || "";
+    let parsedData: { amounts: Record<string, number>; notes: string } = { amounts: {}, notes: "" };
+    
+    if (doc.kind === "formato220" || /220/i.test(doc.name)) {
+      parsedData = parseFormato220Text(textToScan);
+    } else if (["extractoBanco", "saldoCuentas", "certGmf", "certRendimientos"].includes(doc.kind) || /extracto|cuenta|banco/i.test(doc.name)) {
+      parsedData = parseCertificadoBancarioText(textToScan);
+    }
+
+    if (Object.keys(parsedData.amounts).length > 0) {
+      updateDoc(doc.id, { extracted: parsedData.amounts, notes: parsedData.notes || doc.notes });
+      setPreviewData({ doc, amounts: parsedData.amounts, notes: parsedData.notes });
+      setBusy(false);
+      return;
+    }
 
     const apiKey = aiSettings.geminiApiKey;
     if (!apiKey) {
@@ -599,7 +615,7 @@ function SubirPanel() {
       apiKey,
       model: aiSettings.geminiModel,
       kind: doc.kind,
-      text: doc.notes,
+      text: textToScan,
     });
 
     setBusy(false);
@@ -763,15 +779,28 @@ function SubirPanel() {
                         {doc.applied ? "Revisar / Modificar montos" : "Validar y Aplicar a la Declaración"}
                       </Button>
                     ) : (
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        className="gap-1.5 text-xs"
-                        onClick={() => extraerDocExistente(doc)}
-                      >
-                        <Sparkles className="size-3.5" />
-                        Extraer montos con Gemini
-                      </Button>
+                      <>
+                        <Button
+                          size="sm"
+                          variant="default"
+                          className="gap-1.5 text-xs bg-forest hover:bg-forest-deep text-white"
+                          onClick={() => extraerDocExistente(doc)}
+                        >
+                          <Sparkles className="size-3.5" />
+                          Extraer cifras del documento
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="gap-1.5 text-xs"
+                          onClick={() => {
+                            setPreviewData({ doc, amounts: {}, notes: doc.notes });
+                          }}
+                        >
+                          <FileText className="size-3.5" />
+                          Ingresar cifras manualmente
+                        </Button>
+                      </>
                     )}
 
                     <Button

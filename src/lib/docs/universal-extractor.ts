@@ -151,24 +151,24 @@ export const extractUniversalDocServerFn = createServerFn({ method: "POST" })
         if (/formulario\s*220|certificado\s*de\s*ingresos\s*y\s*retenciones|retenciones\s*por\s*rentas\s*de\s*trabajo/i.test(rawText) || /f220|220/i.test(data.fileName)) {
           detectedKind = "formato220";
         } else if (/extracto|cuenta\s*de\s*ahorro|cuenta\s*corriente|bancolombia|nu\s*colombia|davivienda|banco|costos\s*totales/i.test(rawText)) {
-          detectedKind = "extractoBancario";
+          detectedKind = "extractoBanco";
         } else if (/certificado\s*de\s*retenci[oó]n|retenci[oó]n\s*en\s*la\s*fuente/i.test(rawText)) {
-          detectedKind = "certificadoRetencion";
+          detectedKind = "certRetencion";
         } else if (/c[eé]dula\s*de\s*ciudadan[ií]a|rep[uú]blica\s*de\s*colombia|registradur[ií]a/i.test(rawText)) {
-          detectedKind = "cedula";
+          detectedKind = "rut";
         }
       }
 
       // Extraer montos y conceptos estructurados
       let parsedData: { amounts: Record<string, number>; notes: string } = { amounts: {}, notes: "" };
-      if (detectedKind === "formato220") {
+      if (detectedKind === "formato220" || /220/i.test(data.fileName)) {
         parsedData = parseFormato220Text(rawText);
-      } else if (detectedKind === "extractoBancario" || detectedKind === "certificadoBancario") {
+      } else if (detectedKind === "extractoBanco" || /extracto|cuenta|banco/i.test(data.fileName)) {
         parsedData = parseCertificadoBancarioText(rawText);
-      } else if (detectedKind === "certificadoRetencion") {
-        const retMatch = rawText.match(/(?:retenci[oó]n|valor\s*retenido|total\s*retenido)[\s\S]{1,50}?\$?\s*(\d{1,3}(?:\.\d{3})*|\d+)/i);
+      } else if (detectedKind === "certRetencion" || /retenci[oó]n/i.test(data.fileName)) {
+        const retMatch = rawText.match(/(?:retenci[oó]n|valor\s*retenido|total\s*retenido)[\s\S]{1,50}?\$?\s*([0-9]{1,3}(?:[\.,][0-9]{3})+|[0-9]{4,12})/i);
         if (retMatch) {
-          const val = parseInt(retMatch[1].replace(/\./g, ""), 10);
+          const val = parseInt(retMatch[1].replace(/[\$,\s]/g, "").replace(/\./g, ""), 10);
           if (val > 0) {
             parsedData.amounts["extra.retenciones"] = val;
             parsedData.notes = `Retención en la fuente extraída: $${val.toLocaleString("es-CO")}`;
