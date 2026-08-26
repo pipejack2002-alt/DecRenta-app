@@ -414,13 +414,13 @@ function DeclaracionPage() {
                 <MoneyField label="Promedio salarial últimos 6 meses" year={y} value={d.trabajo.promedioMensual6m} onChange={(n) => patch((x) => (x.trabajo.promedioMensual6m = n))} hint="Define el % exento de cesantías (tabla num. 4 art. 206). 100 % si ≤ 350 UVT." />
                 <MoneyField label="Cesantías acumuladas a 31/12/2016 (retiradas)" year={y} value={d.trabajo.cesantiasAcumuladas2016} onChange={(n) => patch((x) => (x.trabajo.cesantiasAcumuladas2016 = n))} />
               </div>
-              <h3 className="font-display text-lg">INCRNGO · casilla 33</h3>
+              <h3 className="font-display text-lg">Aportes a Seguridad Social y conceptos no gravados · Casilla 33</h3>
               <div className="grid gap-4 sm:grid-cols-2">
                 <MoneyField label="Aportes obligatorios a pensión" casilla={33} year={y} value={d.trabajo.aportesPensionObligatorios} onChange={(n) => patch((x) => (x.trabajo.aportesPensionObligatorios = n))} source="Art. 55 E.T." />
                 <MoneyField label="Aportes obligatorios a salud" year={y} value={d.trabajo.aportesSaludObligatorios} onChange={(n) => patch((x) => (x.trabajo.aportesSaludObligatorios = n))} source="Art. 56 E.T." />
                 <MoneyField label="Cotizaciones voluntarias RAIS" year={y} value={d.trabajo.aportesVoluntariosRais} onChange={(n) => patch((x) => (x.trabajo.aportesVoluntariosRais = n))} hint="Tope 25 % y 2.500 UVT, global entre cédulas." />
-                <MoneyField label="Apoyos económicos educativos" year={y} value={d.trabajo.apoyosEducativos} onChange={(n) => patch((x) => (x.trabajo.apoyosEducativos = n))} hint="INCRNGO. No aplica a honorarios ni a capital." source="Art. 46 E.T." />
-                <MoneyField label="Otros INCRNGO" year={y} value={d.trabajo.otrosINCRNGO} onChange={(n) => patch((x) => (x.trabajo.otrosINCRNGO = n))} />
+                <MoneyField label="Apoyos económicos educativos" year={y} value={d.trabajo.apoyosEducativos} onChange={(n) => patch((x) => (x.trabajo.apoyosEducativos = n))} hint="Ingreso no gravable. No aplica a honorarios ni a capital." source="Art. 46 E.T." />
+                <MoneyField label="Otros ingresos no constitutivos de renta" year={y} value={d.trabajo.otrosINCRNGO} onChange={(n) => patch((x) => (x.trabajo.otrosINCRNGO = n))} />
               </div>
               <h3 className="font-display text-lg">Exentas y deducciones</h3>
               <div className="grid gap-4 sm:grid-cols-2">
