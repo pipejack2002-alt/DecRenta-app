@@ -133,6 +133,7 @@ export function parseExogenaExcel(bufferOrArray: ArrayBuffer | Uint8Array): Exog
       let colNitTerc = -1;
       let colNomTerc = -1;
       let colDetalle = -1;
+      let colValorExplicit = -1;
       let colCasilla = -1;
 
       const colHeaders: Record<number, string> = {};
@@ -142,7 +143,7 @@ export function parseExogenaExcel(bufferOrArray: ArrayBuffer | Uint8Array): Exog
         const rowStr = row.map((c) => String(c || "")).join("|").toLowerCase();
 
         if (
-          (rowStr.includes("formato") || rowStr.includes("concepto") || rowStr.includes("nit") || rowStr.includes("identifica")) &&
+          (rowStr.includes("formato") || rowStr.includes("concepto") || rowStr.includes("nit") || rowStr.includes("identifica") || rowStr.includes("detalle")) &&
           (rowStr.includes("informante") || rowStr.includes("razon") || rowStr.includes("nombre") || rowStr.includes("valor") || rowStr.includes("saldo") || rowStr.includes("pago") || rowStr.includes("monto") || rowStr.includes("retenci") || rowStr.includes("detalle"))
         ) {
           dataHeaderIndex = i;
@@ -154,12 +155,13 @@ export function parseExogenaExcel(bufferOrArray: ArrayBuffer | Uint8Array): Exog
 
             if (/^formato$|c[oó]d.*formato/i.test(headLower)) colFormato = c;
             else if (/^concepto$|c[oó]d.*concepto/i.test(headLower)) colConcepto = c;
-            else if (/nit.*informante|identificaci[oó]n.*informante|nit.*persona.*reporta/i.test(headLower)) colNitInf = c;
-            else if (/nombre.*informante|raz[oó]n.*informante|primer.*apellido.*informante|raz[oó]n.*social/i.test(headLower)) {
-              if (colNomInf === -1) colNomInf = c;
+            else if (/^nit$|nit.*informante|identificaci[oó]n.*informante|nit.*persona.*reporta/i.test(headLower) && colNitInf === -1) colNitInf = c;
+            else if (/nombre.*informante|raz[oó]n.*informante|primer.*apellido.*informante|nombre\s*\/\s*raz[oó]n.*social/i.test(headLower) && colNomInf === -1) {
+              colNomInf = c;
             } else if (/nit.*tercero|identificaci[oó]n.*reportad|identificaci[oó]n.*tercero/i.test(headLower)) colNitTerc = c;
             else if (/nombre.*tercero|raz[oó]n.*reportad|nombre.*reportado/i.test(headLower)) colNomTerc = c;
             else if (/detalle|descripci[oó]n/i.test(headLower)) colDetalle = c;
+            else if (/^valor$|^saldo$|^monto$|^cuant[ií]a$/i.test(headLower)) colValorExplicit = c;
             else if (/casilla|sugerid/i.test(headLower)) colCasilla = c;
           }
           break;
@@ -205,28 +207,18 @@ export function parseExogenaExcel(bufferOrArray: ArrayBuffer | Uint8Array): Exog
             }
           }
         }
-        if (!informanteNit) {
-          for (let c = 0; c < Math.min(6, row.length); c++) {
-            const valStr = String(row[c] || "").trim();
-            if (/^\d{6,12}$/.test(valStr) && valStr !== concepto && valStr !== formato && valStr !== nit) {
-              informanteNit = valStr;
-              break;
-            }
-          }
-        }
+
+        // Si no hay informante, asignar DIAN
         if (!informanteNombre) {
-          for (let c = 0; c < Math.min(8, row.length); c++) {
-            const valStr = String(row[c] || "").trim();
-            if (valStr && isNaN(Number(valStr)) && valStr.length > 3 && !/Formato|Concepto|NIT/i.test(valStr)) {
-              informanteNombre = valStr;
-              break;
-            }
-          }
+          informanteNombre = rowDetalle.includes("Tope") ? "DIAN - Criterios de Obligación" : "Tercero Informante DIAN";
+        }
+        if (!informanteNit) {
+          informanteNit = "DIAN";
         }
 
         // Extraer todos los valores numéricos de la fila
         for (let c = 0; c < row.length; c++) {
-          if (c === colFormato || c === colConcepto || c === colNitInf || c === colNomInf || c === colNitTerc || c === colNomTerc) {
+          if (c === colFormato || c === colConcepto || c === colNitInf || c === colNomInf || c === colNitTerc || c === colNomTerc || c === colDetalle) {
             continue;
           }
 
@@ -234,21 +226,21 @@ export function parseExogenaExcel(bufferOrArray: ArrayBuffer | Uint8Array): Exog
           const valor = parseExogenaValor(rawValor);
           if (valor <= 0) continue;
 
-          const colHeader = colHeaders[c] || `Columna ${c + 1}`;
+          const colHeader = colHeaders[c] || (colValorExplicit === c ? "Valor" : `Columna ${c + 1}`);
 
           // Construir descripción contextual completa
           const contextParts: string[] = [];
           if (formato) contextParts.push(`Formato ${formato}`);
           if (concepto) contextParts.push(`Concepto ${concepto}`);
-          if (colHeader && !colHeader.startsWith("Columna")) contextParts.push(colHeader);
           if (rowDetalle) contextParts.push(rowDetalle);
-          if (sheetName && sheetName !== "Sheet1" && sheetName !== "Hoja1" && sheetName !== "Hoja 1") contextParts.push(sheetName);
+          if (colHeader && !colHeader.startsWith("Columna")) contextParts.push(colHeader);
+          if (sheetName && sheetName !== "Sheet1" && sheetName !== "Hoja1" && sheetName !== "Hoja 1" && sheetName !== "Reporte") contextParts.push(sheetName);
 
           const fullDetalle = contextParts.length > 0 ? contextParts.join(" - ") : "Reporte Exógena DIAN";
 
           const item: ExogenaTerceroItem = {
-            informanteNit: informanteNit || "DIAN",
-            informanteNombre: informanteNombre || "Tercero Informante",
+            informanteNit,
+            informanteNombre,
             reportadoNit,
             reportadoNombre,
             detalle: fullDetalle,
@@ -258,7 +250,7 @@ export function parseExogenaExcel(bufferOrArray: ArrayBuffer | Uint8Array): Exog
           };
 
           items.push(item);
-          classifyItem(item, resumen, amountsToApply, concepto, formato, colHeader);
+          classifyItem(item, resumen, amountsToApply, concepto, formato, colHeader, rowDetalle);
         }
       }
     }
@@ -319,8 +311,6 @@ function parseExogenaValor(val: unknown): number {
   const str = String(val).trim();
   if (!str) return 0;
 
-  // Manejo de moneda y formatos numéricos
-  // Ejemplo: "$ 50.000.000,00" o "50,000,000.00" o "50000000"
   const clean = str.replace(/[\$,\s]/g, "");
   const num = Number(clean);
   if (Number.isFinite(num) && num > 0) return Math.round(num);
@@ -364,8 +354,9 @@ function classifyItem(
   conceptoCode: string = "",
   formatoCode: string = "",
   columnHeader: string = "",
+  rowDetalle: string = "",
 ) {
-  const d = (item.detalle + " " + item.casillaSugerida + " " + item.infoAdicional + " " + columnHeader).toLowerCase();
+  const d = (item.detalle + " " + item.casillaSugerida + " " + item.infoAdicional + " " + columnHeader + " " + rowDetalle).toLowerCase();
   const v = item.valor;
   if (v <= 0) return;
 
@@ -373,15 +364,16 @@ function classifyItem(
     amounts[path] = (amounts[path] || 0) + val;
   };
 
-  // 1. Salarios y pagos laborales (Formato 2276 / 1001, Conceptos 5001, 5003, 5004, 5010)
+  // 1. Salarios, pagos laborales y "Tope 1 - Ingresos"
   if (
     conceptoCode === "5001" ||
     conceptoCode === "5003" ||
     conceptoCode === "5004" ||
-    /salario|emolumento|sueldo|pago laboral|comisi[oó]n laboral|horas extra|recargo nocturno|vi[aá]tico|bonificaci[oó]n laboral|indemnizaci[oó]n laboral|concepto 5001|formato 2276/i.test(d)
+    /tope.*1.*ingreso|tope.*ingreso|salario|emolumento|sueldo|pago laboral|comisi[oó]n laboral|horas extra|recargo nocturno|vi[aá]tico|bonificaci[oó]n laboral|indemnizaci[oó]n laboral|concepto 5001|formato 2276/i.test(d)
   ) {
     resumen.ingresosTrabajo += v;
     add("trabajo.salarios", v);
+    add("topes.ingresosBrutos", v);
   }
   // Cesantías e intereses sobre cesantías (Concepto 5002)
   else if (conceptoCode === "5002" || /cesant[ií]a|intereses.*cesant[ií]a|concepto 5002/i.test(d)) {
@@ -450,26 +442,30 @@ function classifyItem(
     resumen.retencionesFuente += v;
     add("extra.retenciones", v);
   }
-  // 8. Cuentas bancarias, CDTs y Activos (Formato 1019, 1020, 1008)
+  // 8. Cuentas bancarias, CDTs, Activos y "Tope 2 - Patrimonio"
   else if (
     formatoCode === "1019" ||
     conceptoCode === "1019" ||
-    /saldo.*cuenta|cuenta.*ahorro|cuenta.*corriente|dep[oó]sito.*electr[oó]nico|nequi|daviplata|certificado.*dep[oó]sito|cdt|fiducia|fondo.*inversi[oó]n|concepto 1019/i.test(d)
+    /tope.*2.*patrimonio|tope.*patrimonio|saldo.*cuenta|cuenta.*ahorro|cuenta.*corriente|dep[oó]sito.*electr[oó]nico|nequi|daviplata|certificado.*dep[oó]sito|cdt|fiducia|fondo.*inversi[oó]n|concepto 1019/i.test(d)
   ) {
     resumen.patrimonioBruto += v;
     add("patrimonio.cuentas", v);
+    add("topes.patrimonioBruto", v);
   }
   else if (formatoCode === "1020" || conceptoCode === "1020" || /inversiones.*31|saldo.*cdt|saldo.*inversi[oó]n/i.test(d)) {
     resumen.patrimonioBruto += v;
     add("patrimonio.inversiones", v);
+    add("topes.patrimonioBruto", v);
   }
   else if (/inmueble.*escritura|compra.*inmueble|adquisici[oó]n.*predio/i.test(d)) {
     resumen.patrimonioBruto += v;
     add("patrimonio.inmuebles", v);
+    add("topes.patrimonioBruto", v);
   }
   else if (/veh[ií]culo.*adquisici[oó]n|compra.*automotor|matr[ií]cula.*veh[ií]culo/i.test(d)) {
     resumen.patrimonioBruto += v;
     add("patrimonio.vehiculos", v);
+    add("topes.patrimonioBruto", v);
   }
   else if (formatoCode === "1008" || /cuenta.*por cobrar|saldo.*a favor.*cliente|pr[eé]stamo.*otorgado|formato 1008/i.test(d)) {
     resumen.patrimonioBruto += v;
@@ -513,21 +509,22 @@ function classifyItem(
     add("trabajo.comprasFacturaElectronica", v);
   }
   // 11. Consignaciones / Consumos para control de topes de declaración
-  else if (conceptoCode === "4001" || /consignaci[oó]n|movimiento cr[eé]dito|dep[oó]sito bancario/i.test(d)) {
+  else if (conceptoCode === "4001" || /tope.*3.*consigna|consignaci[oó]n|movimiento cr[eé]dito|dep[oó]sito bancario/i.test(d)) {
     resumen.consignacionesBancarias += v;
     add("topes.consignaciones", v);
   }
-  else if (conceptoCode === "4002" || /tarjeta.*cr[eé]dito|consumo.*tarjeta/i.test(d)) {
+  else if (conceptoCode === "4002" || /tope.*4.*tarjeta|tarjeta.*cr[eé]dito|consumo.*tarjeta/i.test(d)) {
     resumen.consumosTarjetas += v;
     add("topes.consumosTarjeta", v);
   }
-  else if (conceptoCode === "4003" || /compra|adquisici[oó]n/i.test(d)) {
+  else if (conceptoCode === "4003" || /tope.*5.*compra|compra|adquisici[oó]n/i.test(d)) {
     resumen.comprasTotales += v;
     add("topes.compras", v);
   }
   // Si no clasificó pero es una columna de pago o abono general
-  else if (/pago.*abono|ingreso|cuant[ií]a/i.test(columnHeader)) {
+  else if (/pago.*abono|ingreso|cuant[ií]a/i.test(columnHeader + " " + rowDetalle)) {
     resumen.ingresosTrabajo += v;
     add("trabajo.salarios", v);
+    add("topes.ingresosBrutos", v);
   }
 }
