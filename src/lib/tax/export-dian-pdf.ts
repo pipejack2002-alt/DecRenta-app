@@ -40,33 +40,18 @@ export async function downloadOfficialDian210Pdf(
 
     const imgData = canvas.toDataURL("image/png");
 
-    // Formato horizontal A4 (297 mm x 210 mm)
+    // Crear PDF con dimensiones exactas al formulario para escala 100% perfecta y máxima legibilidad
     const pdf = new jsPDF({
-      orientation: "landscape",
-      unit: "mm",
-      format: "a4",
-      compress: true,
+      orientation: canvas.width > canvas.height ? "landscape" : "portrait",
+      unit: "px",
+      format: [canvas.width / 2, canvas.height / 2],
+      hotfixes: ["px_scaling"],
     });
 
-    const pageWidth = pdf.internal.pageSize.getWidth(); // 297 mm
-    const pageHeight = pdf.internal.pageSize.getHeight(); // 210 mm
+    const pdfWidth = canvas.width / 2;
+    const pdfHeight = canvas.height / 2;
 
-    const marginX = 4;
-    const marginY = 4;
-    const printableWidth = pageWidth - marginX * 2; // 289 mm
-    const printableHeight = pageHeight - marginY * 2; // 202 mm
-
-    const imgWidth = canvas.width;
-    const imgHeight = canvas.height;
-    const ratio = Math.min(printableWidth / imgWidth, printableHeight / imgHeight);
-
-    const pdfWidth = imgWidth * ratio;
-    const pdfHeight = imgHeight * ratio;
-
-    const posX = (pageWidth - pdfWidth) / 2;
-    const posY = (pageHeight - pdfHeight) / 2;
-
-    pdf.addImage(imgData, "PNG", posX, posY, pdfWidth, pdfHeight, undefined, "FAST");
+    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight, undefined, "FAST");
 
     const finalName = filename.endsWith(".pdf") ? filename : `${filename}.pdf`;
     pdf.save(finalName);
