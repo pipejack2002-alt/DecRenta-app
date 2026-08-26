@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Columns2, Eye, FileText, History, Maximize2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CompensacionesDialog } from "@/components/layout/compensaciones-dialog";
 import { LiveFormPreview } from "@/components/layout/live-form-preview";
 import { MoneyField, TextField, ToggleField } from "@/components/layout/money-field";
@@ -40,6 +40,11 @@ function DeclaracionPage() {
   const patch = useAppStore((s) => s.patch);
   const c = useComputed();
   const y = d.year;
+
+  const [declYearInput, setDeclYearInput] = useState(String(d.year));
+  useEffect(() => {
+    setDeclYearInput(String(d.year));
+  }, [d.year]);
 
   function openCompensaciones(tipo: TipoCompensacion) {
     setInitialCompTipo(tipo);
@@ -134,12 +139,22 @@ function DeclaracionPage() {
                         maxLength={4}
                         placeholder="2030"
                         className="w-20 h-9 font-mono text-xs font-bold text-center rounded-lg border border-line bg-white"
-                        value={d.year}
+                        value={declYearInput}
                         onChange={(e) => {
                           const val = e.target.value.replace(/\D/g, "").slice(0, 4);
+                          setDeclYearInput(val);
                           const y = Number(val);
                           if (y >= 1990 && y <= 2100) patch((x) => (x.year = y));
                         }}
+                        onBlur={() => {
+                          const y = Number(declYearInput);
+                          if (y >= 1990 && y <= 2100) {
+                            patch((x) => (x.year = y));
+                          } else {
+                            setDeclYearInput(String(d.year));
+                          }
+                        }}
+                        title="Digita cualquier año"
                       />
                     </div>
                   </div>

@@ -13,7 +13,7 @@ import {
   ZoomIn,
   ZoomOut,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CIIU_COMMON, SECCIONALES } from "@/lib/catalogs";
 import { useAppStore, useComputed } from "@/lib/store";
@@ -58,6 +58,11 @@ export function OfficialDian210({
   const [zoomLevel, setZoomLevel] = useState<number>(compact ? 85 : 100);
   const [selectedCasilla, setSelectedCasilla] = useState<number | null>(null);
   const [isEditingDeclarante, setIsEditingDeclarante] = useState(false);
+
+  const [modalYearInput, setModalYearInput] = useState(String(d.year));
+  useEffect(() => {
+    setModalYearInput(String(d.year));
+  }, [d.year]);
 
   const fullName =
     [id.primerApellido, id.segundoApellido, id.primerNombre, id.otrosNombres]
@@ -1195,12 +1200,22 @@ export function OfficialDian210({
                           maxLength={4}
                           placeholder="2030"
                           className="w-16 h-8 font-mono text-xs font-bold text-center rounded-md border border-line bg-white"
-                          value={d.year}
+                          value={modalYearInput}
                           onChange={(e) => {
                             const val = e.target.value.replace(/\D/g, "").slice(0, 4);
+                            setModalYearInput(val);
                             const y = Number(val);
                             if (y >= 1990 && y <= 2100) setYear(y as TaxYear);
                           }}
+                          onBlur={() => {
+                            const y = Number(modalYearInput);
+                            if (y >= 1990 && y <= 2100) {
+                              setYear(y as TaxYear);
+                            } else {
+                              setModalYearInput(String(d.year));
+                            }
+                          }}
+                          title="Digita cualquier año libremente"
                         />
                       </div>
                     </div>

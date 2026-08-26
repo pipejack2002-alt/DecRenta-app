@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Calendar, CheckCircle2, Info, RotateCcw, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,9 @@ export function UvtPanel() {
   const filing = filingYearOf(year);
 
   const [inputYear, setInputYear] = useState(String(year));
+  useEffect(() => {
+    setInputYear(String(year));
+  }, [year]);
 
   const gravableOfficial = officialUvt(year);
   const filingOfficial = officialUvt(filing);
@@ -103,6 +106,14 @@ export function UvtPanel() {
                 className="w-24 h-9 font-mono text-xs font-bold text-center pl-2 pr-2"
                 value={inputYear}
                 onChange={(e) => handleYearChange(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                onBlur={() => {
+                  const y = Number(inputYear);
+                  if (y >= 1990 && y <= 2100) {
+                    setYear(y);
+                  } else {
+                    setInputYear(String(year));
+                  }
+                }}
               />
             </div>
           </div>
