@@ -107,23 +107,41 @@ function DeclaracionPage() {
               <CardHint>Deben coincidir con la hoja principal del RUT (casillas 1 a 12 y 24 a 28).</CardHint>
 
               {/* Año gravable y Número de formulario */}
-              <div className="grid gap-4 sm:grid-cols-2 p-3 bg-muted-mist/40 rounded-lg border border-line">
-                <div className="space-y-1.5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink">1. Año gravable</p>
-                  <div className="flex gap-2">
-                    {([2025, 2024, 2023] as const).map((yr) => (
+              <div className="grid gap-4 sm:grid-cols-2 p-3.5 bg-muted-mist/40 rounded-xl border border-line">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink">1. Año gravable</p>
+                    <span className="text-xs font-mono font-bold text-forest-deep">AG {d.year} (Presentación en {d.year + 1})</span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {([2026, 2025, 2024, 2023] as const).map((yr) => (
                       <button
                         key={yr}
                         type="button"
                         onClick={() => patch((x) => (x.year = yr))}
                         className={cn(
-                          "h-10 flex-1 rounded-md border text-sm font-mono font-bold transition-colors",
-                          d.year === yr ? "border-forest bg-forest text-white" : "border-line bg-surface text-ink-soft hover:bg-forest-mist",
+                          "h-9 px-3 rounded-lg border text-xs font-mono font-bold transition-colors",
+                          d.year === yr ? "border-forest bg-forest text-white shadow-xs" : "border-line bg-surface text-ink-soft hover:bg-forest-mist",
                         )}
                       >
                         {yr}
                       </button>
                     ))}
+                    <div className="flex items-center gap-1 ml-auto">
+                      <span className="text-xs text-muted">Otro:</span>
+                      <input
+                        type="text"
+                        maxLength={4}
+                        placeholder="2030"
+                        className="w-20 h-9 font-mono text-xs font-bold text-center rounded-lg border border-line bg-white"
+                        value={d.year}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, "").slice(0, 4);
+                          const y = Number(val);
+                          if (y >= 1990 && y <= 2100) patch((x) => (x.year = y));
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
                 <TextField

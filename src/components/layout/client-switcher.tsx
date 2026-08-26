@@ -233,14 +233,31 @@ export function ClientSwitcher() {
                       <div className="flex items-center gap-2">
                         <Label className="text-xs text-muted">Año Gravable:</Label>
                         <select
-                          value={newClientYear}
-                          onChange={(e) => setNewClientYear(Number(e.target.value) as TaxYear)}
+                          value={[2026, 2025, 2024, 2023].includes(newClientYear) ? newClientYear : "custom"}
+                          onChange={(e) => {
+                            if (e.target.value !== "custom") setNewClientYear(Number(e.target.value) as TaxYear);
+                          }}
                           className="rounded-lg border border-line bg-surface px-2 py-1 text-xs font-semibold text-ink shadow-sm"
                         >
+                          <option value={2026}>AG 2026 (Declarar en 2027)</option>
                           <option value={2025}>AG 2025 (Declarar en 2026)</option>
                           <option value={2024}>AG 2024 (Declarar en 2025)</option>
                           <option value={2023}>AG 2023</option>
+                          <option value="custom">Otro año…</option>
                         </select>
+                        <Input
+                          type="text"
+                          maxLength={4}
+                          placeholder="2030"
+                          value={newClientYear}
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/\D/g, "").slice(0, 4);
+                            const y = Number(val);
+                            if (y >= 1990 && y <= 2100) setNewClientYear(y as TaxYear);
+                          }}
+                          className="w-18 h-7 text-xs font-mono font-bold text-center"
+                          title="Digita cualquier año libremente"
+                        />
                       </div>
                       <div className="flex items-center gap-2">
                         <Button size="sm" variant="ghost" onClick={() => setShowCreateForm(false)} className="text-xs">
@@ -464,16 +481,38 @@ export function ClientSwitcher() {
                 </div>
 
                 <div>
-                  <Label className="text-xs font-medium">Año Gravable</Label>
-                  <select
-                    value={editYear}
-                    onChange={(e) => setEditYear(Number(e.target.value) as TaxYear)}
-                    className="mt-1 w-full rounded-lg border border-line bg-surface p-2 text-xs font-semibold text-ink shadow-sm"
-                  >
-                    <option value={2025}>AG 2025 (Declarar en 2026)</option>
-                    <option value={2024}>AG 2024 (Declarar en 2025)</option>
-                    <option value={2023}>AG 2023</option>
-                  </select>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-medium">Año Gravable</Label>
+                    <span className="font-mono text-xs font-bold text-forest">AG {editYear}</span>
+                  </div>
+                  <div className="flex items-center gap-2 mt-1">
+                    <select
+                      value={[2026, 2025, 2024, 2023].includes(editYear) ? editYear : "custom"}
+                      onChange={(e) => {
+                        if (e.target.value !== "custom") setEditYear(Number(e.target.value) as TaxYear);
+                      }}
+                      className="flex-1 rounded-lg border border-line bg-surface p-2 text-xs font-semibold text-ink shadow-sm"
+                    >
+                      <option value={2026}>AG 2026 (Declarar en 2027)</option>
+                      <option value={2025}>AG 2025 (Declarar en 2026)</option>
+                      <option value={2024}>AG 2024 (Declarar en 2025)</option>
+                      <option value={2023}>AG 2023</option>
+                      <option value="custom">Otro año…</option>
+                    </select>
+                    <Input
+                      type="text"
+                      maxLength={4}
+                      placeholder="2030"
+                      value={editYear}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, "").slice(0, 4);
+                        const y = Number(val);
+                        if (y >= 1990 && y <= 2100) setEditYear(y as TaxYear);
+                      }}
+                      className="w-20 h-9 text-xs font-mono font-bold text-center"
+                      title="Digita cualquier año libremente"
+                    />
+                  </div>
                 </div>
               </div>
 

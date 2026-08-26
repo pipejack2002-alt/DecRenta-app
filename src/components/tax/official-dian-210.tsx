@@ -26,9 +26,14 @@ import {
   generateFormulario210Workbook,
   generateFormulario210Xml,
 } from "@/lib/tax/export-dian";
-import { formatCOP, formatNumber } from "@/lib/tax/format";
+import { formatCOP, formatNumber, parseMoney } from "@/lib/tax/format";
 import { INSTRUCTIVO_DIAN_210 } from "@/lib/tax/instructivo-dian";
 import type { TaxYear } from "@/lib/tax/types";
+import {
+  UVT_BY_YEAR,
+  filingYearOf,
+  officialUvt,
+} from "@/lib/tax/uvt";
 
 interface OfficialDian210Props {
   compact?: boolean;
@@ -44,6 +49,8 @@ export function OfficialDian210({
   const d = useAppStore((s) => s.declaration);
   const patch = useAppStore((s) => s.patch);
   const setYear = useAppStore((s) => s.setYear);
+  const overrides = useAppStore((s) => s.declaration.uvtOverrides);
+  const setUvtOverride = useAppStore((s) => s.setUvtOverride);
   const c = useComputed();
   const id = d.identity;
 
@@ -1155,37 +1162,121 @@ export function OfficialDian210({
 
             {/* Contenido scrolleable del modal */}
             <div className="p-5 overflow-y-auto space-y-4 text-xs">
-              {/* Bloque 1: Año y Número de Formulario */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-muted-mist/40 rounded-xl border border-line">
-                <div className="space-y-1">
-                  <label className="font-semibold text-ink flex items-center gap-1.5">
-                    <span className="size-4 rounded bg-forest/20 text-forest text-[10px] flex items-center justify-center font-mono">1</span>
-                    Año Gravable
-                  </label>
-                  <select
-                    className="h-9 w-full rounded-lg border border-line bg-surface px-2.5 text-xs font-semibold"
-                    value={d.year}
-                    onChange={(e) => setYear(Number(e.target.value) as TaxYear)}
-                  >
-                    <option value={2025}>2025 (Declaración en 2026)</option>
-                    <option value={2024}>2024 (Declaración en 2025)</option>
-                    <option value={2023}>2023 (Declaración en 2024)</option>
-                  </select>
+              {/* Bloque 1: Año, UVT y Número de Formulario */}
+              <div className="p-3.5 bg-muted-mist/40 rounded-xl border border-line space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="font-semibold text-ink flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <span className="size-4 rounded bg-forest/20 text-forest text-[10px] flex items-center justify-center font-mono">1</span>
+                        1. Año Gravable
+                      </span>
+                      <span className="font-mono text-xs font-bold text-forest-deep">AG {d.year} (Presentación en {filingYearOf(d.year)})</span>
+                    </label>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {([2026, 2025, 2024, 2023] as const).map((yr) => (
+                        <button
+                          key={yr}
+                          type="button"
+                          onClick={() => setYear(yr)}
+                          className={`h-8 px-2.5 rounded-md border text-xs font-mono font-bold transition-all ${
+                            d.year === yr
+                              ? "bg-forest text-white shadow-xs border-forest"
+                              : "bg-surface border-line text-ink-soft hover:bg-forest-mist"
+                          }`}
+                        >
+                          {yr}
+                        </button>
+                      ))}
+                      <div className="flex items-center gap-1 ml-auto">
+                        <span className="text-[11px] text-muted">Otro:</span>
+                        <input
+                          type="text"
+                          maxLength={4}
+                          placeholder="2030"
+                          className="w-16 h-8 font-mono text-xs font-bold text-center rounded-md border border-line bg-white"
+                          value={d.year}
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/\D/g, "").slice(0, 4);
+                            const y = Number(val);
+                            if (y >= 1990 && y <= 2100) setYear(y as TaxYear);
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="font-semibold text-ink flex items-center gap-1.5">
+                      <span className="size-4 rounded bg-forest/20 text-forest text-[10px] flex items-center justify-center font-mono">4</span>
+                      4. Número de Formulario
+                    </label>
+                    <input
+                      type="text"
+                      className="h-8 w-full rounded-md border border-line bg-surface px-2.5 font-mono text-xs font-semibold"
+                      placeholder={`210${d.year}000${id.nit ? id.nit.slice(-5) : "41029"}`}
+                      value={id.numeroFormulario || ""}
+                      onChange={(e) => patch((x) => (x.identity.numeroFormulario = e.target.value.replace(/\D/g, "")))}
+                    />
+                    <p className="text-[10px] text-muted">Vacío = autogenerado oficial DIAN.</p>
+                  </div>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="font-semibold text-ink flex items-center gap-1.5">
-                    <span className="size-4 rounded bg-forest/20 text-forest text-[10px] flex items-center justify-center font-mono">4</span>
-                    Número de Formulario (Casilla 4)
-                  </label>
-                  <input
-                    type="text"
-                    className="h-9 w-full rounded-lg border border-line bg-surface px-2.5 font-mono text-xs font-semibold"
-                    placeholder={`210${d.year}000${id.nit ? id.nit.slice(-5) : "41029"}`}
-                    value={id.numeroFormulario || ""}
-                    onChange={(e) => patch((x) => (x.identity.numeroFormulario = e.target.value.replace(/\D/g, "")))}
-                  />
-                  <p className="text-[10px] text-muted">Dejar vacío para usar el autogenerado oficial DIAN.</p>
+                {/* Parámetros UVT de Año Gravable y Presentación */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-line">
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-semibold text-ink">UVT {d.year} (Año Gravable)</span>
+                      {overrides[d.year] ? (
+                        <span className="text-[9px] font-semibold text-amber-700 bg-amber-100 px-1 rounded">Personalizada</span>
+                      ) : (
+                        <span className="text-[9px] font-semibold text-emerald-700 bg-emerald-100 px-1 rounded">Oficial</span>
+                      )}
+                    </div>
+                    <div className="relative">
+                      <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted">$</span>
+                      <input
+                        type="text"
+                        className="h-8 w-full pl-6 pr-2 rounded-md border border-line bg-surface font-mono text-xs font-bold text-forest-deep"
+                        placeholder="Ej: 55.000"
+                        value={formatNumber(overrides[d.year] || officialUvt(d.year) || 0)}
+                        onChange={(e) => {
+                          const n = parseMoney(e.target.value);
+                          setUvtOverride(d.year, n > 0 ? n : null);
+                        }}
+                      />
+                    </div>
+                    <p className="text-[9.5px] text-muted truncate">
+                      {officialUvt(d.year) ? UVT_BY_YEAR[d.year]?.resolucion : "Valor UVT para liquidar topes y rentas"}
+                    </p>
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-semibold text-ink">UVT {filingYearOf(d.year)} (Presentación)</span>
+                      {overrides[filingYearOf(d.year)] ? (
+                        <span className="text-[9px] font-semibold text-amber-700 bg-amber-100 px-1 rounded">Personalizada</span>
+                      ) : (
+                        <span className="text-[9px] font-semibold text-emerald-700 bg-emerald-100 px-1 rounded">Oficial</span>
+                      )}
+                    </div>
+                    <div className="relative">
+                      <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted">$</span>
+                      <input
+                        type="text"
+                        className="h-8 w-full pl-6 pr-2 rounded-md border border-line bg-surface font-mono text-xs font-bold text-forest-deep"
+                        placeholder="Ej: 58.000"
+                        value={formatNumber(overrides[filingYearOf(d.year)] || officialUvt(filingYearOf(d.year)) || 0)}
+                        onChange={(e) => {
+                          const n = parseMoney(e.target.value);
+                          setUvtOverride(filingYearOf(d.year), n > 0 ? n : null);
+                        }}
+                      />
+                    </div>
+                    <p className="text-[9.5px] text-muted truncate">
+                      {officialUvt(filingYearOf(d.year)) ? UVT_BY_YEAR[filingYearOf(d.year)]?.resolucion : "Aplica para sanciones mínimas"}
+                    </p>
+                  </div>
                 </div>
               </div>
 
