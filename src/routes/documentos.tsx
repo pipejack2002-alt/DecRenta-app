@@ -163,7 +163,7 @@ function generateLocalAuditReport(d: ReturnType<typeof useAppStore.getState>["de
 • Patrimonio Líquido (Casilla 31): ${formatCOP(c.casillas[31] ?? 0)}
 • Conciliación: Sin descuadre ni incremento patrimonial no justificado (Arts. 236 a 239 E.T.).
 
-3. DEPURAÇÃO Y LIQUIDACIÓN PRIVADA:
+3. DEPURACIÓN Y LIQUIDACIÓN PRIVADA:
 • Ingresos Brutos Totales: ${formatCOP(c.depuracion.ingresosBrutos)}
 • Deducción 1 % Factura Electrónica (Casilla 28): ${formatCOP(c.casillas[28] ?? 0)}
 • Renta Líquida Gravable (Casilla 97): ${formatCOP(c.rentaLiquidaGravable)} (0 UVT · Tramo Exento Art. 241 E.T.)
