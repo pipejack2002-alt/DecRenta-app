@@ -23,8 +23,11 @@ export type Identity = {
   otrosNombres: string;
   dirSeccional: string;
   actividadCiiu: string;
+  numeroFormulario?: string;
   esCorreccion: boolean;
+  codCorreccion?: string;
   formAnterior: string;
+  fraccionAnioSiguiente?: boolean;
   primeraVez: boolean;
   aniosDeclarando: 1 | 2 | 3;
   responsableIva: boolean;
@@ -305,8 +308,11 @@ export const emptyIdentity = (): Identity => ({
   otrosNombres: "",
   dirSeccional: "03",
   actividadCiiu: "0010",
+  numeroFormulario: "",
   esCorreccion: false,
+  codCorreccion: "",
   formAnterior: "",
+  fraccionAnioSiguiente: false,
   primeraVez: false,
   aniosDeclarando: 3,
   responsableIva: false,

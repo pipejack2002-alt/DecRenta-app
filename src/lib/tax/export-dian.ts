@@ -262,15 +262,15 @@ export function generateFormulario210Workbook(d: Declaration, c: ComputedDeclara
   // ———————————————————————————————————————————————————————————
   const rowsSheet1: (string | number)[][] = [
     ["DIAN", "", "", "DECLARACIÓN DE RENTA Y COMPLEMENTARIO PERSONAS NATURALES Y ASIMILADAS RESIDENTES Y SUCESIONES ILÍQUIDAS DE CAUSANTES RESIDENTES", "", "", "", "", "210", ""],
-    ["1. Año", d.year, "", `4. Número de formulario: 210${d.year}000${id.nit ? id.nit.slice(-5) : "41029"}`, "", "", "", "", "MUISCA", ""],
+    ["1. Año", d.year, "", `4. Número de formulario: ${id.numeroFormulario || `210${d.year}000${id.nit ? id.nit.slice(-5) : "41029"}`}`, "", "", "", "", "MUISCA", ""],
     ["Espacio reservado para la DIAN", "", "", "", "", "", "", "", "", ""],
     ["", "", "", "", "", "", "", "", "", ""],
 
     // Datos del Declarante
     ["DATOS DEL DECLARANTE", "", "", "", "", "", "", "", "", ""],
-    ["5. NIT", id.nit || "—", "6. DV", id.dv || "0", "7. Primer apellido", id.primerApellido || "—", "8. Segundo apellido", id.segundoApellido || "", "12. Cód. Seccional", id.dirSeccional || "32"],
-    ["9. Primer nombre", id.primerNombre || "—", "10. Otros nombres", id.otrosNombres || "", "24. Actividad CIIU", id.actividadCiiu || "0010", "27. Frac. año sig.", "NO", "25. Cód. Corr.", id.esCorreccion ? "1" : "—"],
-    ["28. Uno por ciento (1%) de compras con factura electrónica", "", "", "", "", "", "", "", "Casilla 28", numVal(28)],
+    ["5. NIT", id.nit || "—", "6. DV", id.dv || "0", "7. Primer apellido", id.primerApellido || "—", "8. Segundo apellido", id.segundoApellido || "", "12. Cód. Seccional", id.dirSeccional || "03"],
+    ["9. Primer nombre", id.primerNombre || "—", "10. Otros nombres", id.otrosNombres || "", "24. Actividad CIIU", id.actividadCiiu || "0010", "27. Frac. año sig.", id.fraccionAnioSiguiente ? "SÍ" : "NO", "25. Cód. Corr.", id.esCorreccion ? (id.codCorreccion || "1") : "—"],
+    ["26. No. Formulario anterior", id.esCorreccion ? (id.formAnterior || "—") : "—", "", "", "", "", "", "", "Casilla 28", numVal(28)],
     ["", "", "", "", "", "", "", "", "", ""],
 
     // Sección Patrimonio
@@ -695,7 +695,7 @@ export async function downloadStyledFormulario210Xlsx(
         text: "DECLARACIÓN DE RENTA Y COMPLEMENTARIO PERSONAS NATURALES Y ASIMILADAS RESIDENTES\nY SUCESIONES ILÍQUIDAS DE CAUSANTES RESIDENTES\n\n",
       },
       { font: font(7.5, true, CLR.black), text: "4. Número de formulario: " },
-      { font: font(8, true, CLR.black, "Courier New"), text: `210${d.year}000${id.nit ? id.nit.slice(-5) : "41029"}` },
+      { font: font(8, true, CLR.black, "Courier New"), text: id.numeroFormulario || `210${d.year}000${id.nit ? id.nit.slice(-5) : "41029"}` },
     ],
   };
   cTitulo.fill = fill(CLR.white);
@@ -751,7 +751,7 @@ export async function downloadStyledFormulario210Xlsx(
   cN2.alignment = aln("left", "top", true);
 
   const cSecc = ws.getCell(`J${R}`);
-  cSecc.value = { richText: [{ font: font(6, false, CLR.numMuted), text: "12.Cód.Secc\n" }, { font: font(9, true, CLR.black, "Courier New"), text: id.dirSeccional || "32" }] };
+  cSecc.value = { richText: [{ font: font(6, false, CLR.numMuted), text: "12.Cód.Secc\n" }, { font: font(9, true, CLR.black, "Courier New"), text: id.dirSeccional || "03" }] };
   cSecc.border = { top: T, left: T, bottom: T, right: TK };
   cSecc.alignment = aln("center", "top", true);
   R++;
@@ -766,20 +766,20 @@ export async function downloadStyledFormulario210Xlsx(
   cCIIU.alignment = aln("left", "top", true);
 
   const c25 = ws.getCell(`D${R}`);
-  c25.value = { richText: [{ font: font(6, false, CLR.numMuted), text: "25. Cód\n" }, { font: font(8.5, true, CLR.black), text: id.esCorreccion ? "1" : "—" }] };
+  c25.value = { richText: [{ font: font(6, false, CLR.numMuted), text: "25. Cód\n" }, { font: font(8.5, true, CLR.black), text: id.esCorreccion ? (id.codCorreccion || "1") : "—" }] };
   c25.fill = fill(CLR.blueLight);
   c25.border = BDR_BOX;
   c25.alignment = aln("center", "top", true);
 
   ws.mergeCells(`E${R}:F${R}`);
   const c26 = ws.getCell(`E${R}`);
-  c26.value = { richText: [{ font: font(6, false, CLR.numMuted), text: "26. No. Formulario anterior\n" }, { font: font(8, false, CLR.black), text: id.formAnterior || "—" }] };
+  c26.value = { richText: [{ font: font(6, false, CLR.numMuted), text: "26. No. Formulario anterior\n" }, { font: font(8, false, CLR.black), text: id.esCorreccion ? (id.formAnterior || "—") : "—" }] };
   c26.fill = fill(CLR.blueLight);
   c26.border = BDR_BOX;
   c26.alignment = aln("left", "top", true);
 
   const c27 = ws.getCell(`G${R}`);
-  c27.value = { richText: [{ font: font(6, false, CLR.numMuted), text: "27. Fracción sig.\n" }, { font: font(8.5, true, CLR.black), text: "NO" }] };
+  c27.value = { richText: [{ font: font(6, false, CLR.numMuted), text: "27. Frac. año sig.\n" }, { font: font(8.5, true, CLR.black), text: id.fraccionAnioSiguiente ? "SÍ" : "NO" }] };
   c27.fill = fill(CLR.blueLight);
   c27.border = BDR_BOX;
   c27.alignment = aln("center", "top", true);

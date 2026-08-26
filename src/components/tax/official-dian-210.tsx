@@ -274,7 +274,7 @@ export function OfficialDian210({
               <div className="mt-2 flex items-center justify-center gap-2 text-[10px]">
                 <span className="font-bold">4. Número de formulario:</span>
                 <span className="font-mono font-bold text-xs bg-gray-50 px-2 py-0.5 border border-gray-300">
-                  210{d.year}000{id.nit ? id.nit.slice(-5) : "41029"}
+                  {id.numeroFormulario || `210${d.year}000${id.nit ? id.nit.slice(-5) : "41029"}`}
                 </span>
               </div>
             </div>
@@ -326,7 +326,7 @@ export function OfficialDian210({
                 </div>
                 <div className="col-span-1 p-1 text-center">
                   <span className="block text-[7.5px] text-gray-600 leading-none">12.Cód.Secc</span>
-                  <span className="font-mono font-bold text-xs">{id.dirSeccional || "32"}</span>
+                  <span className="font-mono font-bold text-xs">{id.dirSeccional || "03"}</span>
                 </div>
               </div>
             </div>
@@ -339,15 +339,15 @@ export function OfficialDian210({
               </div>
               <div className="col-span-1 p-1 text-center">
                 <span className="block text-[7.5px] text-gray-600 leading-none">25. Cód</span>
-                <span className="font-mono font-bold text-xs">{id.esCorreccion ? "1" : "—"}</span>
+                <span className="font-mono font-bold text-xs">{id.esCorreccion ? (id.codCorreccion || "1") : "—"}</span>
               </div>
               <div className="col-span-3 p-1">
                 <span className="block text-[8px] text-gray-600">26. No. Formulario anterior</span>
-                <span className="font-mono text-xs">{id.formAnterior || "—"}</span>
+                <span className="font-mono text-xs">{id.esCorreccion ? (id.formAnterior || "—") : "—"}</span>
               </div>
               <div className="col-span-2 p-1 text-center">
                 <span className="block text-[7.5px] text-gray-600 leading-none">27. Fracción año gravable sig.</span>
-                <span className="font-semibold text-xs">NO</span>
+                <span className="font-semibold text-xs">{id.fraccionAnioSiguiente ? "SÍ" : "NO"}</span>
               </div>
               <div className="col-span-3 p-1 bg-white flex items-center justify-between">
                 <span className="text-[7.5px] text-gray-700 leading-tight">

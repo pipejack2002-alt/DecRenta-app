@@ -103,30 +103,67 @@ function DeclaracionPage() {
         <div className="space-y-4">
           {sec === "id" && (
             <Card className="space-y-4">
-              <CardTitle>Datos del declarante</CardTitle>
-              <CardHint>Deben coincidir con la hoja principal del RUT (casillas 5 a 12 y 24).</CardHint>
+              <CardTitle>Datos del declarante y encabezado</CardTitle>
+              <CardHint>Deben coincidir con la hoja principal del RUT (casillas 1 a 12 y 24 a 28).</CardHint>
+
+              {/* Año gravable y Número de formulario */}
+              <div className="grid gap-4 sm:grid-cols-2 p-3 bg-muted-mist/40 rounded-lg border border-line">
+                <div className="space-y-1.5">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink">1. Año gravable</p>
+                  <div className="flex gap-2">
+                    {([2025, 2024, 2023] as const).map((yr) => (
+                      <button
+                        key={yr}
+                        type="button"
+                        onClick={() => patch((x) => (x.year = yr))}
+                        className={cn(
+                          "h-10 flex-1 rounded-md border text-sm font-mono font-bold transition-colors",
+                          d.year === yr ? "border-forest bg-forest text-white" : "border-line bg-surface text-ink-soft hover:bg-forest-mist",
+                        )}
+                      >
+                        {yr}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <TextField
+                  label="4. Número de formulario (Autogenerado o Manual)"
+                  value={d.identity.numeroFormulario || ""}
+                  placeholder={`210${d.year}000${d.identity.nit ? d.identity.nit.slice(-5) : "41029"}`}
+                  onChange={(v) => patch((x) => (x.identity.numeroFormulario = v))}
+                  hint="Si lo dejas vacío, se autogenera según la nomenclatura oficial DIAN."
+                />
+              </div>
+
+              {/* NIT, DV y Nombres */}
               <div className="grid gap-4 sm:grid-cols-2">
                 <TextField
-                  label="Cédula / NIT (sin DV)"
+                  label="5. Cédula / NIT (sin DV)"
                   value={d.identity.nit}
                   inputMode="numeric"
                   onChange={(v) => patch((x) => (x.identity.nit = v.replace(/\D/g, "")))}
                   hint="Los dos últimos dígitos fijan el vencimiento del calendario DIAN 2026."
                 />
                 <TextField
-                  label="DV"
+                  label="6. DV (Dígito de verificación)"
                   value={d.identity.dv}
                   onChange={(v) => patch((x) => (x.identity.dv = v.slice(0, 1)))}
                 />
-                <TextField label="Primer apellido" value={d.identity.primerApellido} onChange={(v) => patch((x) => (x.identity.primerApellido = v))} />
-                <TextField label="Segundo apellido" value={d.identity.segundoApellido} onChange={(v) => patch((x) => (x.identity.segundoApellido = v))} />
-                <TextField label="Primer nombre" value={d.identity.primerNombre} onChange={(v) => patch((x) => (x.identity.primerNombre = v))} />
-                <TextField label="Otros nombres" value={d.identity.otrosNombres} onChange={(v) => patch((x) => (x.identity.otrosNombres = v))} />
+                <TextField label="7. Primer apellido" value={d.identity.primerApellido} onChange={(v) => patch((x) => (x.identity.primerApellido = v))} />
+                <TextField label="8. Segundo apellido" value={d.identity.segundoApellido} onChange={(v) => patch((x) => (x.identity.segundoApellido = v))} />
+                <TextField label="9. Primer nombre" value={d.identity.primerNombre} onChange={(v) => patch((x) => (x.identity.primerNombre = v))} />
+                <TextField label="10. Otros nombres" value={d.identity.otrosNombres} onChange={(v) => patch((x) => (x.identity.otrosNombres = v))} />
               </div>
+
               <DeadlineInline nit={d.identity.nit} seccional={d.identity.dirSeccional} zonaManual={d.identity.zonaSismo1226} />
+
+              {/* Seccional y Actividad CIIU */}
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
-                  <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted">Dirección seccional</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted">12. Dirección seccional</p>
+                    <span className="font-mono text-xs font-bold text-forest">Cód. {d.identity.dirSeccional || "03"}</span>
+                  </div>
                   <select
                     className="h-11 w-full rounded-md border border-line bg-surface px-3 text-sm"
                     value={d.identity.dirSeccional}
@@ -139,8 +176,20 @@ function DeclaracionPage() {
                     ))}
                   </select>
                 </div>
+
                 <div className="space-y-1.5">
-                  <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted">Actividad CIIU</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted">24. Actividad económica CIIU</p>
+                    <input
+                      type="text"
+                      maxLength={4}
+                      className="w-16 h-6 px-1.5 font-mono text-xs font-bold text-center rounded border border-line bg-white"
+                      value={d.identity.actividadCiiu || "0010"}
+                      onChange={(e) => patch((x) => (x.identity.actividadCiiu = e.target.value.replace(/\D/g, "").slice(0, 4)))}
+                      placeholder="0010"
+                      title="Digita cualquier código CIIU de 4 dígitos"
+                    />
+                  </div>
                   <select
                     className="h-11 w-full rounded-md border border-line bg-surface px-3 text-sm"
                     value={d.identity.actividadCiiu}
@@ -154,6 +203,48 @@ function DeclaracionPage() {
                   </select>
                 </div>
               </div>
+
+              {/* Correcciones y Fracción de año */}
+              <div className="p-3 bg-muted-mist/40 rounded-lg border border-line space-y-3">
+                <ToggleField
+                  label="25. ¿Esta declaración es una corrección? (Art. 588 y 589 E.T.)"
+                  hint="Si marcas SÍ, se habilitarán los campos de código de corrección y número de formulario anterior."
+                  checked={d.identity.esCorreccion}
+                  onChange={(v) => patch((x) => (x.identity.esCorreccion = v))}
+                />
+                {d.identity.esCorreccion && (
+                  <div className="grid gap-4 sm:grid-cols-2 pt-2 border-t border-line">
+                    <div className="space-y-1.5">
+                      <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted">25. Código de corrección</p>
+                      <select
+                        className="h-10 w-full rounded-md border border-line bg-surface px-3 text-sm"
+                        value={d.identity.codCorreccion || "1"}
+                        onChange={(e) => patch((x) => (x.identity.codCorreccion = e.target.value))}
+                      >
+                        <option value="1">1 · Corrección que aumenta impuesto o disminuye saldo a favor (Art. 588)</option>
+                        <option value="2">2 · Corrección que disminuye impuesto o aumenta saldo a favor (Art. 589)</option>
+                        <option value="3">3 · Corrección por emplazamiento para corregir o auto de inspección (Art. 709 / 713)</option>
+                        <option value="4">4 · Otras correcciones autorizadas</option>
+                      </select>
+                    </div>
+                    <TextField
+                      label="26. No. Formulario anterior"
+                      value={d.identity.formAnterior}
+                      placeholder="Ej. 210202400041029"
+                      onChange={(v) => patch((x) => (x.identity.formAnterior = v))}
+                      hint="Número de autoadhesivo o radicado de la declaración que se corrige."
+                    />
+                  </div>
+                )}
+
+                <ToggleField
+                  label="27. ¿Fracción de año gravable siguiente?"
+                  hint="Aplica en liquidación de sucesiones ilíquidas durante el transcurso del año o personas que cancelan su RUT."
+                  checked={Boolean(d.identity.fraccionAnioSiguiente)}
+                  onChange={(v) => patch((x) => (x.identity.fraccionAnioSiguiente = v))}
+                />
+              </div>
+
               <ToggleField
                 label="Domicilio fiscal al 10 de agosto de 2026 en zona del sismo"
                 hint="Palmira, Tuluá, Buenaventura o Quibdó (además de Cali, Pereira, Armenia, Manizales y Popayán, que se detectan por seccional). Decreto 1226: plazo especial si el NIT termina en 01–26."
