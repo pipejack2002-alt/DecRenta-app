@@ -282,7 +282,7 @@
     width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
-    zoom: 0.83 !important;
+    zoom: 0.88 !important;
     transform: none !important;
     margin: 0 auto !important;
     border: 1.5px solid black !important;
@@ -295,9 +295,9 @@
     background: #ffffff !important;
   }
 
-  /* Ajuste vertical para garantizar 1 sola hoja vertical */
+  /* Ajuste vertical para garantizar 1 sola hoja vertical sin espacios muertos */
   #dian-form-pdf-container * {
-    line-height: 1.12 !important;
+    line-height: 1.14 !important;
   }
 
   #dian-form-pdf-container .py-0\.5,

@@ -448,62 +448,65 @@ export function OfficialDian210({
             </div>
 
             {/* Fila Actividad CIIU, Correcciones y Casilla 28 */}
-            <div className="grid grid-cols-12 divide-x divide-black bg-[#f4f7f9]">
-              <div
-                className={`col-span-2 p-1 cursor-pointer transition-colors ${
-                  selectedCasilla === 24 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
-                }`}
-                onClick={() => setSelectedCasilla(24)}
-                onDoubleClick={() => setIsEditingDeclarante(true)}
-                title="Casilla 24: Actividad económica principal CIIU - Clic para instructivo / Doble clic para editar"
-              >
-                <span className="block text-[8px] text-gray-600">24. Actividad económica principal</span>
-                <span className="font-mono font-bold text-xs">{id.actividadCiiu || "0010"}</span>
-              </div>
-              <div
-                className={`col-span-1 p-1 text-center cursor-pointer transition-colors ${
-                  selectedCasilla === 25 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
-                }`}
-                onClick={() => setSelectedCasilla(25)}
-                onDoubleClick={() => setIsEditingDeclarante(true)}
-                title="Casilla 25: Código de corrección (1, 2, 3) - Clic para instructivo / Doble clic para editar"
-              >
-                <span className="block text-[7.5px] text-gray-600 leading-none">25. Cód</span>
-                <span className="font-mono font-bold text-xs">{id.esCorreccion ? (id.codCorreccion || "1") : "—"}</span>
-              </div>
-              <div
-                className={`col-span-2 p-1 cursor-pointer transition-colors ${
-                  selectedCasilla === 26 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
-                }`}
-                onClick={() => setSelectedCasilla(26)}
-                onDoubleClick={() => setIsEditingDeclarante(true)}
-                title="Casilla 26: Número de formulario anterior - Clic para instructivo / Doble clic para editar"
-              >
-                <span className="block text-[8px] text-gray-600">26. No. Formulario anterior</span>
-                <span className="font-mono text-xs">{id.esCorreccion ? (id.formAnterior || "—") : "—"}</span>
-              </div>
-              <div
-                className={`col-span-2 p-1 text-center cursor-pointer transition-colors ${
-                  selectedCasilla === 27 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
-                }`}
-                onClick={() => setSelectedCasilla(27)}
-                onDoubleClick={() => setIsEditingDeclarante(true)}
-                title="Casilla 27: Fracción año gravable siguiente - Clic para instructivo / Doble clic para editar"
-              >
-                <span className="block text-[7.5px] text-gray-600 leading-none">27. Fracción año gravable sig.</span>
-                <span className="font-semibold text-xs">{id.fraccionAnioSiguiente ? "SÍ" : "NO"}</span>
-              </div>
-              <div
-                className={`col-span-5 p-1 bg-white flex items-center justify-between gap-1.5 cursor-pointer ${
-                  selectedCasilla === 28 ? "bg-[#ffeb99] ring-2 ring-amber-500" : ""
-                }`}
-                onClick={() => setSelectedCasilla(28)}
-                title="Casilla 28: 1% compras factura electrónica (Tope 240 UVT) - Clic para ver instructivo"
-              >
-                <span className="text-[7.5px] text-gray-700 leading-tight">
-                  28. Uno por ciento (1%) de compras con factura electrónica
-                </span>
-                <Cell num={28} className="w-28 shrink-0 border border-gray-300" />
+            <div className="flex bg-[#f4f7f9]">
+              <div className="w-5 bg-gray-200 border-r border-black flex items-center justify-center shrink-0" />
+              <div className="flex-1 grid grid-cols-12 divide-x divide-black">
+                <div
+                  className={`col-span-2 p-1 cursor-pointer transition-colors ${
+                    selectedCasilla === 24 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
+                  }`}
+                  onClick={() => setSelectedCasilla(24)}
+                  onDoubleClick={() => setIsEditingDeclarante(true)}
+                  title="Casilla 24: Actividad económica principal CIIU - Clic para instructivo / Doble clic para editar"
+                >
+                  <span className="block text-[8px] text-gray-600">24. Actividad económica principal</span>
+                  <span className="font-mono font-bold text-xs">{id.actividadCiiu || "0010"}</span>
+                </div>
+                <div
+                  className={`col-span-1 p-1 text-center cursor-pointer transition-colors ${
+                    selectedCasilla === 25 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
+                  }`}
+                  onClick={() => setSelectedCasilla(25)}
+                  onDoubleClick={() => setIsEditingDeclarante(true)}
+                  title="Casilla 25: Código de corrección (1, 2, 3) - Clic para instructivo / Doble clic para editar"
+                >
+                  <span className="block text-[7.5px] text-gray-600 leading-none">25. Cód</span>
+                  <span className="font-mono font-bold text-xs">{id.esCorreccion ? (id.codCorreccion || "1") : "—"}</span>
+                </div>
+                <div
+                  className={`col-span-2 p-1 cursor-pointer transition-colors ${
+                    selectedCasilla === 26 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
+                  }`}
+                  onClick={() => setSelectedCasilla(26)}
+                  onDoubleClick={() => setIsEditingDeclarante(true)}
+                  title="Casilla 26: Número de formulario anterior - Clic para instructivo / Doble clic para editar"
+                >
+                  <span className="block text-[8px] text-gray-600">26. No. Formulario anterior</span>
+                  <span className="font-mono text-xs">{id.esCorreccion ? (id.formAnterior || "—") : "—"}</span>
+                </div>
+                <div
+                  className={`col-span-2 p-1 text-center cursor-pointer transition-colors ${
+                    selectedCasilla === 27 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
+                  }`}
+                  onClick={() => setSelectedCasilla(27)}
+                  onDoubleClick={() => setIsEditingDeclarante(true)}
+                  title="Casilla 27: Fracción año gravable siguiente - Clic para instructivo / Doble clic para editar"
+                >
+                  <span className="block text-[7.5px] text-gray-600 leading-none">27. Fracción año gravable sig.</span>
+                  <span className="font-semibold text-xs">{id.fraccionAnioSiguiente ? "SÍ" : "NO"}</span>
+                </div>
+                <div
+                  className={`col-span-5 p-1 bg-white flex items-center justify-between gap-1.5 cursor-pointer px-2 ${
+                    selectedCasilla === 28 ? "bg-[#ffeb99] ring-2 ring-amber-500" : ""
+                  }`}
+                  onClick={() => setSelectedCasilla(28)}
+                  title="Casilla 28: 1% compras factura electrónica (Tope 240 UVT) - Clic para ver instructivo"
+                >
+                  <span className="text-[7.5px] text-gray-700 leading-tight">
+                    28. Uno por ciento (1%) de compras con factura electrónica
+                  </span>
+                  <Cell num={28} className="w-28 shrink-0 border border-gray-300" />
+                </div>
               </div>
             </div>
           </div>
