@@ -19,6 +19,7 @@ export const Route = createFileRoute("/calendario")({ component: CalendarioPage 
 function CalendarioPage() {
   const nit = useAppStore((s) => s.declaration.identity.nit);
   const seccional = useAppStore((s) => s.declaration.identity.dirSeccional);
+  const seccionales = useAppStore((s) => s.customSeccionales);
   const zonaManual = useAppStore((s) => s.declaration.identity.zonaSismo1226);
   const patch = useAppStore((s) => s.patch);
   const zona = isZonaSismo1226(seccional, zonaManual);
@@ -50,9 +51,9 @@ function CalendarioPage() {
             value={seccional}
             onChange={(e) => patch((x) => (x.identity.dirSeccional = e.target.value))}
           >
-            {SECCIONALES.map((s) => (
+            {seccionales.map((s) => (
               <option key={s.code} value={s.code}>
-                {s.code} · {s.name}
+                {s.code} · {s.name} {s.isCustom ? "⭐" : ""}
               </option>
             ))}
           </select>

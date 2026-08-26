@@ -8,14 +8,15 @@ import {
   Pencil,
   Printer,
   Search,
+  Settings2,
   UserCheck,
   X,
   ZoomIn,
   ZoomOut,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { CatalogManagerModal } from "@/components/layout/catalog-manager-modal";
 import { Button } from "@/components/ui/button";
-import { CIIU_COMMON, SECCIONALES } from "@/lib/catalogs";
 import { useAppStore, useComputed } from "@/lib/store";
 import {
   CASILLAS_OFICIALES_210,
@@ -51,6 +52,8 @@ export function OfficialDian210({
   const setYear = useAppStore((s) => s.setYear);
   const overrides = useAppStore((s) => s.declaration.uvtOverrides);
   const setUvtOverride = useAppStore((s) => s.setUvtOverride);
+  const seccionales = useAppStore((s) => s.customSeccionales);
+  const ciiuList = useAppStore((s) => s.customCiiu);
   const c = useComputed();
   const id = d.identity;
 
@@ -58,6 +61,8 @@ export function OfficialDian210({
   const [zoomLevel, setZoomLevel] = useState<number>(compact ? 85 : 100);
   const [selectedCasilla, setSelectedCasilla] = useState<number | null>(null);
   const [isEditingDeclarante, setIsEditingDeclarante] = useState(false);
+  const [catalogModalOpen, setCatalogModalOpen] = useState(false);
+  const [catalogModalTab, setCatalogModalTab] = useState<"seccionales" | "ciiu">("seccionales");
 
   const [modalYearInput, setModalYearInput] = useState(String(d.year));
   useEffect(() => {
@@ -1367,47 +1372,88 @@ export function OfficialDian210({
 
               {/* Bloque 3: Seccional y Actividad CIIU */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-muted-mist/40 rounded-xl border border-line">
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <label className="font-semibold text-ink">12. Dirección Seccional</label>
-                    <span className="font-mono text-[10px] font-bold text-forest">Cód. {id.dirSeccional || "03"}</span>
+                    <label className="font-semibold text-ink flex items-center gap-1">
+                      <span className="size-4 rounded bg-forest/20 text-forest text-[10px] flex items-center justify-center font-mono">12</span>
+                      12. Dirección Seccional
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCatalogModalTab("seccionales");
+                        setCatalogModalOpen(true);
+                      }}
+                      className="text-[10px] font-semibold text-forest hover:text-forest-deep flex items-center gap-1 bg-forest-mist/80 hover:bg-forest-mist px-1.5 py-0.5 rounded transition-colors"
+                      title="Editar o añadir nuevas direcciones seccionales"
+                    >
+                      <Settings2 className="size-3" /> Gestionar
+                    </button>
                   </div>
-                  <select
-                    className="h-9 w-full rounded-lg border border-line bg-surface px-2.5 text-xs"
-                    value={id.dirSeccional || "03"}
-                    onChange={(e) => patch((x) => (x.identity.dirSeccional = e.target.value))}
-                  >
-                    {SECCIONALES.map((s) => (
-                      <option key={s.code} value={s.code}>
-                        {s.code} · {s.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="text"
+                      maxLength={3}
+                      className="w-12 h-8 px-1.5 font-mono text-xs font-bold text-center rounded-lg border border-line bg-white shadow-2xs"
+                      value={id.dirSeccional || "02"}
+                      onChange={(e) => patch((x) => (x.identity.dirSeccional = e.target.value.replace(/\D/g, "").slice(0, 3)))}
+                      placeholder="02"
+                      title="Digita el código de seccional"
+                    />
+                    <select
+                      className="h-8 flex-1 rounded-lg border border-line bg-surface px-2 text-xs font-medium"
+                      value={id.dirSeccional || "02"}
+                      onChange={(e) => patch((x) => (x.identity.dirSeccional = e.target.value))}
+                    >
+                      {seccionales.map((s) => (
+                        <option key={s.code} value={s.code}>
+                          {s.code} · {s.name} {s.isCustom ? "⭐" : ""}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <label className="font-semibold text-ink">24. Actividad CIIU</label>
+                    <label className="font-semibold text-ink flex items-center gap-1">
+                      <span className="size-4 rounded bg-forest/20 text-forest text-[10px] flex items-center justify-center font-mono">24</span>
+                      24. Actividad CIIU
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCatalogModalTab("ciiu");
+                        setCatalogModalOpen(true);
+                      }}
+                      className="text-[10px] font-semibold text-forest hover:text-forest-deep flex items-center gap-1 bg-forest-mist/80 hover:bg-forest-mist px-1.5 py-0.5 rounded transition-colors"
+                      title="Editar o añadir nuevas actividades CIIU"
+                    >
+                      <Settings2 className="size-3" /> Gestionar
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-1.5">
                     <input
                       type="text"
                       maxLength={4}
-                      className="w-14 h-5 px-1 font-mono text-[11px] font-bold text-center rounded border border-line bg-white"
+                      className="w-16 h-8 px-1.5 font-mono text-xs font-bold text-center rounded-lg border border-line bg-white shadow-2xs"
                       value={id.actividadCiiu || "0010"}
                       onChange={(e) => patch((x) => (x.identity.actividadCiiu = e.target.value.replace(/\D/g, "").slice(0, 4)))}
                       placeholder="0010"
+                      title="Digita cualquier código CIIU de 4 dígitos"
                     />
+                    <select
+                      className="h-8 flex-1 rounded-lg border border-line bg-surface px-2 text-xs font-medium"
+                      value={id.actividadCiiu || "0010"}
+                      onChange={(e) => patch((x) => (x.identity.actividadCiiu = e.target.value))}
+                    >
+                      {ciiuList.map((s) => (
+                        <option key={s.code} value={s.code}>
+                          {s.code} · {s.name} {s.isCustom ? "⭐" : ""}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                  <select
-                    className="h-9 w-full rounded-lg border border-line bg-surface px-2.5 text-xs"
-                    value={id.actividadCiiu || "0010"}
-                    onChange={(e) => patch((x) => (x.identity.actividadCiiu = e.target.value))}
-                  >
-                    {CIIU_COMMON.map((s) => (
-                      <option key={s.code} value={s.code}>
-                        {s.code} · {s.name}
-                      </option>
-                    ))}
-                  </select>
                 </div>
               </div>
 
@@ -1490,6 +1536,15 @@ export function OfficialDian210({
           </div>
         </div>
       )}
+
+      {/* Modal Gestor de Catálogos */}
+      <CatalogManagerModal
+        isOpen={catalogModalOpen}
+        onClose={() => setCatalogModalOpen(false)}
+        defaultTab={catalogModalTab}
+        onSelectSeccional={(code) => patch((x) => (x.identity.dirSeccional = code))}
+        onSelectCiiu={(code) => patch((x) => (x.identity.actividadCiiu = code))}
+      />
     </div>
   );
 }

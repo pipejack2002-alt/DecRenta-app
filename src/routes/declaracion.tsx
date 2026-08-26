@@ -1,13 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Columns2, Eye, FileText, History, Maximize2 } from "lucide-react";
+import { Columns2, Eye, FileText, History, Maximize2, Settings2, Sparkles, Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { CatalogManagerModal } from "@/components/layout/catalog-manager-modal";
 import { CompensacionesDialog } from "@/components/layout/compensaciones-dialog";
 import { LiveFormPreview } from "@/components/layout/live-form-preview";
 import { MoneyField, TextField, ToggleField } from "@/components/layout/money-field";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardHint, CardTitle } from "@/components/ui/card";
-import { CIIU_COMMON, SECCIONALES } from "@/lib/catalogs";
 import { useAppStore, useComputed } from "@/lib/store";
 import { formatCOP } from "@/lib/tax/format";
 import { CASILLA_LABELS } from "@/lib/tax/engine";
@@ -36,8 +36,12 @@ function DeclaracionPage() {
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [compensacionesOpen, setCompensacionesOpen] = useState(false);
   const [initialCompTipo, setInitialCompTipo] = useState<TipoCompensacion>("capital");
+  const [catalogModalOpen, setCatalogModalOpen] = useState(false);
+  const [catalogModalTab, setCatalogModalTab] = useState<"seccionales" | "ciiu">("seccionales");
   const d = useAppStore((s) => s.declaration);
   const patch = useAppStore((s) => s.patch);
+  const seccionales = useAppStore((s) => s.customSeccionales);
+  const ciiuList = useAppStore((s) => s.customCiiu);
   const c = useComputed();
   const y = d.year;
 
@@ -192,48 +196,82 @@ function DeclaracionPage() {
 
               {/* Seccional y Actividad CIIU */}
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-1.5">
+                <div className="space-y-2 p-3.5 rounded-xl border border-line bg-surface">
                   <div className="flex items-center justify-between">
-                    <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted">12. Dirección seccional</p>
-                    <span className="font-mono text-xs font-bold text-forest">Cód. {d.identity.dirSeccional || "03"}</span>
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink">12. Dirección seccional</p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCatalogModalTab("seccionales");
+                        setCatalogModalOpen(true);
+                      }}
+                      className="text-[11px] font-semibold text-forest hover:text-forest-deep flex items-center gap-1 bg-forest-mist/70 hover:bg-forest-mist px-2 py-0.5 rounded-md transition-colors"
+                      title="Editar o añadir nuevas direcciones seccionales"
+                    >
+                      <Settings2 className="size-3" /> Gestionar catálogo
+                    </button>
                   </div>
-                  <select
-                    className="h-11 w-full rounded-md border border-line bg-surface px-3 text-sm"
-                    value={d.identity.dirSeccional}
-                    onChange={(e) => patch((x) => (x.identity.dirSeccional = e.target.value))}
-                  >
-                    {SECCIONALES.map((s) => (
-                      <option key={s.code} value={s.code}>
-                        {s.code} · {s.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      maxLength={3}
+                      className="w-14 h-10 px-2 font-mono text-xs font-bold text-center rounded-lg border border-line bg-white shadow-2xs"
+                      value={d.identity.dirSeccional || "02"}
+                      onChange={(e) => patch((x) => (x.identity.dirSeccional = e.target.value.replace(/\D/g, "").slice(0, 3)))}
+                      placeholder="02"
+                      title="Digita el código de seccional directamente"
+                    />
+                    <select
+                      className="h-10 flex-1 rounded-lg border border-line bg-surface px-2.5 text-xs font-medium"
+                      value={d.identity.dirSeccional || "02"}
+                      onChange={(e) => patch((x) => (x.identity.dirSeccional = e.target.value))}
+                    >
+                      {seccionales.map((s) => (
+                        <option key={s.code} value={s.code}>
+                          {s.code} · {s.name} {s.isCustom ? "⭐" : ""}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-2 p-3.5 rounded-xl border border-line bg-surface">
                   <div className="flex items-center justify-between">
-                    <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted">24. Actividad económica CIIU</p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink">24. Actividad económica CIIU</p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCatalogModalTab("ciiu");
+                        setCatalogModalOpen(true);
+                      }}
+                      className="text-[11px] font-semibold text-forest hover:text-forest-deep flex items-center gap-1 bg-forest-mist/70 hover:bg-forest-mist px-2 py-0.5 rounded-md transition-colors"
+                      title="Editar o añadir nuevas actividades económicas CIIU"
+                    >
+                      <Settings2 className="size-3" /> Gestionar catálogo
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2">
                     <input
                       type="text"
                       maxLength={4}
-                      className="w-16 h-6 px-1.5 font-mono text-xs font-bold text-center rounded border border-line bg-white"
+                      className="w-18 h-10 px-2 font-mono text-xs font-bold text-center rounded-lg border border-line bg-white shadow-2xs"
                       value={d.identity.actividadCiiu || "0010"}
                       onChange={(e) => patch((x) => (x.identity.actividadCiiu = e.target.value.replace(/\D/g, "").slice(0, 4)))}
                       placeholder="0010"
-                      title="Digita cualquier código CIIU de 4 dígitos"
+                      title="Digita cualquier código CIIU de 4 dígitos (ej: 3312)"
                     />
+                    <select
+                      className="h-10 flex-1 rounded-lg border border-line bg-surface px-2.5 text-xs font-medium"
+                      value={d.identity.actividadCiiu || "0010"}
+                      onChange={(e) => patch((x) => (x.identity.actividadCiiu = e.target.value))}
+                    >
+                      {ciiuList.map((s) => (
+                        <option key={s.code} value={s.code}>
+                          {s.code} · {s.name} {s.isCustom ? "⭐" : ""}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                  <select
-                    className="h-11 w-full rounded-md border border-line bg-surface px-3 text-sm"
-                    value={d.identity.actividadCiiu}
-                    onChange={(e) => patch((x) => (x.identity.actividadCiiu = e.target.value))}
-                  >
-                    {CIIU_COMMON.map((s) => (
-                      <option key={s.code} value={s.code}>
-                        {s.code} · {s.name}
-                      </option>
-                    ))}
-                  </select>
                 </div>
               </div>
 
@@ -703,6 +741,14 @@ function DeclaracionPage() {
         open={compensacionesOpen}
         onClose={() => setCompensacionesOpen(false)}
         initialTipo={initialCompTipo}
+      />
+
+      <CatalogManagerModal
+        isOpen={catalogModalOpen}
+        onClose={() => setCatalogModalOpen(false)}
+        defaultTab={catalogModalTab}
+        onSelectSeccional={(code) => patch((x) => (x.identity.dirSeccional = code))}
+        onSelectCiiu={(code) => patch((x) => (x.identity.actividadCiiu = code))}
       />
     </div>
   );

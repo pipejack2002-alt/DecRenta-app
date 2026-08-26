@@ -10,6 +10,11 @@ import {
 import type { VaultDoc, IngestedNorm } from "@/lib/docs/types";
 import { MAX_NORMA_CHARS, MAX_NORMAS } from "@/lib/docs/types";
 import { normalizeOverrides, type UvtOverrides } from "@/lib/tax/uvt";
+import {
+  type CatalogItem,
+  DEFAULT_SECCIONALES,
+  DEFAULT_CIIU_COMMON,
+} from "@/lib/catalogs";
 
 const memory: { current: string | null } = { current: null };
 
@@ -120,6 +125,16 @@ type AppState = {
   updateProfileInfo: (id: string, name: string, nit: string, year?: TaxYear) => void;
   exportAllProfilesJson: () => string;
   importProfilesJson: (jsonStr: string) => { ok: true; count: number } | { ok: false; error: string };
+
+  // Catálogos personalizables
+  customSeccionales: CatalogItem[];
+  customCiiu: CatalogItem[];
+  addOrUpdateSeccional: (code: string, name: string) => void;
+  deleteSeccional: (code: string) => void;
+  resetSeccionales: () => void;
+  addOrUpdateCiiu: (code: string, name: string) => void;
+  deleteCiiu: (code: string) => void;
+  resetCiiu: () => void;
 };
 
 const DEFAULT_PROFILE_ID = "p-principal";
@@ -547,6 +562,67 @@ export const useAppStore = create<AppState>()(
           return { ok: false, error: err instanceof Error ? err.message : "Error al parsear el archivo JSON." };
         }
       },
+
+      customSeccionales: DEFAULT_SECCIONALES,
+      customCiiu: DEFAULT_CIIU_COMMON,
+
+      addOrUpdateSeccional: (code, name) => {
+        const cleanCode = code.trim();
+        const cleanName = name.trim();
+        if (!cleanCode || !cleanName) return;
+        set((s) => {
+          const idx = s.customSeccionales.findIndex((x) => x.code === cleanCode);
+          let updated: CatalogItem[];
+          if (idx >= 0) {
+            updated = [...s.customSeccionales];
+            updated[idx] = { code: cleanCode, name: cleanName, isCustom: true };
+          } else {
+            updated = [...s.customSeccionales, { code: cleanCode, name: cleanName, isCustom: true }].sort((a, b) =>
+              a.code.localeCompare(b.code, undefined, { numeric: true }),
+            );
+          }
+          return { customSeccionales: updated };
+        });
+      },
+
+      deleteSeccional: (code) => {
+        set((s) => ({
+          customSeccionales: s.customSeccionales.filter((x) => x.code !== code),
+        }));
+      },
+
+      resetSeccionales: () => {
+        set({ customSeccionales: DEFAULT_SECCIONALES });
+      },
+
+      addOrUpdateCiiu: (code, name) => {
+        const cleanCode = code.trim();
+        const cleanName = name.trim();
+        if (!cleanCode || !cleanName) return;
+        set((s) => {
+          const idx = s.customCiiu.findIndex((x) => x.code === cleanCode);
+          let updated: CatalogItem[];
+          if (idx >= 0) {
+            updated = [...s.customCiiu];
+            updated[idx] = { code: cleanCode, name: cleanName, isCustom: true };
+          } else {
+            updated = [...s.customCiiu, { code: cleanCode, name: cleanName, isCustom: true }].sort((a, b) =>
+              a.code.localeCompare(b.code, undefined, { numeric: true }),
+            );
+          }
+          return { customCiiu: updated };
+        });
+      },
+
+      deleteCiiu: (code) => {
+        set((s) => ({
+          customCiiu: s.customCiiu.filter((x) => x.code !== code),
+        }));
+      },
+
+      resetCiiu: () => {
+        set({ customCiiu: DEFAULT_CIIU_COMMON });
+      },
     }),
     {
       name: "cedulario-ag-2025",
@@ -561,6 +637,8 @@ export const useAppStore = create<AppState>()(
           docs: (p.docs || []).map(({ dataUrl: _d, ...rest }) => rest),
         })),
         activeProfileId: s.activeProfileId,
+        customSeccionales: s.customSeccionales,
+        customCiiu: s.customCiiu,
       }),
       merge: (persisted, current) => {
         const p = persisted as Partial<AppState> | undefined;
@@ -582,6 +660,15 @@ export const useAppStore = create<AppState>()(
             }))
           : [];
 
+        const customSeccionales =
+          Array.isArray(p?.customSeccionales) && p.customSeccionales.length > 0
+            ? p.customSeccionales
+            : DEFAULT_SECCIONALES;
+        const customCiiu =
+          Array.isArray(p?.customCiiu) && p.customCiiu.length > 0
+            ? p.customCiiu
+            : DEFAULT_CIIU_COMMON;
+
         return {
           ...current,
           ...p,
@@ -591,6 +678,8 @@ export const useAppStore = create<AppState>()(
           aiSettings,
           profiles,
           activeProfileId: p?.activeProfileId || DEFAULT_PROFILE_ID,
+          customSeccionales,
+          customCiiu,
         };
       },
     },
