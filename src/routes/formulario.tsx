@@ -5,6 +5,7 @@ import { OfficialDian210 } from "@/components/tax/official-dian-210";
 import { useAppStore, useComputed } from "@/lib/store";
 import {
   downloadFile,
+  downloadStyledFormulario210Xlsx,
   downloadXlsxFile,
   generateFormulario210Csv,
   generateFormulario210Workbook,
@@ -19,9 +20,14 @@ function FormularioPage() {
   const c = useComputed();
   const id = d.identity;
 
-  function exportXlsx() {
-    const wb = generateFormulario210Workbook(d, c);
-    downloadXlsxFile(`formulario-210-oficial-ag${d.year}-${id.nit || "dian"}.xlsx`, wb);
+  async function exportXlsx() {
+    const filename = `formulario-210-oficial-ag${d.year}-${id.nit || "dian"}.xlsx`;
+    try {
+      await downloadStyledFormulario210Xlsx(filename, d, c);
+    } catch {
+      const wb = generateFormulario210Workbook(d, c);
+      downloadXlsxFile(filename, wb);
+    }
   }
 
   function exportXml() {
