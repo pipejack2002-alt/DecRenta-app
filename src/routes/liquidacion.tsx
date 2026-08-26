@@ -1,9 +1,13 @@
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AlertList } from "@/components/layout/alert-list";
 import { TaxCharts } from "@/components/layout/tax-charts";
 import { ComparacionPatrimonialCard } from "@/components/layout/comparacion-patrimonial-card";
 import { BeneficioAuditoriaCard } from "@/components/layout/beneficio-auditoria-card";
 import { AnticipoCard } from "@/components/layout/anticipo-card";
+import { InformeClienteModal } from "@/components/tax/informe-cliente-modal";
+import { SimuladorSimpleModal } from "@/components/tax/simulador-simple-modal";
+import { ComparativoMultianualModal } from "@/components/tax/comparativo-multianual-modal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardHint, CardTitle } from "@/components/ui/card";
@@ -12,10 +16,8 @@ import { ART_241 } from "@/lib/tax/tarifas";
 import { CASILLA_LABELS } from "@/lib/tax/engine";
 import { formatCOP, formatUvt } from "@/lib/tax/format";
 import { uvtFromPesos } from "@/lib/tax/uvt";
-
-import { useState } from "react";
 import { LiquidacionExplicacionModal, type ExplicacionTopic } from "@/components/layout/liquidacion-explicacion-modal";
-import { Info } from "lucide-react";
+import { BarChart3, FileText, Info, Scale, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/liquidacion")({ component: LiquidacionPage });
 
@@ -32,18 +34,79 @@ const BLOCKS: { title: string; ids: number[] }[] = [
 
 function LiquidacionPage() {
   const [topic, setTopic] = useState<ExplicacionTopic | null>(null);
+  const [informeOpen, setInformeOpen] = useState(false);
+  const [simpleOpen, setSimpleOpen] = useState(false);
+  const [comparativoOpen, setComparativoOpen] = useState(false);
+
   const c = useComputed();
   const d = useAppStore((s) => s.declaration);
   const ov = d.uvtOverrides;
   return (
     <div className="space-y-6">
-      <header>
-        <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Determinación del Impuesto · Formulario 210</p>
-        <h1 className="mt-1 font-display text-4xl font-bold">Liquidación Privada del Impuesto</h1>
-        <p className="mt-2 max-w-2xl text-sm text-muted">
-          Cálculo del impuesto sobre la renta y complementarios según la tabla progresiva del art. 241 E.T. (Ley 2277 de 2022). UVT AG {c.year} = {formatCOP(c.uvt)}. UVT de presentación {c.filingYear} = {formatCOP(c.uvtFiling)}.
-        </p>
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Determinación del Impuesto · Formulario 210</p>
+          <h1 className="mt-1 font-display text-4xl font-bold">Liquidación Privada del Impuesto</h1>
+          <p className="mt-2 max-w-2xl text-sm text-muted">
+            Cálculo del impuesto sobre la renta y complementarios según la tabla progresiva del art. 241 E.T. (Ley 2277 de 2022). UVT AG {c.year} = {formatCOP(c.uvt)}. UVT de presentación {c.filingYear} = {formatCOP(c.uvtFiling)}.
+          </p>
+        </div>
+
+        {/* Barra de Acciones y Herramientas Pro */}
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            size="sm"
+            onClick={() => setInformeOpen(true)}
+            className="bg-forest text-primary-fg hover:bg-forest-deep text-xs font-semibold gap-1.5 shadow-sm"
+            title="Generar certificado e informe ejecutivo para entregar al cliente"
+          >
+            <FileText className="size-3.5" />
+            Informe Cliente (PDF)
+          </Button>
+
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setSimpleOpen(true)}
+            className="text-xs font-semibold gap-1.5 border-line hover:bg-forest-mist"
+            title="Simular conveniencia entre Régimen Ordinario (210) vs Régimen SIMPLE (260)"
+          >
+            <Scale className="size-3.5 text-forest" />
+            Ordinario vs SIMPLE
+          </Button>
+
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setComparativoOpen(true)}
+            className="text-xs font-semibold gap-1.5 border-line hover:bg-forest-mist"
+            title="Ver evolución histórica multianual del contribuyente"
+          >
+            <BarChart3 className="size-3.5 text-forest" />
+            Historial Multianual
+          </Button>
+        </div>
       </header>
+
+      {/* Modales Pro */}
+      <InformeClienteModal
+        isOpen={informeOpen}
+        onClose={() => setInformeOpen(false)}
+        computed={c}
+        declaration={d}
+      />
+
+      <SimuladorSimpleModal
+        isOpen={simpleOpen}
+        onClose={() => setSimpleOpen(false)}
+        computed={c}
+        declaration={d}
+      />
+
+      <ComparativoMultianualModal
+        isOpen={comparativoOpen}
+        onClose={() => setComparativoOpen(false)}
+      />
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {/* Tarjeta 1: Renta Líquida Gravable */}

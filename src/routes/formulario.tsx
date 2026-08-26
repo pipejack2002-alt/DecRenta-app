@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, CheckCircle2, Download, FileCode, FileSpreadsheet, Printer, ShieldCheck } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Download, FileCode, FileSpreadsheet, FileText, Printer, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { OfficialDian210 } from "@/components/tax/official-dian-210";
+import { InformeClienteModal } from "@/components/tax/informe-cliente-modal";
 import { useAppStore, useComputed } from "@/lib/store";
 import {
   downloadFile,
@@ -16,6 +18,7 @@ import { formatCOP, formatNumber } from "@/lib/tax/format";
 export const Route = createFileRoute("/formulario")({ component: FormularioPage });
 
 function FormularioPage() {
+  const [informeOpen, setInformeOpen] = useState(false);
   const d = useAppStore((s) => s.declaration);
   const c = useComputed();
   const id = d.identity;
@@ -73,12 +76,21 @@ function FormularioPage() {
         <div className="flex flex-wrap items-center gap-2">
           <Button
             variant="default"
-            onClick={exportXlsx}
+            onClick={() => setInformeOpen(true)}
             className="bg-forest hover:bg-forest-deep text-white text-xs font-semibold shadow-xs"
+            title="Generar informe ejecutivo membretado con dictamen y firmas para entregar al cliente"
+          >
+            <FileText className="mr-1.5 size-4" />
+            Informe para el Cliente (PDF)
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={exportXlsx}
+            className="text-xs font-semibold border border-line"
             title="Descargar Formulario 210 en Excel (.xlsx) estructurado con fórmulas oficiales"
           >
-            <FileSpreadsheet className="mr-1.5 size-4" />
-            Descargar Excel (.xlsx)
+            <FileSpreadsheet className="mr-1.5 size-4 text-forest" />
+            Excel (.xlsx)
           </Button>
           <Button
             variant="secondary"
@@ -110,13 +122,21 @@ function FormularioPage() {
             variant="outline"
             onClick={() => window.print()}
             className="text-xs"
-            title="Imprimir o exportar PDF oficial de alta resolución"
+            title="Imprimir o exportar Formulario 210 en PDF oficial"
           >
             <Printer className="mr-1.5 size-3.5" />
-            Imprimir / PDF
+            Imprimir 210
           </Button>
         </div>
       </header>
+
+      {/* Modal del Informe Ejecutivo para el Cliente */}
+      <InformeClienteModal
+        isOpen={informeOpen}
+        onClose={() => setInformeOpen(false)}
+        computed={c}
+        declaration={d}
+      />
 
       {/* Resumen Superior Rápido */}
       <div

@@ -23,6 +23,8 @@ import {
   Coins,
   ShieldCheck,
   RotateCcw,
+  BarChart3,
+  Printer,
 } from "lucide-react";
 import { useState, useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -35,6 +37,8 @@ import { formatCOP } from "@/lib/tax/format";
 import { compute } from "@/lib/tax/engine";
 import { downloadFile } from "@/lib/tax/export-dian";
 import type { TaxYear } from "@/lib/tax/types";
+import { InformeClienteModal } from "@/components/tax/informe-cliente-modal";
+import { ComparativoMultianualModal } from "@/components/tax/comparativo-multianual-modal";
 
 export const Route = createFileRoute("/clientes")({
   component: ClientesRoute,
@@ -61,6 +65,8 @@ function ClientesRoute() {
   const [filterYear, setFilterYear] = useState<string>("todos");
   const [filterStatus, setFilterStatus] = useState<string>("todos");
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showComparativoModal, setShowComparativoModal] = useState(false);
+  const [selectedForInforme, setSelectedForInforme] = useState<{ profile: ClientProfile; computed: any; decl: any } | null>(null);
   const [editingProfile, setEditingProfile] = useState<ClientProfile | null>(null);
   const [deletingProfile, setDeletingProfile] = useState<ClientProfile | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
@@ -220,6 +226,17 @@ function ClientesRoute() {
           >
             <UserPlus className="size-4" />
             Nueva Declaración / Cliente
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowComparativoModal(true)}
+            className="text-xs border-line hover:bg-forest-mist gap-1.5"
+            title="Comparar evolución multianual entre años gravables del contribuyente"
+          >
+            <BarChart3 className="size-3.5 text-forest" />
+            Comparativo Multianual
           </Button>
 
           <Button
@@ -506,6 +523,22 @@ function ClientesRoute() {
                         Ver Formulario 210
                       </Button>
                     )}
+
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-8 text-muted hover:text-forest"
+                      onClick={() =>
+                        setSelectedForInforme({
+                          profile: p,
+                          computed: p.computed,
+                          decl: p.declaration,
+                        })
+                      }
+                      title="Generar e imprimir informe ejecutivo para este cliente"
+                    >
+                      <FileText className="size-3.5" />
+                    </Button>
 
                     <Button
                       variant="ghost"
@@ -841,6 +874,22 @@ function ClientesRoute() {
           </div>
         </div>
       )}
+
+      {/* Modal Informe Ejecutivo para el Cliente */}
+      {selectedForInforme && (
+        <InformeClienteModal
+          isOpen={!!selectedForInforme}
+          onClose={() => setSelectedForInforme(null)}
+          computed={selectedForInforme.computed}
+          declaration={selectedForInforme.decl}
+        />
+      )}
+
+      {/* Modal Comparativo Multianual */}
+      <ComparativoMultianualModal
+        isOpen={showComparativoModal}
+        onClose={() => setShowComparativoModal(false)}
+      />
     </div>
   );
 }

@@ -13,6 +13,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const computed = useComputed();
   const year = useAppStore((s) => s.declaration.year);
+  const profiles = useAppStore((s) => s.profiles);
+  const activeProfileId = useAppStore((s) => s.activeProfileId);
+  const activeProfile = profiles.find((p) => p.id === activeProfileId);
   const [open, setOpen] = useState(false);
   const [asistenteOpen, setAsistenteOpen] = useState(false);
 
@@ -115,6 +118,24 @@ export function AppShell({ children }: { children: ReactNode }) {
           </p>
         </aside>
         <main id="contenido" className="min-w-0 flex-1 pb-16">
+          {activeProfile?.status === "presentado" && (
+            <div className="mb-4 rounded-xl border border-purple-200 bg-purple-50/90 px-4 py-2.5 text-xs text-purple-900 flex items-center justify-between gap-3 shadow-xs animate-in fade-in">
+              <div className="flex items-center gap-2">
+                <span className="flex size-6 items-center justify-center rounded-full bg-purple-200 text-purple-800 shrink-0 font-bold">
+                  🔒
+                </span>
+                <span>
+                  <strong>Declaración Radicada Oficialmente en la DIAN</strong> · Este expediente se encuentra en estado presentado.
+                </span>
+              </div>
+              <Link
+                to="/clientes"
+                className="text-purple-800 font-semibold underline-offset-2 hover:underline text-[11px] shrink-0"
+              >
+                Gestionar en Portafolio →
+              </Link>
+            </div>
+          )}
           {children}
         </main>
       </div>
