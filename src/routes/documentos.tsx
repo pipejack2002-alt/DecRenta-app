@@ -21,7 +21,7 @@ import {
   type VaultDoc,
 } from "@/lib/docs/types";
 import { useAppStore, useComputed } from "@/lib/store";
-import { extractPdfServerFn } from "@/lib/docs/pdf-extractor";
+import { extractUniversalDocServerFn } from "@/lib/docs/universal-extractor";
 import { formatCOP, formatNumber } from "@/lib/tax/format";
 import { Button } from "@/components/ui/button";
 import { Card, CardHint, CardTitle } from "@/components/ui/card";
@@ -443,37 +443,36 @@ function SubirPanel() {
     setErr(null);
     try {
       for (const file of Array.from(files)) {
-        const isPdf = file.type.includes("pdf") || /\.pdf$/i.test(file.name);
-        const isText =
-          /text\/|xml|json|csv/.test(file.type) || /\.(txt|xml|json|csv)$/i.test(file.name);
-
         let text = "";
         let extractedAmounts: Record<string, number> = {};
         let notes = "";
 
-        if (isPdf) {
-          try {
-            const arrayBuffer = await file.arrayBuffer();
-            const bytes = new Uint8Array(arrayBuffer);
-            let binary = "";
-            for (let i = 0; i < bytes.byteLength; i++) {
-              binary += String.fromCharCode(bytes[i]);
-            }
-            const base64 = btoa(binary);
-            const pdfRes = await extractPdfServerFn({ data: { base64, fileName: file.name, kind } });
-            if (pdfRes.ok) {
-              text = pdfRes.text.slice(0, MAX_NORMA_CHARS);
-              extractedAmounts = pdfRes.amounts || {};
-              notes = pdfRes.notes || (text ? text.slice(0, 400) : "PDF procesado exitosamente.");
-            } else {
-              notes = "PDF registrado. " + (pdfRes.error || "");
-            }
-          } catch (e: any) {
-            notes = "PDF registrado.";
+        try {
+          const arrayBuffer = await file.arrayBuffer();
+          const bytes = new Uint8Array(arrayBuffer);
+          let binary = "";
+          for (let i = 0; i < bytes.byteLength; i++) {
+            binary += String.fromCharCode(bytes[i]);
           }
-        } else if (isText) {
-          text = (await file.text()).slice(0, MAX_NORMA_CHARS);
-          notes = text ? text.slice(0, 400) : "";
+          const base64 = btoa(binary);
+          const res = await extractUniversalDocServerFn({
+            data: {
+              base64,
+              fileName: file.name,
+              mimeType: file.type || "application/octet-stream",
+              kind,
+            },
+          });
+
+          if (res.ok) {
+            text = res.text.slice(0, MAX_NORMA_CHARS);
+            extractedAmounts = res.amounts || {};
+            notes = res.notes || (text ? text.slice(0, 400) : `${res.fileType.toUpperCase()} procesado exitosamente.`);
+          } else {
+            notes = `Archivo registrado. ${res.error || ""}`;
+          }
+        } catch (e: any) {
+          notes = "Archivo registrado.";
         }
 
         const doc: VaultDoc = {
@@ -652,15 +651,19 @@ function SubirPanel() {
           <p className="text-xs text-muted">Alimenta: {meta.maps.map((m) => m.label).join(", ")}.</p>
         ) : null}
 
-        <label className="flex min-h-11 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-line-strong bg-bg-raised px-4 py-8 text-center">
-          <FileUp className="size-5 text-forest" />
-          <span className="text-sm">Soltar PDF, imagen, XML o texto, o pulsar para elegir</span>
-          <span className="text-xs text-faint">Formato 220, extractos, avalúo, resoluciones, decretos…</span>
+        <label className="flex min-h-11 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-line-strong bg-bg-raised px-4 py-8 text-center transition-colors hover:border-forest/50 hover:bg-forest-mist/20">
+          <FileUp className="size-6 text-forest" />
+          <span className="text-sm font-medium text-ink">
+            Soltar PDF, Imagen (OCR), Word (.docx), PowerPoint (.pptx), Excel (.xlsx) o Texto
+          </span>
+          <span className="text-xs text-muted">
+            Formato 220, fotos de certificados, extractos bancarios, reportes de costos, cédula…
+          </span>
           <input
             type="file"
             className="sr-only"
             multiple
-            accept=".pdf,.png,.jpg,.jpeg,.webp,.xml,.txt,.json"
+            accept=".pdf,.png,.jpg,.jpeg,.webp,.bmp,.tiff,.docx,.pptx,.xlsx,.xls,.txt,.xml,.json,.csv,image/*,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/*"
             onChange={(e) => onFiles(e.target.files)}
           />
         </label>
