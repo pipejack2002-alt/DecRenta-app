@@ -1,5 +1,6 @@
 import * as XLSX from "xlsx";
 import { CASILLA_LABELS } from "./engine.ts";
+import { FORMULAS_EXPLICADAS_210 } from "./instructivo-dian.ts";
 import type { ComputedDeclaration, Declaration } from "./types.ts";
 
 export interface CasillaMetaInfo {
@@ -1230,6 +1231,412 @@ export async function downloadStyledFormulario210Xlsx(
   fAdh.fill = fill(CLR.white);
   fAdh.border = { top: T, left: T, bottom: TK, right: TK };
   fAdh.alignment = aln("center", "middle", true);
+
+  // =========================================================================
+  // HOJA 2: LIQUIDACIÓN Y FÓRMULAS VIVAS 100%
+  // =========================================================================
+  const ws2 = wb.addWorksheet("Liquidación y Fórmulas 100%", {
+    properties: { defaultRowHeight: 20, tabColor: { argb: "FF2D6187" } },
+    pageSetup: { orientation: "landscape", fitToPage: true, fitToWidth: 1 },
+  });
+
+  ws2.columns = [
+    { key: "casilla", width: 14 },
+    { key: "concepto", width: 46 },
+    { key: "seccion", width: 34 },
+    { key: "legal", width: 26 },
+    { key: "formula", width: 56 },
+    { key: "valor", width: 22 },
+  ];
+
+  // Header Title
+  ws2.mergeCells("A1:F1");
+  const h1 = ws2.getCell("A1");
+  h1.value = `DIAN · FORMULARIO 210 — HOJA DE LIQUIDACIÓN Y FÓRMULAS OFICIALES (AÑO GRAVABLE ${d.year})`;
+  h1.font = font(12, true, CLR.white);
+  h1.fill = fill("FF1E3A8A");
+  h1.alignment = aln("center", "middle");
+
+  ws2.mergeCells("A2:F2");
+  const h2 = ws2.getCell("A2");
+  h2.value = `Contribuyente: ${fullName} | NIT: ${id.nit || "—"}-${id.dv || "0"} | Seccional: ${id.dirSeccional || "02"} | Actividad CIIU: ${id.actividadCiiu || "0010"} | UVT AG: $${fmt(c.uvt)}`;
+  h2.font = font(9, false, "FF374151");
+  h2.fill = fill("FFEBF5FF");
+  h2.alignment = aln("center", "middle");
+
+  // Summary KPI Cards (Rows 4-5)
+  const kpis = [
+    { rangeTitle: "A4:B4", rangeVal: "A5:B5", title: "PATRIMONIO LÍQUIDO (31)", val: numVal(31), bg: "FFEFF6FF" },
+    { rangeTitle: "C4:C4", rangeVal: "C5:C5", title: "RENTA LÍQ. GRAVABLE (97)", val: c.rentaLiquidaGravable ?? numVal(97), bg: "FFF0FDF4" },
+    { rangeTitle: "D4:D4", rangeVal: "D5:D5", title: "TOTAL IMPUESTO A CARGO (129)", val: c.impuestoCargo ?? numVal(129), bg: "FFFEFCE8" },
+    { rangeTitle: "E4:F4", rangeVal: "E5:F5", title: c.saldoPagar > 0 ? "TOTAL SALDO A PAGAR (136)" : "TOTAL SALDO A FAVOR (137)", val: c.saldoPagar > 0 ? (c.saldoPagar ?? numVal(136)) : (c.saldoFavor ?? numVal(137)), bg: c.saldoPagar > 0 ? "FFFEE2E2" : "FFDCFCE7" },
+  ];
+
+  for (const k of kpis) {
+    ws2.mergeCells(k.rangeTitle);
+    const tCell = ws2.getCell(k.rangeTitle.split(":")[0]);
+    tCell.value = k.title;
+    tCell.font = font(7.5, true, "FF4B5563");
+    tCell.fill = fill(k.bg);
+    tCell.alignment = aln("center", "middle");
+    tCell.border = BDR_BOX;
+
+    ws2.mergeCells(k.rangeVal);
+    const vCell = ws2.getCell(k.rangeVal.split(":")[0]);
+    vCell.value = k.val;
+    vCell.numFmt = "$#,##0";
+    vCell.font = font(11, true, "FF111827");
+    vCell.fill = fill(k.bg);
+    vCell.alignment = aln("center", "middle");
+    vCell.border = BDR_BOX;
+  }
+
+  // Table Headers (Row 7)
+  const headers2 = ["Casilla No.", "Concepto / Renglón Oficial DIAN", "Cédula / Sección", "Fundamento Legal (E.T.)", "Fórmula Matemática Explicada", "Valor Liquidado (COP)"];
+  const headerCols2 = ["A", "B", "C", "D", "E", "F"];
+  ws2.getRow(7).height = 22;
+  headerCols2.forEach((col, idx) => {
+    const cCell = ws2.getCell(`${col}7`);
+    cCell.value = headers2[idx];
+    cCell.font = font(8.5, true, CLR.white);
+    cCell.fill = fill("FF2D6187");
+    cCell.border = { top: M, left: T, bottom: M, right: T };
+    cCell.alignment = aln(idx === 0 || idx === 5 ? "center" : "left", "middle");
+  });
+
+  const getExcelFormula = (num: number, rowMap: Record<number, number>): string | null => {
+    const r = (n: number) => (rowMap[n] ? `F${rowMap[n]}` : "0");
+    switch (num) {
+      case 31: return `MAX(0, ${r(29)} - ${r(30)})`;
+      case 34: return `${r(32)} - ${r(33)}`;
+      case 37: return `SUM(${r(35)}:${r(36)})`;
+      case 40: return `SUM(${r(38)}:${r(39)})`;
+      case 41: return `MIN(${r(34)}*0.4, ${r(37)}+${r(40)})`;
+      case 42: return `MAX(0, ${r(34)} - ${r(41)})`;
+      case 46: return `${r(43)} - ${r(44)} - ${r(45)}`;
+      case 49: return `SUM(${r(47)}:${r(48)})`;
+      case 52: return `SUM(${r(50)}:${r(51)})`;
+      case 53: return `MIN(${r(46)}*0.4, ${r(49)}+${r(52)})`;
+      case 54: return `${r(46)} - ${r(53)}`;
+      case 57: return `MAX(0, ${r(54)} - ${r(56)})`;
+      case 61: return `${r(58)} - ${r(59)} - ${r(60)}`;
+      case 64: return `SUM(${r(62)}:${r(63)})`;
+      case 67: return `SUM(${r(65)}:${r(66)})`;
+      case 69: return `MIN(${r(61)}*0.4, ${r(64)}+${r(67)})`;
+      case 70: return `${r(61)} + ${r(68)} - ${r(69)}`;
+      case 73: return `MAX(0, ${r(70)} - ${r(72)})`;
+      case 78: return `${r(74)} - ${r(75)} - ${r(76)} - ${r(77)}`;
+      case 82: return `SUM(${r(80)}:${r(81)})`;
+      case 85: return `SUM(${r(83)}:${r(84)})`;
+      case 86: return `MIN(${r(78)}*0.4, ${r(82)}+${r(85)})`;
+      case 87: return `${r(78)} + ${r(79)} - ${r(86)}`;
+      case 90: return `MAX(0, ${r(87)} - ${r(89)})`;
+      case 91: return `${r(34)} + ${r(46)} + ${r(61)} + ${r(78)}`;
+      case 92: return `${r(41)} + ${r(53)} + ${r(69)} + ${r(86)} + ${r(139)} + ${r(28)}`;
+      case 93: return `${r(42)} + ${r(57)} + ${r(73)} + ${r(90)}`;
+      case 97: return `MAX(0, ${r(93)} - ${r(94)} - ${r(95)} + ${r(96)})`;
+      case 101: return `${r(99)} - ${r(100)}`;
+      case 103: return `MAX(0, ${r(101)} - ${r(102)})`;
+      case 106: return `${r(104)} - ${r(105)}`;
+      case 111: return `MAX(${r(97)}, ${r(98)}) + ${r(103)} + ${r(107)} + ${r(109)} - ${r(110)}`;
+      case 115: return `MAX(0, ${r(112)} - ${r(113)} - ${r(114)})`;
+      case 121: return `SUM(${r(116)}:${r(120)})`;
+      case 125: return `SUM(${r(122)}:${r(124)})`;
+      case 126: return `MAX(0, ${r(121)} - ${r(125)})`;
+      case 129: return `${r(126)} + ${r(127)} - ${r(128)}`;
+      case 134: return `MAX(0, ${r(129)} - ${r(130)} - ${r(131)} - ${r(132)} + ${r(133)})`;
+      case 136: return `IF(${r(129)} + ${r(133)} + ${r(135)} > ${r(130)} + ${r(131)} + ${r(132)}, ${r(129)} + ${r(133)} + ${r(135)} - ${r(130)} - ${r(131)} - ${r(132)}, 0)`;
+      case 137: return `IF(${r(130)} + ${r(131)} + ${r(132)} > ${r(129)} + ${r(133)} + ${r(135)}, ${r(130)} + ${r(131)} + ${r(132)} - ${r(129)} - ${r(133)} - ${r(135)}, 0)`;
+      case 980: return `${r(136)}`;
+      default: return null;
+    }
+  };
+
+  let row2 = 8;
+  const casillaRowMap: Record<number, number> = {};
+  for (const item of CASILLAS_OFICIALES_210) {
+    casillaRowMap[item.num] = row2;
+    row2++;
+  }
+
+  row2 = 8;
+  for (const item of CASILLAS_OFICIALES_210) {
+    ws2.getRow(row2).height = 19;
+    const isEven = row2 % 2 === 0;
+    const rowBg = isEven ? "FFF9FAFB" : CLR.white;
+
+    const cellA = ws2.getCell(`A${row2}`);
+    cellA.value = item.num;
+    cellA.font = font(8.5, true, "FF2D6187");
+    cellA.fill = fill(rowBg);
+    cellA.border = BDR_BOX;
+    cellA.alignment = aln("center", "middle");
+
+    const cellB = ws2.getCell(`B${row2}`);
+    cellB.value = item.label;
+    cellB.font = font(8, false, CLR.black);
+    cellB.fill = fill(rowBg);
+    cellB.border = BDR_BOX;
+    cellB.alignment = aln("left", "middle");
+
+    const cellC = ws2.getCell(`C${row2}`);
+    cellC.value = item.section;
+    cellC.font = font(7.5, false, "FF4B5563");
+    cellC.fill = fill(rowBg);
+    cellC.border = BDR_BOX;
+    cellC.alignment = aln("left", "middle");
+
+    const cellD = ws2.getCell(`D${row2}`);
+    cellD.value = item.legal;
+    cellD.font = font(7.5, false, "FF1D4ED8");
+    cellD.fill = fill(rowBg);
+    cellD.border = BDR_BOX;
+    cellD.alignment = aln("left", "middle");
+
+    const formulaInfo = FORMULAS_EXPLICADAS_210[item.num];
+    const cellE = ws2.getCell(`E${row2}`);
+    cellE.value = formulaInfo?.formula || item.formula || "—";
+    cellE.font = font(7.5, !!formulaInfo, formulaInfo ? "FF047857" : "FF6B7280");
+    cellE.fill = fill(formulaInfo ? "FFF0FDF4" : rowBg);
+    cellE.border = BDR_BOX;
+    cellE.alignment = aln("left", "middle");
+
+    const cellF = ws2.getCell(`F${row2}`);
+    const formulaStr = getExcelFormula(item.num, casillaRowMap);
+    const currVal = numVal(item.num);
+
+    if (formulaStr) {
+      cellF.value = {
+        formula: formulaStr,
+        result: currVal,
+      };
+      cellF.fill = fill("FFEEF2FF");
+      cellF.font = font(8.5, true, "FF1E40AF");
+    } else {
+      cellF.value = item.num === 140 ? (c.casillas[140] ? "X" : "") : currVal;
+      cellF.fill = fill(rowBg);
+      cellF.font = font(8.5, false, CLR.black);
+    }
+    if (typeof cellF.value === "number" || formulaStr) {
+      cellF.numFmt = "$#,##0";
+    }
+    cellF.border = BDR_BOX;
+    cellF.alignment = aln("right", "middle");
+
+    row2++;
+  }
+
+  // =========================================================================
+  // HOJA 3: DEPURACIÓN CEDULAR Y LÍMITE DEL 40%
+  // =========================================================================
+  const ws3 = wb.addWorksheet("Depuración Cedular y Límites", {
+    properties: { defaultRowHeight: 20, tabColor: { argb: "FF059669" } },
+    pageSetup: { orientation: "landscape", fitToPage: true, fitToWidth: 1 },
+  });
+
+  ws3.columns = [
+    { key: "concepto", width: 45 },
+    { key: "legal", width: 25 },
+    { key: "trabajo", width: 20 },
+    { key: "honorarios", width: 20 },
+    { key: "capital", width: 20 },
+    { key: "nolab", width: 20 },
+    { key: "consolidado", width: 22 },
+  ];
+
+  ws3.mergeCells("A1:G1");
+  const dHdr = ws3.getCell("A1");
+  dHdr.value = `DIAN · AUDITORÍA DE DEPURACIÓN CEDULAR Y CONTROL LÍMITES 40% / 1.340 UVT (AG ${d.year})`;
+  dHdr.font = font(11, true, CLR.white);
+  dHdr.fill = fill("FF065F46");
+  dHdr.alignment = aln("center", "middle");
+
+  const depHeaders = ["Concepto de Depuración", "Fundamento Legal", "Trabajo (COP)", "Honorarios (COP)", "Capital (COP)", "No Laborales (COP)", "Total Consolidado (COP)"];
+  const depCols = ["A", "B", "C", "D", "E", "F", "G"];
+  ws3.getRow(3).height = 22;
+  depCols.forEach((col, idx) => {
+    const cCell = ws3.getCell(`${col}3`);
+    cCell.value = depHeaders[idx];
+    cCell.font = font(8.5, true, CLR.white);
+    cCell.fill = fill("FF059669");
+    cCell.border = BDR_BOX;
+    cCell.alignment = aln("center", "middle");
+  });
+
+  const depRows = [
+    { conc: "(+) Ingresos Brutos", leg: "Arts. 103, 335 E.T.", tr: numVal(32), hon: numVal(43), cap: numVal(58), nol: numVal(74), form: "SUM(C4:F4)" },
+    { conc: "(-) Devoluciones, Rebajas y Descuentos", leg: "Art. 336 E.T.", tr: 0, hon: numVal(44), cap: numVal(59), nol: numVal(75), form: "SUM(C5:F5)" },
+    { conc: "(-) Ingresos No Constitutivos (INCRNGO)", leg: "Arts. 55, 56 E.T.", tr: numVal(33), hon: numVal(45), cap: numVal(60), nol: numVal(76), form: "SUM(C6:F6)" },
+    { conc: "(-) Costos y Gastos Procedentes", leg: "Art. 107, 336 E.T.", tr: 0, hon: 0, cap: 0, nol: numVal(77), form: "SUM(C7:F7)" },
+    { conc: "(=) Ingresos Netos Cedulares", leg: "Art. 336 num. 1 E.T.", tr: numVal(34), hon: numVal(46), cap: numVal(61), nol: numVal(78), form: "SUM(C8:F8)", bold: true, bg: "FFECFDF5" },
+    { conc: "Tope Límite del 40 % sobre Ingreso Neto", leg: "Art. 336 num. 2 E.T.", tr: Math.round(numVal(34)*0.4), hon: Math.round(numVal(46)*0.4), cap: Math.round(numVal(61)*0.4), nol: Math.round(numVal(78)*0.4), form: "G8*0.4", italic: true },
+    { conc: "Límite Máximo Global en Pesos (1.340 UVT)", leg: "Art. 336 num. 2 E.T.", tr: Math.round(c.uvt*1340), hon: Math.round(c.uvt*1340), cap: Math.round(c.uvt*1340), nol: Math.round(c.uvt*1340), form: `${Math.round(c.uvt*1340)}`, italic: true },
+    { conc: "(-) Rentas Exentas Solicitadas", leg: "Arts. 126-1, 206 E.T.", tr: numVal(37), hon: numVal(49), cap: numVal(64), nol: numVal(82), form: "SUM(C11:F11)" },
+    { conc: "(-) Deducciones Imputables Solicitadas", leg: "Arts. 119, 387 E.T.", tr: numVal(40), hon: numVal(52), cap: numVal(67), nol: numVal(85), form: "SUM(C12:F12)" },
+    { conc: "(=) Exentas y Deducciones Aceptadas", leg: "Art. 336 E.T.", tr: numVal(41), hon: numVal(53), cap: numVal(69), nol: numVal(86), form: "SUM(C13:F13)", bold: true, bg: "FFEFF6FF" },
+    { conc: "(+) Beneficio Adicional Dependientes (72 UVT)", leg: "Art. 336 inc. 2 E.T.", tr: numVal(139), hon: 0, cap: 0, nol: 0, form: "C14" },
+    { conc: "(+) Beneficio 1 % Factura Electrónica", leg: "Art. 336 par. 5 E.T.", tr: numVal(28), hon: 0, cap: 0, nol: 0, form: "C15" },
+    { conc: "(=) TOTAL EXENTAS Y DEDUCCIONES (Casilla 92)", leg: "Casilla 92 DIAN", tr: numVal(41)+numVal(139)+numVal(28), hon: numVal(53), cap: numVal(69), nol: numVal(86), form: "SUM(C16:F16)", bold: true, bg: "FFDBEAFE" },
+    { conc: "(=) RENTA LÍQUIDA ORDINARIA (Casilla 93)", leg: "Art. 336 num. 5 E.T.", tr: numVal(42), hon: numVal(57), cap: numVal(73), nol: numVal(90), form: "SUM(C17:F17)", bold: true, bg: "FFFEF3C7" },
+    { conc: "(=) RENTA LÍQUIDA GRAVABLE (Casilla 97)", leg: "Art. 336 num. 5 E.T.", tr: numVal(42), hon: numVal(57), cap: numVal(73), nol: numVal(90), form: "G17", bold: true, bg: "FFFDE68A" },
+  ];
+
+  let rDep = 4;
+  for (const dr of depRows) {
+    ws3.getRow(rDep).height = 19;
+    const cA = ws3.getCell(`A${rDep}`);
+    cA.value = dr.conc;
+    cA.font = font(8, dr.bold, CLR.black, "Arial", dr.italic);
+    cA.fill = fill(dr.bg ?? CLR.white);
+    cA.border = BDR_BOX;
+
+    const cB = ws3.getCell(`B${rDep}`);
+    cB.value = dr.leg;
+    cB.font = font(7.5, false, "FF4B5563");
+    cB.fill = fill(dr.bg ?? CLR.white);
+    cB.border = BDR_BOX;
+
+    const cC = ws3.getCell(`C${rDep}`);
+    cC.value = dr.tr;
+    cC.numFmt = "$#,##0";
+    cC.font = font(8, dr.bold, CLR.black);
+    cC.fill = fill(dr.bg ?? CLR.white);
+    cC.border = BDR_BOX;
+
+    const cD = ws3.getCell(`D${rDep}`);
+    cD.value = dr.hon;
+    cD.numFmt = "$#,##0";
+    cD.font = font(8, dr.bold, CLR.black);
+    cD.fill = fill(dr.bg ?? CLR.white);
+    cD.border = BDR_BOX;
+
+    const cE = ws3.getCell(`E${rDep}`);
+    cE.value = dr.cap;
+    cE.numFmt = "$#,##0";
+    cE.font = font(8, dr.bold, CLR.black);
+    cE.fill = fill(dr.bg ?? CLR.white);
+    cE.border = BDR_BOX;
+
+    const cF = ws3.getCell(`F${rDep}`);
+    cF.value = dr.nol;
+    cF.numFmt = "$#,##0";
+    cF.font = font(8, dr.bold, CLR.black);
+    cF.fill = fill(dr.bg ?? CLR.white);
+    cF.border = BDR_BOX;
+
+    const cG = ws3.getCell(`G${rDep}`);
+    cG.value = {
+      formula: dr.form,
+      result: (dr.tr || 0) + (dr.hon || 0) + (dr.cap || 0) + (dr.nol || 0),
+    };
+    cG.numFmt = "$#,##0";
+    cG.font = font(8.5, true, "FF065F46");
+    cG.fill = fill(dr.bg ?? "FFF0FDF4");
+    cG.border = BDR_BOX;
+
+    rDep++;
+  }
+
+  // =========================================================================
+  // HOJA 4: TABLA PROGRESIVA ART. 241 E.T.
+  // =========================================================================
+  const ws4 = wb.addWorksheet("Tabla Progresiva Art. 241", {
+    properties: { defaultRowHeight: 20, tabColor: { argb: "FF7C3AED" } },
+    pageSetup: { orientation: "landscape", fitToPage: true, fitToWidth: 1 },
+  });
+
+  ws4.columns = [
+    { key: "rango", width: 12 },
+    { key: "desdeUvt", width: 16 },
+    { key: "hastaUvt", width: 16 },
+    { key: "tarifa", width: 14 },
+    { key: "baseUvt", width: 18 },
+    { key: "formulaUvt", width: 42 },
+    { key: "impuestoCop", width: 22 },
+  ];
+
+  ws4.mergeCells("A1:G1");
+  const tHdr = ws4.getCell("A1");
+  tHdr.value = `DIAN · TABLA DE RETENCIÓN E IMPUESTO SOBRE LA RENTA ARTÍCULO 241 E.T. (UVT $${fmt(c.uvt)})`;
+  tHdr.font = font(11, true, CLR.white);
+  tHdr.fill = fill("FF5B21B6");
+  tHdr.alignment = aln("center", "middle");
+
+  const t4Headers = ["Rango No.", "Desde (UVT)", "Hasta (UVT)", "Tarifa Marginal", "Impuesto Base (UVT)", "Fórmula en UVT", "Impuesto Liquidado (COP)"];
+  const t4Cols = ["A", "B", "C", "D", "E", "F", "G"];
+  ws4.getRow(3).height = 22;
+  t4Cols.forEach((col, idx) => {
+    const cCell = ws4.getCell(`${col}3`);
+    cCell.value = t4Headers[idx];
+    cCell.font = font(8.5, true, CLR.white);
+    cCell.fill = fill("FF6D28D9");
+    cCell.border = BDR_BOX;
+    cCell.alignment = aln("center", "middle");
+  });
+
+  const rangos241 = [
+    { r: "Rango 1", dUvt: 0, hUvt: 1090, t: "0 %", bUvt: 0, form: "0", cop: 0 },
+    { r: "Rango 2", dUvt: 1090, hUvt: 1700, t: "19 %", bUvt: 0, form: "(Base UVT - 1.090) * 19%", cop: 0 },
+    { r: "Rango 3", dUvt: 1700, hUvt: 4100, t: "28 %", bUvt: 116, form: "(Base UVT - 1.700) * 28% + 116", cop: 0 },
+    { r: "Rango 4", dUvt: 4100, hUvt: 8670, t: "33 %", bUvt: 788, form: "(Base UVT - 4.100) * 33% + 788", cop: 0 },
+    { r: "Rango 5", dUvt: 8670, hUvt: 18970, t: "35 %", bUvt: 2296, form: "(Base UVT - 8.670) * 35% + 2.296", cop: 0 },
+    { r: "Rango 6", dUvt: 18970, hUvt: 31000, t: "37 %", bUvt: 5901, form: "(Base UVT - 18.970) * 37% + 5.901", cop: 0 },
+    { r: "Rango 7", dUvt: 31000, hUvt: 999999, t: "39 %", bUvt: 10352, form: "(Base UVT - 31.000) * 39% + 10.352", cop: 0 },
+  ];
+
+  let r4 = 4;
+  for (const rg of rangos241) {
+    ws4.getRow(r4).height = 19;
+    const cA = ws4.getCell(`A${r4}`);
+    cA.value = rg.r;
+    cA.font = font(8, true, "FF6D28D9");
+    cA.fill = fill(CLR.white);
+    cA.border = BDR_BOX;
+    cA.alignment = aln("center", "middle");
+
+    const cB = ws4.getCell(`B${r4}`);
+    cB.value = rg.dUvt;
+    cB.numFmt = "#,##0";
+    cB.font = font(8, false, CLR.black);
+    cB.fill = fill(CLR.white);
+    cB.border = BDR_BOX;
+
+    const cC = ws4.getCell(`C${r4}`);
+    cC.value = rg.hUvt === 999999 ? "En adelante" : rg.hUvt;
+    if (typeof cC.value === "number") cC.numFmt = "#,##0";
+    cC.font = font(8, false, CLR.black);
+    cC.fill = fill(CLR.white);
+    cC.border = BDR_BOX;
+
+    const cD = ws4.getCell(`D${r4}`);
+    cD.value = rg.t;
+    cD.font = font(8, true, "FF047857");
+    cD.fill = fill(CLR.white);
+    cD.border = BDR_BOX;
+    cD.alignment = aln("center", "middle");
+
+    const cE = ws4.getCell(`E${r4}`);
+    cE.value = rg.bUvt;
+    cE.numFmt = "#,##0";
+    cE.font = font(8, false, CLR.black);
+    cE.fill = fill(CLR.white);
+    cE.border = BDR_BOX;
+
+    const cF = ws4.getCell(`F${r4}`);
+    cF.value = rg.form;
+    cF.font = font(8, false, "FF4B5563");
+    cF.fill = fill(CLR.white);
+    cF.border = BDR_BOX;
+
+    const cG = ws4.getCell(`G${r4}`);
+    cG.value = numVal(116);
+    cG.numFmt = "$#,##0";
+    cG.font = font(8.5, true, "FF1E40AF");
+    cG.fill = fill("FFF5F3FF");
+    cG.border = BDR_BOX;
+
+    r4++;
+  }
 
   // Descargar archivo Excel desde buffer
   const buffer = await wb.xlsx.writeBuffer();

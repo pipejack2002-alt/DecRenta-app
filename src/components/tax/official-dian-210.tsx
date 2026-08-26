@@ -1,4 +1,6 @@
 import {
+  BookOpen,
+  Calculator,
   CheckCircle2,
   Edit3,
   FileCode,
@@ -28,7 +30,7 @@ import {
   generateFormulario210Xml,
 } from "@/lib/tax/export-dian";
 import { formatCOP, formatNumber, parseMoney } from "@/lib/tax/format";
-import { INSTRUCTIVO_DIAN_210 } from "@/lib/tax/instructivo-dian";
+import { FORMULAS_EXPLICADAS_210, INSTRUCTIVO_DIAN_210 } from "@/lib/tax/instructivo-dian";
 import type { TaxYear } from "@/lib/tax/types";
 import {
   UVT_BY_YEAR,
@@ -1545,6 +1547,183 @@ export function OfficialDian210({
         onSelectSeccional={(code) => patch((x) => (x.identity.dirSeccional = code))}
         onSelectCiiu={(code) => patch((x) => (x.identity.actividadCiiu = code))}
       />
+
+      {/* Modal Inspector de Casilla y Fórmula Oficial DIAN */}
+      {selectedCasilla !== null && (
+        <CasillaInspectorModal
+          casillaNum={selectedCasilla}
+          computed={c}
+          onClose={() => setSelectedCasilla(null)}
+          onEditDeclarante={() => {
+            setSelectedCasilla(null);
+            setIsEditingDeclarante(true);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function CasillaInspectorModal({
+  casillaNum,
+  computed,
+  onClose,
+  onEditDeclarante,
+}: {
+  casillaNum: number;
+  computed: any;
+  onClose: () => void;
+  onEditDeclarante: () => void;
+}) {
+  const meta = CASILLAS_OFICIALES_210.find((x) => x.num === casillaNum);
+  const formulaInfo = FORMULAS_EXPLICADAS_210[casillaNum];
+  const instructivoText = INSTRUCTIVO_DIAN_210[casillaNum];
+  const rawVal = computed.casillas[casillaNum] ?? 0;
+  const uvtValue = computed.uvt > 0 ? (rawVal / computed.uvt).toFixed(1) : "0";
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in">
+      <div className="bg-surface w-full max-w-xl rounded-2xl border border-line shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        {/* Cabecera del Inspector */}
+        <div className="flex items-center justify-between p-4 border-b border-line bg-forest-mist/30">
+          <div className="flex items-center gap-2.5">
+            <span className="size-9 rounded-xl bg-forest/15 text-forest flex items-center justify-center font-bold text-sm font-mono">
+              {casillaNum}
+            </span>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-bold text-ink text-base">
+                  {meta?.label || `Casilla ${casillaNum}`}
+                </h3>
+                {formulaInfo ? (
+                  <span className="text-[10px] font-semibold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <Calculator className="size-2.5" /> Formulada
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                    Dato de Entrada
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-muted font-mono">{meta?.legal || "Estatuto Tributario Nacional"}</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="size-8 rounded-lg text-muted hover:text-ink hover:bg-muted-mist flex items-center justify-center transition-colors"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+
+        {/* Contenido scrolleable */}
+        <div className="p-5 overflow-y-auto space-y-4 text-xs">
+          {/* Tarjeta de Valor Liquidado */}
+          <div className="p-4 rounded-xl border border-forest/20 bg-forest-mist/40 flex items-center justify-between">
+            <div>
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted">Valor Liquidado en Formulario</span>
+              <p className="text-2xl font-bold font-mono text-forest-deep mt-0.5">
+                {casillaNum === 140 ? (computed.casillas[140] ? "SÍ (Marcado X)" : "NO") : formatCOP(rawVal)}
+              </p>
+            </div>
+            {casillaNum !== 140 && (
+              <div className="text-right">
+                <span className="text-[10px] uppercase tracking-wider text-muted">Equivalente en UVT</span>
+                <p className="font-mono text-sm font-bold text-ink-soft">
+                  {formatNumber(Number(uvtValue))} UVT
+                </p>
+                <p className="text-[9px] text-muted">UVT AG: ${formatNumber(computed.uvt)}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Desglose de Fórmula Matemática */}
+          {formulaInfo && (
+            <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/70 space-y-3">
+              <div className="flex items-center gap-2 text-blue-900 font-bold text-xs uppercase tracking-wide">
+                <Calculator className="size-4 text-blue-600" />
+                <span>Fórmula Matemática Oficial DIAN</span>
+              </div>
+              <div className="bg-white p-3 rounded-lg border border-blue-200 font-mono text-xs text-blue-950 font-bold leading-relaxed shadow-2xs">
+                {formulaInfo.formula}
+              </div>
+
+              {/* Cálculo en vivo con valores del usuario */}
+              {formulaInfo.casillasInvolucradas && formulaInfo.casillasInvolucradas.length > 0 && (
+                <div className="space-y-1.5 pt-1">
+                  <span className="text-[11px] font-semibold text-blue-900">Desglose de valores del declarante:</span>
+                  <div className="grid gap-1.5 bg-white/80 p-2.5 rounded-lg border border-blue-100 font-mono text-[11px]">
+                    {formulaInfo.casillasInvolucradas.map((cn: number) => {
+                      const cMeta = CASILLAS_OFICIALES_210.find((x) => x.num === cn);
+                      const cVal = computed.casillas[cn] ?? 0;
+                      return (
+                        <div key={cn} className="flex items-center justify-between border-b border-gray-100 pb-1 last:border-none last:pb-0">
+                          <span className="text-gray-700 truncate mr-2">
+                            Casilla {cn} ({cMeta?.label || "Concepto"}):
+                          </span>
+                          <span className="font-bold text-gray-900 shrink-0">
+                            {formatCOP(cVal)}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              <p className="text-[11.5px] text-blue-900 leading-relaxed">
+                {formulaInfo.descripcion}
+              </p>
+            </div>
+          )}
+
+          {/* Instructivo Oficial Completo */}
+          {instructivoText && (
+            <div className="p-4 rounded-xl border border-line bg-muted-mist/30 space-y-2">
+              <div className="flex items-center gap-2 text-ink font-bold text-xs">
+                <BookOpen className="size-4 text-forest" />
+                <span>Instructivo Oficial Formulario 210 DIAN</span>
+              </div>
+              <p className="text-ink-soft leading-relaxed text-xs">
+                {instructivoText}
+              </p>
+            </div>
+          )}
+
+          {/* Sección de Origen */}
+          {meta?.section && (
+            <div className="flex items-center justify-between p-3 rounded-lg border border-line bg-surface text-muted text-xs">
+              <span>Sección en el Formulario:</span>
+              <span className="font-semibold text-ink">{meta.section}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="p-4 border-t border-line bg-surface flex items-center justify-between">
+          {casillaNum <= 27 ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onEditDeclarante}
+              className="text-xs"
+            >
+              <Pencil className="mr-1.5 size-3.5" />
+              Editar en RUT / Cabecera
+            </Button>
+          ) : (
+            <span className="text-[11px] text-muted">Calculado automáticamente según el Estatuto Tributario.</span>
+          )}
+          <Button
+            variant="default"
+            size="sm"
+            onClick={onClose}
+            className="bg-forest hover:bg-forest-deep text-white font-semibold ml-auto"
+          >
+            Entendido
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
