@@ -245,27 +245,9 @@
     padding: 3.5px 6px !important;
   }
 
-  /* Reset outer container and background wrappers */
+  /* Reset outer container and background wrappers outside the form */
   .overflow-x-auto,
-  .p-1,
-  .p-2,
-  .p-3,
-  .p-4,
-  .sm\:p-2,
-  .sm\:p-3,
-  .sm\:p-6,
-  .sm\:p-8,
-  .bg-gray-100,
-  .bg-surface,
-  .bg-surface\/30,
-  .bg-surface\/40,
-  .bg-surface\/50,
-  .bg-bg,
-  .bg-bg-raised,
-  .shadow-2xl,
-  .shadow-md,
-  .shadow-sm,
-  .shadow-xs {
+  .dian-form-wrapper {
     padding: 0 !important;
     margin: 0 !important;
     background: transparent !important;

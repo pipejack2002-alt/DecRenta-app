@@ -347,8 +347,8 @@ export function OfficialDian210({
             </div>
 
             {/* Caja Azul Oficial 210 */}
-            <div className="col-span-2 bg-[#2D6187] text-white flex items-center justify-center p-2">
-              <span className="font-sans text-5xl font-black tracking-normal">
+            <div className="col-span-2 bg-[#2D6187] text-white flex items-center justify-center p-2 print:!bg-[#2D6187] print:!text-white">
+              <span className="font-sans text-5xl font-black tracking-normal print:!text-white">
                 210
               </span>
             </div>
