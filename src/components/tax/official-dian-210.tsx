@@ -143,7 +143,7 @@ export function OfficialDian210({
         <span className="absolute left-1 top-0.5 font-sans text-[8px] text-gray-500 select-none pointer-events-none print:text-[6px] print:left-0.5 print:top-0">
           {num}
         </span>
-        <span className="tabular-nums text-right w-full pl-4 truncate print:text-[7.5px] print:pl-2.5">{valStr || "—"}</span>
+        <span className="tabular-nums text-right w-full pl-3 whitespace-nowrap print:text-[7.5px] print:pl-1.5">{valStr || "—"}</span>
       </div>
     );
   }
@@ -437,7 +437,7 @@ export function OfficialDian210({
             {/* Fila Actividad CIIU, Correcciones y Casilla 28 */}
             <div className="grid grid-cols-12 divide-x divide-black bg-[#f4f7f9]">
               <div
-                className={`col-span-3 p-1 cursor-pointer transition-colors ${
+                className={`col-span-2 p-1 cursor-pointer transition-colors ${
                   selectedCasilla === 24 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
                 }`}
                 onClick={() => setSelectedCasilla(24)}
@@ -459,7 +459,7 @@ export function OfficialDian210({
                 <span className="font-mono font-bold text-xs">{id.esCorreccion ? (id.codCorreccion || "1") : "—"}</span>
               </div>
               <div
-                className={`col-span-3 p-1 cursor-pointer transition-colors ${
+                className={`col-span-2 p-1 cursor-pointer transition-colors ${
                   selectedCasilla === 26 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
                 }`}
                 onClick={() => setSelectedCasilla(26)}
@@ -481,7 +481,7 @@ export function OfficialDian210({
                 <span className="font-semibold text-xs">{id.fraccionAnioSiguiente ? "SÍ" : "NO"}</span>
               </div>
               <div
-                className={`col-span-3 p-1 bg-white flex items-center justify-between cursor-pointer ${
+                className={`col-span-5 p-1 bg-white flex items-center justify-between gap-1.5 cursor-pointer ${
                   selectedCasilla === 28 ? "bg-[#ffeb99] ring-2 ring-amber-500" : ""
                 }`}
                 onClick={() => setSelectedCasilla(28)}
@@ -490,7 +490,7 @@ export function OfficialDian210({
                 <span className="text-[7.5px] text-gray-700 leading-tight">
                   28. Uno por ciento (1%) de compras con factura electrónica
                 </span>
-                <Cell num={28} className="w-24 border border-gray-300" />
+                <Cell num={28} className="w-28 shrink-0 border border-gray-300" />
               </div>
             </div>
           </div>

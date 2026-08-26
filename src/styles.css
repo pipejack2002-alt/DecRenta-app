@@ -312,7 +312,14 @@
   #dian-form-pdf-container .w-28,
   #dian-form-pdf-container .w-32 {
     width: auto !important;
-    min-width: 48px !important;
+    min-width: 56px !important;
+    flex-shrink: 0 !important;
+  }
+
+  #dian-form-pdf-container .tabular-nums {
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
   }
 }
 
