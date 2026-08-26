@@ -91,8 +91,8 @@ export function parseExogenaExcel(bufferOrArray: ArrayBuffer | Uint8Array): Exog
             }
           }
         }
-        if (/(?:Identificación|NIT|Número de documento):/i.test(rowText) && !nit && !/consultante.*nit|informante/i.test(rowText)) {
-          const numMatch = rowText.match(/(?:Identificación|NIT|Número de documento):\s*([0-9]+)/i);
+        if (/(?:Identificación|NIT|Número de documento|Consultante)/i.test(rowText) && !nit) {
+          const numMatch = rowText.match(/(?:Identificación|NIT|Número de documento|Consultante)[:\s]*([0-9]{6,12})/i);
           if (numMatch) {
             nit = numMatch[1];
           } else {
@@ -108,7 +108,7 @@ export function parseExogenaExcel(bufferOrArray: ArrayBuffer | Uint8Array): Exog
         if (/(?:Nombres\s*\/\s*Razón social|Nombres y Apellidos|Consultante):/i.test(rowText) && !nombre) {
           for (let j = 0; j < row.length; j++) {
             const val = String(row[j] || "").trim();
-            if (val && !/(?:Nombres|Razón social|Consultante|Identificación)/i.test(val) && val.length > 3) {
+            if (val && !/(?:Nombres|Razón social|Consultante|Identificación|NIT|\d{6,12})/i.test(val) && val.length > 3) {
               nombre = val;
               break;
             }
@@ -124,7 +124,7 @@ export function parseExogenaExcel(bufferOrArray: ArrayBuffer | Uint8Array): Exog
       const rawRows: (string | number | null | undefined)[][] = XLSX.utils.sheet_to_json(sheet, { header: 1 });
       if (rawRows.length === 0) continue;
 
-      // Detectar fila de encabezados de la tabla y mapeo de columnas
+      // Detectar fila de encabezados de la tabla
       let dataHeaderIndex = -1;
       let colFormato = -1;
       let colConcepto = -1;
@@ -135,114 +135,135 @@ export function parseExogenaExcel(bufferOrArray: ArrayBuffer | Uint8Array): Exog
       let colDetalle = -1;
       let colCasilla = -1;
 
-      interface ValueCol {
-        colIdx: number;
-        headerName: string;
-      }
-      const valueCols: ValueCol[] = [];
+      const colHeaders: Record<number, string> = {};
 
-      for (let i = 0; i < Math.min(35, rawRows.length); i++) {
+      for (let i = 0; i < Math.min(40, rawRows.length); i++) {
         const row = rawRows[i] || [];
-        const rowStr = row.map((c) => String(c || "")).join("|");
+        const rowStr = row.map((c) => String(c || "")).join("|").toLowerCase();
 
-        if (/NIT|Formato|Concepto|Informante|Tercero|Razón Social/i.test(rowStr) && (/Valor|Saldo|Monto|Pago|Abono|Retenci|Ingreso|Detalle|Concepto/i.test(rowStr))) {
+        if (
+          (rowStr.includes("formato") || rowStr.includes("concepto") || rowStr.includes("nit") || rowStr.includes("identifica")) &&
+          (rowStr.includes("informante") || rowStr.includes("razon") || rowStr.includes("nombre") || rowStr.includes("valor") || rowStr.includes("saldo") || rowStr.includes("pago") || rowStr.includes("monto") || rowStr.includes("retenci") || rowStr.includes("detalle"))
+        ) {
           dataHeaderIndex = i;
 
           for (let c = 0; c < row.length; c++) {
             const head = String(row[c] || "").trim();
             const headLower = head.toLowerCase();
+            colHeaders[c] = head;
 
-            if (/^formato$/i.test(headLower) || /c[oó]d.*formato/i.test(headLower)) colFormato = c;
-            else if (/^concepto$/i.test(headLower) || /c[oó]d.*concepto/i.test(headLower)) colConcepto = c;
+            if (/^formato$|c[oó]d.*formato/i.test(headLower)) colFormato = c;
+            else if (/^concepto$|c[oó]d.*concepto/i.test(headLower)) colConcepto = c;
             else if (/nit.*informante|identificaci[oó]n.*informante|nit.*persona.*reporta/i.test(headLower)) colNitInf = c;
-            else if (/nombre.*informante|raz[oó]n.*informante|primer.*apellido.*informante/i.test(headLower)) colNomInf = c;
-            else if (/nit.*tercero|identificaci[oó]n.*reportad|identificaci[oó]n.*tercero/i.test(headLower)) colNitTerc = c;
+            else if (/nombre.*informante|raz[oó]n.*informante|primer.*apellido.*informante|raz[oó]n.*social/i.test(headLower)) {
+              if (colNomInf === -1) colNomInf = c;
+            } else if (/nit.*tercero|identificaci[oó]n.*reportad|identificaci[oó]n.*tercero/i.test(headLower)) colNitTerc = c;
             else if (/nombre.*tercero|raz[oó]n.*reportad|nombre.*reportado/i.test(headLower)) colNomTerc = c;
             else if (/detalle|descripci[oó]n/i.test(headLower)) colDetalle = c;
             else if (/casilla|sugerid/i.test(headLower)) colCasilla = c;
-
-            // Identificar columnas de valores numéricos
-            if (
-              /valor|saldo|monto|pago|abono|retenci|ingreso|cuant[ií]a|salud|pensi[oó]n|cesant[ií]a|compra|consigna|deducible/i.test(headLower) ||
-              /deducible|no deducible|base|total/i.test(headLower)
-            ) {
-              valueCols.push({ colIdx: c, headerName: head });
-            }
           }
           break;
         }
       }
 
-      // Si no encontró columnas explícitas de valor pero hay encabezado, buscar todas las columnas numéricas
-      const startIndex = dataHeaderIndex !== -1 ? dataHeaderIndex + 1 : 14;
-
-      if (valueCols.length === 0 && dataHeaderIndex !== -1) {
-        const headerRow = rawRows[dataHeaderIndex] || [];
-        for (let c = 0; c < headerRow.length; c++) {
-          if (c !== colNitInf && c !== colNomInf && c !== colNitTerc && c !== colNomTerc && c !== colFormato && c !== colConcepto && c !== colDetalle) {
-            valueCols.push({ colIdx: c, headerName: String(headerRow[c] || `Columna ${c + 1}`) });
-          }
-        }
-      }
-
-      // Fallback si no hubo encabezado detectado
-      if (colNitInf === -1) colNitInf = 0;
-      if (colNomInf === -1) colNomInf = 1;
-      if (valueCols.length === 0) {
-        valueCols.push({ colIdx: 5, headerName: "Valor" });
-      }
+      const startIndex = dataHeaderIndex !== -1 ? dataHeaderIndex + 1 : 0;
 
       // Procesar cada fila de datos
       for (let i = startIndex; i < rawRows.length; i++) {
         const row = rawRows[i] || [];
         if (!row || row.length === 0) continue;
 
-        const formato = colFormato !== -1 ? String(row[colFormato] || "").trim() : "";
-        const concepto = colConcepto !== -1 ? String(row[colConcepto] || "").trim() : "";
-        const informanteNit = colNitInf !== -1 ? String(row[colNitInf] || "").trim() : "";
-        const informanteNombre = colNomInf !== -1 ? String(row[colNomInf] || "").trim() : "";
+        const rowStr = row.map((c) => String(c || "")).join(" ").trim();
+        // Ignorar filas de encabezado repetidas o vacías
+        if (!rowStr || /DIAN|INFORMACIÓN REPORTADA|AÑO GRAVABLE|CONSULTANTE|TOTALES/i.test(rowStr)) continue;
+
+        let formato = colFormato !== -1 ? String(row[colFormato] || "").trim() : "";
+        let concepto = colConcepto !== -1 ? String(row[colConcepto] || "").trim() : "";
+        let informanteNit = colNitInf !== -1 ? String(row[colNitInf] || "").trim() : "";
+        let informanteNombre = colNomInf !== -1 ? String(row[colNomInf] || "").trim() : "";
         const reportadoNit = colNitTerc !== -1 ? String(row[colNitTerc] || "").trim() : "";
         const reportadoNombre = colNomTerc !== -1 ? String(row[colNomTerc] || "").trim() : "";
         const rowDetalle = colDetalle !== -1 ? String(row[colDetalle] || "").trim() : "";
         const casillaSugerida = colCasilla !== -1 ? String(row[colCasilla] || "").trim() : "";
 
-        // Ignorar encabezados repetidos
-        if (/NIT.*Informante|Concepto.*Detalle|Razón Social|Identificación.*Informante/i.test(informanteNit + informanteNombre + rowDetalle)) continue;
+        // Si no se detectaron columnas fijas, buscar formato y concepto en las primeras celdas
+        if (!concepto) {
+          for (let c = 0; c < Math.min(4, row.length); c++) {
+            const valStr = String(row[c] || "").trim();
+            if (/^(?:500[1-9]|501[0-9]|1019|1020|1009|1008|1007|1003|1001|1056|400[1-9])$/.test(valStr)) {
+              concepto = valStr;
+              break;
+            }
+          }
+        }
+        if (!formato) {
+          for (let c = 0; c < Math.min(4, row.length); c++) {
+            const valStr = String(row[c] || "").trim();
+            if (/^(?:2276|1001|1003|1007|1008|1009|1019|1020|1056|1023)$/.test(valStr)) {
+              formato = valStr;
+              break;
+            }
+          }
+        }
+        if (!informanteNit) {
+          for (let c = 0; c < Math.min(6, row.length); c++) {
+            const valStr = String(row[c] || "").trim();
+            if (/^\d{6,12}$/.test(valStr) && valStr !== concepto && valStr !== formato && valStr !== nit) {
+              informanteNit = valStr;
+              break;
+            }
+          }
+        }
+        if (!informanteNombre) {
+          for (let c = 0; c < Math.min(8, row.length); c++) {
+            const valStr = String(row[c] || "").trim();
+            if (valStr && isNaN(Number(valStr)) && valStr.length > 3 && !/Formato|Concepto|NIT/i.test(valStr)) {
+              informanteNombre = valStr;
+              break;
+            }
+          }
+        }
 
-        // Recorrer todas las columnas de valores identificadas
-        for (const vCol of valueCols) {
-          const rawValor = row[vCol.colIdx];
-          const valor = typeof rawValor === "number" ? Math.round(rawValor) : parseValorNumber(rawValor);
+        // Extraer todos los valores numéricos de la fila
+        for (let c = 0; c < row.length; c++) {
+          if (c === colFormato || c === colConcepto || c === colNitInf || c === colNomInf || c === colNitTerc || c === colNomTerc) {
+            continue;
+          }
+
+          const rawValor = row[c];
+          const valor = parseExogenaValor(rawValor);
           if (valor <= 0) continue;
+
+          const colHeader = colHeaders[c] || `Columna ${c + 1}`;
 
           // Construir descripción contextual completa
           const contextParts: string[] = [];
           if (formato) contextParts.push(`Formato ${formato}`);
           if (concepto) contextParts.push(`Concepto ${concepto}`);
-          if (vCol.headerName && !vCol.headerName.startsWith("Columna")) contextParts.push(vCol.headerName);
+          if (colHeader && !colHeader.startsWith("Columna")) contextParts.push(colHeader);
           if (rowDetalle) contextParts.push(rowDetalle);
-          if (sheetName && sheetName !== "Sheet1" && sheetName !== "Hoja1") contextParts.push(sheetName);
+          if (sheetName && sheetName !== "Sheet1" && sheetName !== "Hoja1" && sheetName !== "Hoja 1") contextParts.push(sheetName);
 
           const fullDetalle = contextParts.length > 0 ? contextParts.join(" - ") : "Reporte Exógena DIAN";
 
           const item: ExogenaTerceroItem = {
-            informanteNit,
-            informanteNombre: informanteNombre || "Tercero Informante DIAN",
+            informanteNit: informanteNit || "DIAN",
+            informanteNombre: informanteNombre || "Tercero Informante",
             reportadoNit,
             reportadoNombre,
             detalle: fullDetalle,
             valor,
             casillaSugerida,
-            infoAdicional: `Concepto: ${concepto || "N/A"} | Columna: ${vCol.headerName}`,
+            infoAdicional: `Concepto: ${concepto || "N/A"} | ${colHeader}`,
           };
 
           items.push(item);
-          classifyItem(item, resumen, amountsToApply, concepto, formato);
+          classifyItem(item, resumen, amountsToApply, concepto, formato, colHeader);
         }
       }
     }
 
-    // Consolidar automáticamente los topes para el módulo "1. Obligados y Topes"
+    // 3. Consolidar automáticamente los topes para el módulo "1. Obligados y Topes"
     const totalIngresos =
       resumen.ingresosTrabajo +
       resumen.ingresosHonorarios +
@@ -292,12 +313,21 @@ export function parseExogenaExcel(bufferOrArray: ArrayBuffer | Uint8Array): Exog
   }
 }
 
-function parseValorNumber(val: unknown): number {
+function parseExogenaValor(val: unknown): number {
   if (val == null) return 0;
   if (typeof val === "number") return Math.round(val);
-  const clean = String(val).replace(/[\$,\s]/g, "").replace(/\./g, "");
-  const parsed = parseInt(clean, 10);
-  return Number.isFinite(parsed) ? parsed : 0;
+  const str = String(val).trim();
+  if (!str) return 0;
+
+  // Manejo de moneda y formatos numéricos
+  // Ejemplo: "$ 50.000.000,00" o "50,000,000.00" o "50000000"
+  const clean = str.replace(/[\$,\s]/g, "");
+  const num = Number(clean);
+  if (Number.isFinite(num) && num > 0) return Math.round(num);
+
+  const cleanDot = str.replace(/[\$,\s]/g, "").replace(/\./g, "").replace(/,/, ".");
+  const numDot = parseFloat(cleanDot);
+  return Number.isFinite(numDot) && numDot > 0 ? Math.round(numDot) : 0;
 }
 
 function emptyResumen() {
@@ -333,8 +363,9 @@ function classifyItem(
   amounts: Record<string, number>,
   conceptoCode: string = "",
   formatoCode: string = "",
+  columnHeader: string = "",
 ) {
-  const d = (item.detalle + " " + item.casillaSugerida + " " + item.infoAdicional).toLowerCase();
+  const d = (item.detalle + " " + item.casillaSugerida + " " + item.infoAdicional + " " + columnHeader).toLowerCase();
   const v = item.valor;
   if (v <= 0) return;
 
@@ -493,5 +524,10 @@ function classifyItem(
   else if (conceptoCode === "4003" || /compra|adquisici[oó]n/i.test(d)) {
     resumen.comprasTotales += v;
     add("topes.compras", v);
+  }
+  // Si no clasificó pero es una columna de pago o abono general
+  else if (/pago.*abono|ingreso|cuant[ií]a/i.test(columnHeader)) {
+    resumen.ingresosTrabajo += v;
+    add("trabajo.salarios", v);
   }
 }
