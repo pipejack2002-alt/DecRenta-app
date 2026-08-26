@@ -110,10 +110,10 @@ export function OfficialDian210({
               : "bg-white text-transparent"
         } ${className}`}
       >
-        <span className="absolute left-1 top-0.5 font-sans text-[8px] text-gray-500 select-none pointer-events-none">
+        <span className="absolute left-1 top-0.5 font-sans text-[8px] text-gray-500 select-none pointer-events-none print:text-[6px] print:left-0.5 print:top-0">
           {num}
         </span>
-        <span className="tabular-nums text-right w-full pl-4 truncate">{valStr || "—"}</span>
+        <span className="tabular-nums text-right w-full pl-4 truncate print:text-[7.5px] print:pl-2.5">{valStr || "—"}</span>
       </div>
     );
   }
@@ -223,10 +223,10 @@ export function OfficialDian210({
       {/* =========================================================================
           CONTENEDOR DEL FORMULARIO 210 (RÉPLICA EXACTA DEL Formulario_210_2024.pdf)
           ========================================================================= */}
-      <div className="overflow-x-auto rounded-xl border border-gray-400 bg-gray-100 p-2 sm:p-6 shadow-2xl flex justify-center">
+      <div className="overflow-x-auto rounded-xl border border-gray-400 bg-gray-100 p-2 sm:p-6 shadow-2xl flex justify-center print:p-0 print:m-0 print:border-none print:bg-transparent print:shadow-none">
         <div
           id="dian-form-pdf-container"
-          className="relative bg-white text-black border border-black shadow-md origin-top select-text"
+          className="relative bg-white text-black border border-black shadow-md origin-top select-text print:!transform-none print:!m-0 print:!w-full print:!min-w-0 print:!mb-0 print:border-black"
           style={{
             width: "980px",
             minWidth: "980px",
