@@ -691,18 +691,24 @@ export function useComputed(): ComputedDeclaration {
   return compute(hydrateDeclaration(declaration));
 }
 
-function applyPathAmounts(d: Declaration, amounts: Record<string, number>) {
+export function applyPathAmounts(d: Declaration, amounts: Record<string, number>) {
   for (const [path, value] of Object.entries(amounts)) {
-    if (!Number.isFinite(value)) continue;
+    if (!Number.isFinite(value) || value <= 0) continue;
     const parts = path.split(".");
     let cur: Record<string, unknown> = d as unknown as Record<string, unknown>;
+    let ok = true;
     for (let i = 0; i < parts.length - 1; i++) {
       const key = parts[i];
-      if (!cur[key] || typeof cur[key] !== "object") return;
+      if (!cur[key] || typeof cur[key] !== "object") {
+        ok = false;
+        break;
+      }
       cur = cur[key] as Record<string, unknown>;
     }
-    const last = parts[parts.length - 1];
-    if (last in cur) cur[last] = value;
+    if (ok) {
+      const last = parts[parts.length - 1];
+      cur[last] = value;
+    }
   }
 }
 
