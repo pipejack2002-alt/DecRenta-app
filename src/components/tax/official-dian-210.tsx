@@ -252,11 +252,11 @@ export function OfficialDian210({
             {/* Logo DIAN y Casilla 1 */}
             <div className="col-span-3 border-r border-black p-2 flex flex-col justify-between">
               <div className="flex items-center gap-1.5">
-                {/* Logotipo DIAN con letras contorneadas */}
-                <div className="font-sans text-3xl font-black tracking-tighter text-black flex items-baseline">
-                  <span>d</span>
-                  <span className="text-[#2D6187]">i</span>
-                  <span>an</span>
+                {/* Logotipo DIAN oficial */}
+                <div className="font-sans text-2xl font-black tracking-tight text-black flex items-baseline uppercase">
+                  <span>D</span>
+                  <span className="text-[#2D6187]">I</span>
+                  <span>AN</span>
                 </div>
               </div>
               <div className="mt-2 text-[9px] leading-tight">
@@ -361,16 +361,18 @@ export function OfficialDian210({
           {/* ———————————————————————————————————————————————————————————
               3. SECCIÓN PATRIMONIO (Casillas 29 a 31)
               ——————————————————————————————————————————————————————————— */}
-          <div className="border-b border-black bg-[#dbe7f0] text-[10px] font-bold">
-            <div className="grid grid-cols-12 divide-x divide-black items-center">
-              <div className="col-span-2 px-2 py-1 uppercase text-black font-extrabold tracking-wide">
+          <div className="flex border-b border-black bg-[#dbe7f0] text-[10px] font-bold">
+            <div className="w-5 bg-gray-200 border-r border-black flex items-center justify-center shrink-0">
+              <span className="[writing-mode:vertical-lr] rotate-180 font-sans text-[7px] font-bold uppercase tracking-tight text-gray-700 py-1">
                 Patrimonio
-              </div>
-              <div className="col-span-3 flex items-center justify-between px-2 py-0.5 bg-white">
+              </span>
+            </div>
+            <div className="flex-1 grid grid-cols-12 divide-x divide-black items-center">
+              <div className="col-span-4 flex items-center justify-between px-2 py-0.5 bg-white">
                 <span className="text-[9px] font-normal">Total patrimonio bruto</span>
                 <Cell num={29} className="w-28 border border-gray-300" />
               </div>
-              <div className="col-span-3 flex items-center justify-between px-2 py-0.5 bg-white">
+              <div className="col-span-4 flex items-center justify-between px-2 py-0.5 bg-white">
                 <span className="text-[9px] font-normal">Deudas</span>
                 <Cell num={30} className="w-28 border border-gray-300" />
               </div>
@@ -574,42 +576,49 @@ export function OfficialDian210({
           {/* ———————————————————————————————————————————————————————————
               5. DEPURACIÓN CÉDULA GENERAL (Casillas 91 a 98)
               ——————————————————————————————————————————————————————————— */}
-          <div className="border-b border-black bg-[#eef4f8] text-[9px]">
-            <div className="grid grid-cols-12 divide-x divide-black border-b border-gray-300">
-              <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5">
-                <span>Ren. líquida céd. gen.</span>
-                <Cell num={91} className="w-24 border border-gray-300" />
-              </div>
-              <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5">
-                <span>Ren. ex. y ded. imp. li.</span>
-                <Cell num={92} className="w-24 border border-gray-300" />
-              </div>
-              <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5 font-bold">
-                <span>R. líq. ord. cédula gen.</span>
-                <Cell num={93} className="w-24 border border-gray-300 font-bold" />
-              </div>
-              <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5">
-                <span>Comp. pérdidas año 2018 y ant.</span>
-                <Cell num={94} className="w-24 border border-gray-300" />
-              </div>
+          <div className="flex border-b border-black bg-[#eef4f8] text-[9px]">
+            <div className="w-5 bg-gray-200 border-r border-black flex items-center justify-center shrink-0">
+              <span className="[writing-mode:vertical-lr] rotate-180 font-sans text-[6.5px] font-bold uppercase tracking-tight text-gray-700 py-1">
+                Depuración
+              </span>
             </div>
+            <div className="flex-1">
+              <div className="grid grid-cols-12 divide-x divide-black border-b border-gray-300">
+                <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5">
+                  <span>Ren. líquida céd. gen.</span>
+                  <Cell num={91} className="w-24 border border-gray-300" />
+                </div>
+                <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5">
+                  <span>Ren. ex. y ded. imp. li.</span>
+                  <Cell num={92} className="w-24 border border-gray-300" />
+                </div>
+                <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5 font-bold">
+                  <span>R. líq. ord. cédula gen.</span>
+                  <Cell num={93} className="w-24 border border-gray-300 font-bold" />
+                </div>
+                <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5">
+                  <span>Comp. pérdidas año 2018 y ant.</span>
+                  <Cell num={94} className="w-24 border border-gray-300" />
+                </div>
+              </div>
 
-            <div className="grid grid-cols-12 divide-x divide-black">
-              <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5">
-                <span>Comp. exc. ren. presuntiva</span>
-                <Cell num={95} className="w-24 border border-gray-300" />
-              </div>
-              <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5">
-                <span>Rentas gravables</span>
-                <Cell num={96} className="w-24 border border-gray-300" />
-              </div>
-              <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5 bg-[#dbe7f0] font-black">
-                <span>R. líq. grav. cédula gen.</span>
-                <Cell num={97} className="w-24 border border-black font-black" />
-              </div>
-              <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5">
-                <span>Renta presuntiva</span>
-                <Cell num={98} className="w-24 border border-gray-300" />
+              <div className="grid grid-cols-12 divide-x divide-black">
+                <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5">
+                  <span>Comp. exc. ren. presuntiva</span>
+                  <Cell num={95} className="w-24 border border-gray-300" />
+                </div>
+                <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5">
+                  <span>Rentas gravables</span>
+                  <Cell num={96} className="w-24 border border-gray-300" />
+                </div>
+                <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5 bg-[#dbe7f0] font-black">
+                  <span>R. líq. grav. cédula gen.</span>
+                  <Cell num={97} className="w-24 border border-black font-black" />
+                </div>
+                <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5">
+                  <span>Renta presuntiva</span>
+                  <Cell num={98} className="w-24 border border-gray-300" />
+                </div>
               </div>
             </div>
           </div>
