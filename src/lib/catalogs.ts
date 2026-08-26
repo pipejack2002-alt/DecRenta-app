@@ -142,13 +142,13 @@ export const CIIU_COMMON = DEFAULT_CIIU_COMMON;
 
 export const NAV = [
   { to: "/", label: "Panel Principal", hint: "Resumen y estado de la declaración" },
-  { to: "/topes", label: "Obligados y Topes", hint: "Evaluación de topes Arts. 592 a 594-3" },
-  { to: "/declaracion", label: "Diligenciamiento 210", hint: "Captura de cédulas y rentas" },
-  { to: "/cedulas", label: "Depuración Cedular", hint: "INCRNGO, exentas y límite del 40 %" },
-  { to: "/documentos", label: "Expediente y Soportes", hint: "Auditoría, certificados y gestión" },
-  { to: "/liquidacion", label: "Liquidación Privada", hint: "Cálculo de impuesto y saldos" },
-  { to: "/formulario", label: "Formulario 210 DIAN", hint: "Hoja de trabajo y exportación" },
-  { to: "/calendario", label: "Calendario Tributario", hint: "Vencimientos oficiales 2026" },
-  { to: "/biblioteca", label: "Estatuto Tributario", hint: "Artículos y conceptos DIAN" },
+  { to: "/topes", label: "1. Obligados y Topes", hint: "Diagnóstico de topes Arts. 592 a 594-3" },
+  { to: "/declaracion", label: "2. Diligenciamiento 210", hint: "Captura de patrimonio, cédulas y rentas" },
+  { to: "/cedulas", label: "3. Depuración Cedular", hint: "Salud, pensión, exenciones y límite del 40 %" },
+  { to: "/liquidacion", label: "4. Liquidación Privada", hint: "Cálculo de impuesto, retenciones y saldos" },
+  { to: "/documentos", label: "5. Expediente y Auditoría", hint: "Soportes, exógena y comparación patrimonial" },
+  { to: "/formulario", label: "6. Formulario 210 DIAN", hint: "Hoja oficial DIAN y exportación Excel" },
+  { to: "/calendario", label: "Calendario Tributario", hint: "Vencimientos oficiales DIAN 2026" },
+  { to: "/biblioteca", label: "Estatuto Tributario", hint: "Artículos y conceptos de doctrina DIAN" },
   { to: "/asistente", label: "Asistente IA Gemini", hint: "Copiloto tributario inteligente" },
 ] as const;
