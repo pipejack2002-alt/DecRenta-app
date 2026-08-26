@@ -233,7 +233,7 @@ export function generateFormulario210Xml(d: Declaration, c: ComputedDeclaration)
     const val = c.casillas[n];
     if (val === undefined || val === null) continue;
     const label = CASILLA_LABELS[n] ?? `Casilla ${n}`;
-    const formattedVal = n === 140 ? (val ? "1" : "0") : String(Math.round(val));
+    const formattedVal = n === 140 ? (val ? "1" : "0") : String(Math.round(val / 1000) * 1000);
     lines.push(
       `    <casilla num="${n}" valor="${formattedVal}" etiqueta="${escapeXml(label)}" />`,
     );
@@ -242,12 +242,12 @@ export function generateFormulario210Xml(d: Declaration, c: ComputedDeclaration)
 
   // Resumen de liquidación
   lines.push("  <totales>");
-  lines.push(`    <patrimonioLiquido casilla="31">${c.casillas[31] ?? 0}</patrimonioLiquido>`);
-  lines.push(`    <rentaLiquidaGravableGeneral casilla="97">${c.rentaLiquidaGravable ?? 0}</rentaLiquidaGravableGeneral>`);
-  lines.push(`    <impuestoNeto casilla="126">${c.impuestoNeto ?? 0}</impuestoNeto>`);
-  lines.push(`    <totalImpuestoCargo casilla="129">${c.impuestoCargo ?? 0}</totalImpuestoCargo>`);
-  lines.push(`    <saldoPagar casilla="136">${c.saldoPagar ?? 0}</saldoPagar>`);
-  lines.push(`    <saldoFavor casilla="137">${c.saldoFavor ?? 0}</saldoFavor>`);
+  lines.push(`    <patrimonioLiquido casilla="31">${Math.round((c.casillas[31] ?? 0) / 1000) * 1000}</patrimonioLiquido>`);
+  lines.push(`    <rentaLiquidaGravableGeneral casilla="97">${Math.round((c.rentaLiquidaGravable ?? 0) / 1000) * 1000}</rentaLiquidaGravableGeneral>`);
+  lines.push(`    <impuestoNeto casilla="126">${Math.round((c.impuestoNeto ?? 0) / 1000) * 1000}</impuestoNeto>`);
+  lines.push(`    <totalImpuestoCargo casilla="129">${Math.round((c.impuestoCargo ?? 0) / 1000) * 1000}</totalImpuestoCargo>`);
+  lines.push(`    <saldoPagar casilla="136">${Math.round((c.saldoPagar ?? 0) / 1000) * 1000}</saldoPagar>`);
+  lines.push(`    <saldoFavor casilla="137">${Math.round((c.saldoFavor ?? 0) / 1000) * 1000}</saldoFavor>`);
   lines.push("  </totales>");
 
   lines.push("</declaracion>");
@@ -519,7 +519,7 @@ export function generateFormulario210Csv(d: Declaration, c: ComputedDeclaration)
     const val = c.casillas[item.num];
     let formattedVal = "0";
     if (val !== undefined && val !== null) {
-      formattedVal = item.num === 140 ? (val ? "X" : "") : String(Math.round(val));
+      formattedVal = item.num === 140 ? (val ? "X" : "") : String(Math.round(val / 1000) * 1000);
     }
     lines.push(`${item.num};"${item.label.replace(/"/g, '""')}";"${item.legal.replace(/"/g, '""')}";${formattedVal}`);
   }
