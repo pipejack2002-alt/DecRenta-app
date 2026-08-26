@@ -164,12 +164,12 @@ export function TaxCharts({
           </div>
 
           <div className="rounded-xl border border-line bg-bg-raised p-4">
-            <p className="text-xs font-medium uppercase tracking-wider text-muted">Retención en la Fuente Sufrida</p>
-            <p className="mt-1 font-display text-3xl font-bold text-warn">
+            <p className="text-xs font-medium uppercase tracking-wider text-muted">Retenciones en la Fuente Aplicadas</p>
+            <p className="mt-1 font-display text-3xl font-bold text-ink">
               {tasaRetencionSufrida.toFixed(2)} %
             </p>
             <p className="mt-1 text-xs text-muted">
-              {formatCOP(retencionesAnticipos)} anticipados durante el año.
+              {formatCOP(retencionesAnticipos)} anticipados / retenidos a favor en el año.
             </p>
           </div>
         </div>

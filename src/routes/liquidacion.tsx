@@ -160,7 +160,7 @@ function LiquidacionPage() {
         topic={topic}
         onClose={() => setTopic(null)}
         computed={c}
-        year={d.year}
+        declaration={d}
       />
 
       {/* Analítica visual con Recharts */}
