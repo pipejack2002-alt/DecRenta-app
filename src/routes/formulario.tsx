@@ -13,6 +13,7 @@ import {
   generateFormulario210Workbook,
   generateFormulario210Xml,
 } from "@/lib/tax/export-dian";
+import { downloadOfficialDian210Pdf } from "@/lib/tax/export-dian-pdf";
 import { formatCOP, formatNumber } from "@/lib/tax/format";
 
 export const Route = createFileRoute("/formulario")({ component: FormularioPage });
@@ -48,6 +49,10 @@ function FormularioPage() {
     downloadFile(`tributoapp-210-ag${d.year}-${id.nit || "dian"}.json`, jsonStr, "application/json");
   }
 
+  function exportPdfOfficial() {
+    downloadOfficialDian210Pdf(`Formulario_210_Oficial_AG${d.year}_${id.nit || "DIAN"}.pdf`, d, c);
+  }
+
   return (
     <div className="space-y-6 pb-12 print:space-y-0 print:p-0 print:m-0">
       {/* Encabezado Principal */}
@@ -76,12 +81,21 @@ function FormularioPage() {
         <div className="flex flex-wrap items-center gap-2">
           <Button
             variant="default"
-            onClick={() => setInformeOpen(true)}
+            onClick={exportPdfOfficial}
             className="bg-forest hover:bg-forest-deep text-white text-xs font-semibold shadow-xs"
-            title="Generar informe ejecutivo membretado con dictamen y firmas para entregar al cliente"
+            title="Descargar el PDF Oficial 1:1 de 1 sola página del Formulario 210 DIAN"
           >
             <FileText className="mr-1.5 size-4" />
-            Informe para el Cliente (PDF)
+            Descargar PDF Oficial 210
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => setInformeOpen(true)}
+            className="text-xs font-semibold border border-line"
+            title="Generar informe ejecutivo membretado con dictamen y firmas para entregar al cliente"
+          >
+            <FileText className="mr-1.5 size-4 text-forest" />
+            Informe Cliente
           </Button>
           <Button
             variant="secondary"
@@ -122,7 +136,7 @@ function FormularioPage() {
             variant="outline"
             onClick={() => window.print()}
             className="text-xs"
-            title="Imprimir o exportar Formulario 210 en PDF oficial"
+            title="Imprimir o vista previa del Formulario 210 en 1 sola hoja vertical"
           >
             <Printer className="mr-1.5 size-3.5" />
             Imprimir 210

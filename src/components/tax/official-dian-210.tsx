@@ -5,6 +5,7 @@ import {
   Edit3,
   FileCode,
   FileSpreadsheet,
+  FileText,
   Maximize2,
   Minimize2,
   Pencil,
@@ -29,6 +30,7 @@ import {
   generateFormulario210Workbook,
   generateFormulario210Xml,
 } from "@/lib/tax/export-dian";
+import { downloadOfficialDian210Pdf } from "@/lib/tax/export-dian-pdf";
 import { formatCOP, formatNumber, parseMoney } from "@/lib/tax/format";
 import { CASILLA_NOMBRES_CLAROS, FORMULAS_EXPLICADAS_210, INSTRUCTIVO_DIAN_210 } from "@/lib/tax/instructivo-dian";
 import type { TaxYear } from "@/lib/tax/types";
@@ -220,12 +222,22 @@ export function OfficialDian210({
             <Button
               variant="default"
               size="sm"
-              onClick={handleExportXlsx}
+              onClick={() => downloadOfficialDian210Pdf(`Formulario_210_Oficial_AG${d.year}_${id.nit || "DIAN"}.pdf`, d, c)}
               className="h-8 bg-forest hover:bg-forest-deep text-white text-xs font-semibold shadow-xs"
+              title="Descargar el PDF Oficial idéntico al de la DIAN"
+            >
+              <FileText className="mr-1.5 size-3.5" />
+              Descargar PDF Oficial (.pdf)
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleExportXlsx}
+              className="h-8 text-xs font-semibold border border-line"
               title="Descargar Formulario 210 en Excel (.xlsx) estructurado"
             >
-              <FileSpreadsheet className="mr-1.5 size-3.5" />
-              Descargar Excel (.xlsx)
+              <FileSpreadsheet className="mr-1.5 size-3.5 text-forest" />
+              Excel (.xlsx)
             </Button>
             <Button
               variant="secondary"
@@ -251,7 +263,7 @@ export function OfficialDian210({
               size="sm"
               onClick={() => window.print()}
               className="h-8 text-xs"
-              title="Imprimir o exportar PDF idéntico al oficial de la DIAN"
+              title="Imprimir en 1 sola hoja vertical exacta"
             >
               <Printer className="mr-1.5 size-3.5" />
               Imprimir / PDF
