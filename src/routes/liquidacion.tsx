@@ -40,24 +40,54 @@ function LiquidacionPage() {
         </p>
       </header>
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <Card>
-          <p className="text-[11px] uppercase tracking-[0.14em] text-muted">Impuesto neto</p>
-          <p className="mt-1 font-display text-3xl tabular-nums">{formatCOP(c.impuestoNeto)}</p>
-          <p className="text-xs text-faint">Casilla 126</p>
-        </Card>
-        <Card>
-          <p className="text-[11px] uppercase tracking-[0.14em] text-muted">
-            {c.saldoPagar > 0 ? "A pagar" : "A favor"}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Card className="border-line shadow-sm">
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted">Renta Líquida Gravable</p>
+            <span className="font-mono text-[10px] font-semibold bg-surface px-1.5 py-0.5 rounded border border-line text-muted">Casilla 97</span>
+          </div>
+          <p className="mt-2 font-display text-3xl font-bold tabular-nums text-ink">{formatCOP(c.rentaLiquidaGravable)}</p>
+          <p className="mt-1 text-xs text-muted">
+            {formatUvt(uvtFromPesos(c.rentaLiquidaGravable, c.year, ov))} · Base Cédula General
           </p>
-          <p className="mt-1 font-display text-3xl tabular-nums">{formatCOP(c.saldoPagar || c.saldoFavor)}</p>
-          <p className="text-xs text-faint">{c.saldoPagar > 0 ? "Casilla 136" : "Casilla 137"}</p>
         </Card>
-        <Card>
-          <p className="text-[11px] uppercase tracking-[0.14em] text-muted">Renta gravable general</p>
-          <p className="mt-1 font-display text-3xl tabular-nums">{formatCOP(c.rentaLiquidaGravable)}</p>
-          <p className="text-xs text-faint">
-            {formatUvt(uvtFromPesos(c.rentaLiquidaGravable, c.year, ov))} · casilla 97
+
+        <Card className="border-line shadow-sm">
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted">Impuesto Neto de Renta</p>
+            <span className="font-mono text-[10px] font-semibold bg-surface px-1.5 py-0.5 rounded border border-line text-muted">Casilla 126</span>
+          </div>
+          <p className="mt-2 font-display text-3xl font-bold tabular-nums text-ink">{formatCOP(c.impuestoNeto)}</p>
+          <p className="mt-1 text-xs text-muted">
+            Art. 241 E.T. · Tarifa 0 % (&lt; 1.090 UVT)
+          </p>
+        </Card>
+
+        <Card className="border-line shadow-sm">
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted">Anticipo Año Siguiente</p>
+            <span className="font-mono text-[10px] font-semibold bg-surface px-1.5 py-0.5 rounded border border-line text-muted">Casilla 133</span>
+          </div>
+          <p className="mt-2 font-display text-3xl font-bold tabular-nums text-ink">{formatCOP(c.casillas[133] ?? 0)}</p>
+          <p className="mt-1 text-xs text-muted">
+            Art. 807 E.T. · Anticipo AG {c.filingYear}
+          </p>
+        </Card>
+
+        <Card className={`border-line shadow-sm ${c.saldoPagar > 0 ? "bg-amber-50/40" : c.saldoFavor > 0 ? "bg-emerald-50/40" : ""}`}>
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted">
+              {c.saldoPagar > 0 ? "Total Saldo a Pagar" : c.saldoFavor > 0 ? "Total Saldo a Favor" : "Total Saldo a Pagar"}
+            </p>
+            <span className="font-mono text-[10px] font-semibold bg-surface px-1.5 py-0.5 rounded border border-line text-muted">
+              {c.saldoPagar > 0 ? "Casilla 136" : c.saldoFavor > 0 ? "Casilla 137" : "Casilla 136"}
+            </span>
+          </div>
+          <p className={`mt-2 font-display text-3xl font-bold tabular-nums ${c.saldoPagar > 0 ? "text-amber-800" : c.saldoFavor > 0 ? "text-emerald-700" : "text-ink"}`}>
+            {formatCOP(c.saldoPagar || c.saldoFavor)}
+          </p>
+          <p className="mt-1 text-xs text-muted">
+            {c.saldoPagar > 0 ? "Impuesto + Anticipo − Retenciones" : c.saldoFavor > 0 ? "Retenciones superiores al impuesto" : "Sin impuesto a cargo"}
           </p>
         </Card>
       </div>
