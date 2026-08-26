@@ -11,16 +11,27 @@ export interface PdfExtractionResult {
   error?: string;
 }
 
-function extractAmount(text: string, patterns: RegExp[]): number {
-  for (const pat of patterns) {
-    const match = text.match(pat);
-    if (match && match[1]) {
-      const numStr = match[1].replace(/[\$,\s]/g, "").replace(/\./g, "");
-      const val = parseInt(numStr, 10);
-      if (!isNaN(val) && val > 0) return val;
-    }
+export function cleanCurrency(valStr: string): number {
+  if (!valStr) return 0;
+  let s = valStr.replace(/[\$\s\+]/g, "").trim();
+  // Formatos con decimales tipo 43.130,68 o 3.954.661,92
+  if (/^\d{1,3}(?:\.\d{3})*,\d{2}$/.test(s)) {
+    s = s.replace(/\./g, "").replace(",", ".");
+  } 
+  // Formatos con decimales tipo 1,629,340.00 o 6,517.36
+  else if (/^\d{1,3}(?:,\d{3})*\.\d{2}$/.test(s)) {
+    s = s.replace(/,/g, "");
   }
-  return 0;
+  // Formatos enteros con puntos: 18.868.000 o 749.000 o 1.812.000
+  else if (/^\d{1,3}(?:\.\d{3})+$/.test(s)) {
+    s = s.replace(/\./g, "");
+  }
+  // Formatos enteros con comas: 18,868,000
+  else if (/^\d{1,3}(?:,\d{3})+$/.test(s)) {
+    s = s.replace(/,/g, "");
+  }
+  const n = Math.round(parseFloat(s));
+  return isNaN(n) ? 0 : n;
 }
 
 /**
@@ -29,60 +40,86 @@ function extractAmount(text: string, patterns: RegExp[]): number {
 export function parseFormato220Text(text: string): { amounts: Record<string, number>; notes: string } {
   const amounts: Record<string, number> = {};
   const notesLines: string[] = [];
+  const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
 
-  // 1. Salarios (Casilla 37)
-  const salarios = extractAmount(text, [
-    /(?:37\.?|casilla\s*37|pagos\s*por\s*salarios|salarios|emolumentos)[\s\S]{1,60}?\$?\s*([0-9]{1,3}(?:[\.,][0-9]{3})+|[0-9]{5,12})/i,
-    /(?:salarios\s*o\s*emolumentos)[\s\S]{1,60}?\$?\s*([0-9]{1,3}(?:[\.,][0-9]{3})+|[0-9]{5,12})/i,
-  ]);
-  if (salarios > 0) {
-    amounts["trabajo.salarios"] = salarios;
-    notesLines.push(`Salarios Formato 220: $${salarios.toLocaleString("es-CO")}`);
-  }
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
 
-  // 2. Prestaciones sociales (Casilla 41)
-  const prest = extractAmount(text, [
-    /(?:41\.?|casilla\s*41|prestaciones\s*sociales|primas)[\s\S]{1,60}?\$?\s*([0-9]{1,3}(?:[\.,][0-9]{3})+|[0-9]{5,12})/i,
-  ]);
-  if (prest > 0) {
-    amounts["trabajo.otrasPrestaciones"] = prest;
-    notesLines.push(`Prestaciones sociales: $${prest.toLocaleString("es-CO")}`);
-  }
+    // Salarios
+    if (/pagos\s*por\s*salarios/i.test(line)) {
+      for (let j = i + 1; j <= Math.min(i + 4, lines.length - 1); j++) {
+        const val = cleanCurrency(lines[j]);
+        if (val > 1000000) {
+          amounts["trabajo.salarios"] = val;
+          notesLines.push(`Salarios: $${val.toLocaleString("es-CO")}`);
+          break;
+        }
+      }
+    }
 
-  // 3. Cesantías pagadas (Casilla 46)
-  const ces = extractAmount(text, [
-    /(?:46\.?|casilla\s*46|cesant[ií]as[\s\S]{1,25}pagadas)[\s\S]{1,60}?\$?\s*([0-9]{1,3}(?:[\.,][0-9]{3})+|[0-9]{4,12})/i,
-  ]);
-  if (ces > 0) {
-    amounts["trabajo.cesantiasPagadas"] = ces;
-    notesLines.push(`Cesantías pagadas: $${ces.toLocaleString("es-CO")}`);
-  }
+    // Prestaciones sociales
+    if (/pagos\s*por\s*prestaciones\s*sociales/i.test(line)) {
+      for (let j = Math.max(0, i - 12); j <= Math.min(i + 4, lines.length - 1); j++) {
+        if (/^\d{1,3}\.\d{3}\.000$/.test(lines[j]) || /^\d{1,3}\.\d{3}$/.test(lines[j])) {
+          const val = cleanCurrency(lines[j]);
+          if (val > 100000 && val < 15000000 && val !== amounts["trabajo.salarios"]) {
+            amounts["trabajo.otrasPrestaciones"] = val;
+            notesLines.push(`Prestaciones: $${val.toLocaleString("es-CO")}`);
+            break;
+          }
+        }
+      }
+    }
 
-  // 4. Aportes obligatorios a salud (Casilla 49)
-  const salud = extractAmount(text, [
-    /(?:49\.?|casilla\s*49|aportes\s*obligatorios\s*por\s*salud|salud\s*a\s*cargo)[\s\S]{1,60}?\$?\s*([0-9]{1,3}(?:[\.,][0-9]{3})+|[0-9]{4,12})/i,
-  ]);
-  if (salud > 0) {
-    amounts["trabajo.aportesSaludObligatorios"] = salud;
-    notesLines.push(`Aportes salud: $${salud.toLocaleString("es-CO")}`);
-  }
+    // Cesantías pagadas
+    if (/cesant[ií]a[\s\S]*pagados?/i.test(line)) {
+      const parts = line.split(/[\t:]+/);
+      const val = cleanCurrency(parts[parts.length - 1]);
+      if (val > 0) {
+        amounts["trabajo.cesantiasPagadas"] = val;
+        notesLines.push(`Cesantías pagadas: $${val.toLocaleString("es-CO")}`);
+      }
+    }
 
-  // 5. Aportes obligatorios a pensión (Casilla 50)
-  const pen = extractAmount(text, [
-    /(?:50\.?|casilla\s*50|aportes\s*obligatorios\s*a\s*fondos\s*de\s*pensiones|pensi[oó]n|solidaridad)[\s\S]{1,60}?\$?\s*([0-9]{1,3}(?:[\.,][0-9]{3})+|[0-9]{4,12})/i,
-  ]);
-  if (pen > 0) {
-    amounts["trabajo.aportesPensionObligatorios"] = pen;
-    notesLines.push(`Aportes pensión: $${pen.toLocaleString("es-CO")}`);
-  }
+    // Cesantías consignadas al fondo
+    if (/cesant[ií]a[\s\S]*fondo/i.test(line)) {
+      const parts = line.split(/[\t:]+/);
+      const val = cleanCurrency(parts[parts.length - 1]);
+      if (val > 0) {
+        amounts["trabajo.cesantiasFondo"] = val;
+        notesLines.push(`Cesantías consignadas al fondo: $${val.toLocaleString("es-CO")}`);
+      }
+    }
 
-  // 6. Retenciones en la fuente (Casilla 53)
-  const ret = extractAmount(text, [
-    /(?:53\.?|casilla\s*53|retenciones\s*en\s*la\s*fuente|valor\s*de\s*las?\s*retenci[oó]n|retenci[oó]n\s*practicada)[\s\S]{1,60}?\$?\s*([0-9]{1,3}(?:[\.,][0-9]{3})+|[0-9]{4,12})/i,
-  ]);
-  if (ret > 0) {
-    amounts["extra.retenciones"] = ret;
-    notesLines.push(`Retención en la fuente: $${ret.toLocaleString("es-CO")}`);
+    // Salud
+    if (/salud\s*a\s*cargo\s*del\s*trabajador/i.test(line)) {
+      const parts = line.split(/[\t:]+/);
+      const val = cleanCurrency(parts[parts.length - 1]);
+      if (val > 0) {
+        amounts["trabajo.aportesSaludObligatorios"] = val;
+        notesLines.push(`Aportes a salud: $${val.toLocaleString("es-CO")}`);
+      }
+    }
+
+    // Pensión
+    if (/pensiones\s*y\s*solidaridad\s*pensional/i.test(line)) {
+      const parts = line.split(/[\t:]+/);
+      const val = cleanCurrency(parts[parts.length - 1]);
+      if (val > 0) {
+        amounts["trabajo.aportesPensionObligatorios"] = val;
+        notesLines.push(`Aportes a pensión: $${val.toLocaleString("es-CO")}`);
+      }
+    }
+
+    // Retención en la fuente laboral
+    if (/retenci[oó]n\s*en\s*la\s*fuente\s*por\s*rentas\s*de\s*trabajo/i.test(line)) {
+      const parts = line.split(/[\t:]+/);
+      const val = cleanCurrency(parts[parts.length - 1]);
+      if (val > 0) {
+        amounts["extra.retenciones"] = val;
+        notesLines.push(`Retención en la fuente: $${val.toLocaleString("es-CO")}`);
+      }
+    }
   }
 
   return {
@@ -97,41 +134,91 @@ export function parseFormato220Text(text: string): { amounts: Record<string, num
 export function parseCertificadoBancarioText(text: string): { amounts: Record<string, number>; notes: string } {
   const amounts: Record<string, number> = {};
   const notesLines: string[] = [];
+  const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
 
-  // Saldo a 31 de diciembre
-  const saldo = extractAmount(text, [
-    /(?:saldo\s*(?:al|a|en)?\s*31[\s\S]{1,20}diciembre|saldo\s*final|saldo\s*a\s*favor|saldo\s*disponible)[\s\S]{1,50}?\$?\s*([0-9]{1,3}(?:[\.,][0-9]{3})+|[0-9]{4,12})/i,
-  ]);
-  if (saldo > 0) {
-    amounts["patrimonio.cuentas"] = saldo;
-    notesLines.push(`Saldo bancario a 31 dic: $${saldo.toLocaleString("es-CO")}`);
-  }
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
 
-  // Rendimientos / intereses
-  const rend = extractAmount(text, [
-    /(?:rendimientos|intereses\s*pagados|intereses\s*abonados|intereses\s*causados)[\s\S]{1,50}?\$?\s*([0-9]{1,3}(?:[\.,][0-9]{3})+|[0-9]{4,12})/i,
-  ]);
-  if (rend > 0) {
-    amounts["capital.intereses"] = rend;
-    notesLines.push(`Rendimientos financieros: $${rend.toLocaleString("es-CO")}`);
-  }
+    // Dinero en cajitas / cuentas Nu
+    if (/dinero\s*en\s*tus\s*cajitas/i.test(line)) {
+      const next = lines[i + 1] || "";
+      const val = cleanCurrency(next);
+      if (val > 0) {
+        amounts["patrimonio.cuentas"] = (amounts["patrimonio.cuentas"] || 0) + val;
+        notesLines.push(`Saldo Cajitas Nu: $${val.toLocaleString("es-CO")}`);
+      }
+    }
 
-  // Retención en la fuente
-  const ret = extractAmount(text, [
-    /(?:retenci[oó]n\s*en\s*la\s*fuente|retenci[oó]n\s*practicada|retefuente)[\s\S]{1,50}?\$?\s*([0-9]{1,3}(?:[\.,][0-9]{3})+|[0-9]{4,12})/i,
-  ]);
-  if (ret > 0) {
-    amounts["extra.retenciones"] = ret;
-    notesLines.push(`Retención en la fuente: $${ret.toLocaleString("es-CO")}`);
-  }
+    // Saldo Deposito bajo monto
+    if (/saldo\s*dep[oó]sito\s*de\s*bajo\s*monto/i.test(line)) {
+      const m = line.match(/\$?\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/);
+      if (m) {
+        const val = cleanCurrency(m[1]);
+        if (val > 0) {
+          amounts["patrimonio.cuentas"] = (amounts["patrimonio.cuentas"] || 0) + val;
+          notesLines.push(`Saldo Depósito Bancolombia: $${val.toLocaleString("es-CO")}`);
+        }
+      }
+    }
 
-  // GMF / 4x1000
-  const gmf = extractAmount(text, [
-    /(?:gravamen\s*a\s*los\s*movimientos|gmf|4\s*x\s*1000|cuatro\s*por\s*mil)[\s\S]{1,50}?\$?\s*([0-9]{1,3}(?:[\.,][0-9]{3})+|[0-9]{4,12})/i,
-  ]);
-  if (gmf > 0) {
-    amounts["trabajo.gmf"] = gmf;
-    notesLines.push(`GMF / 4x1000: $${gmf.toLocaleString("es-CO")}`);
+    // GMF Nu / General
+    if (/gravamen\s*a\s*los\s*movimientos\s*financieros|gmf/i.test(line)) {
+      const m = line.match(/\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:,\d{2})?)/i);
+      if (m) {
+        const val = cleanCurrency(m[1]);
+        if (val > 0) {
+          amounts["trabajo.gmf"] = (amounts["trabajo.gmf"] || 0) + val;
+          notesLines.push(`GMF: $${val.toLocaleString("es-CO")}`);
+        }
+      }
+    }
+
+    // GMF Bancolombia
+    if (/Vr\s*Gravamen/i.test(line)) {
+      const next = lines[i + 1] || "";
+      const m = next.match(/\$?\s*([0-9]{1,3}(?:,\d{3})*(?:\.\d{2})?)$/);
+      if (m) {
+        const val = cleanCurrency(m[1]);
+        if (val > 0) {
+          amounts["trabajo.gmf"] = (amounts["trabajo.gmf"] || 0) + val;
+          notesLines.push(`GMF Bancolombia: $${val.toLocaleString("es-CO")}`);
+        }
+      }
+    }
+
+    // Rendimientos Nu
+    if (/Rendimientos\s*\|\s*[\d,]+%\s*Efectivo/i.test(line)) {
+      const next = lines[i + 1] || "";
+      const val = cleanCurrency(next);
+      if (val > 0) {
+        amounts["capital.intereses"] = (amounts["capital.intereses"] || 0) + val;
+        notesLines.push(`Rendimientos Nu: $${val.toLocaleString("es-CO")}`);
+      }
+    }
+
+    // Intereses Bancolombia
+    if (/Intereses\s*pagados/i.test(line)) {
+      const m = line.match(/Intereses\s*pagados[\s\S]*?\$?\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:,\d{2})?)/i);
+      if (m) {
+        const val = cleanCurrency(m[1]);
+        if (val > 0) {
+          amounts["capital.intereses"] = (amounts["capital.intereses"] || 0) + val;
+          notesLines.push(`Intereses Bancolombia: $${val.toLocaleString("es-CO")}`);
+        }
+      }
+    }
+
+    // Retenciones bancarias
+    if (/retenci[oó]n\s*en\s*la\s*fuente/i.test(line)) {
+      const m = line.match(/(?:valor|total|vr)?\s*retenci[oó]n[\s\S]*?\$?\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i);
+      if (m) {
+        const val = cleanCurrency(m[1]);
+        if (val > 0) {
+          amounts["extra.retenciones"] = (amounts["extra.retenciones"] || 0) + val;
+          notesLines.push(`Retención bancaria: $${val.toLocaleString("es-CO")}`);
+        }
+      }
+    }
   }
 
   return {
