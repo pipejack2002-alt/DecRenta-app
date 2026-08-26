@@ -94,59 +94,108 @@ export async function parseDocumentInBrowser(
       fullText = decoder.decode(buffer);
     }
 
-    // Clasificación inteligente del tipo de documento por contenido y nombre
+    // Clasificación inteligente y precisa del tipo de documento por contenido y nombre
     let detectedKind: DocKind = "otro";
 
+    // 1. Formato 220 (DIAN)
     if (
-      /formulario\s*220|certificado\s*de\s*ingresos\s*y\s*retenciones|rentas\s*de\s*trabajo/i.test(fullText) ||
-      /f220|220/i.test(fileName)
+      /formulario\s*220|certificado\s*de\s*ingresos\s*y\s*retenciones\s*por\s*rentas\s*de\s*trabajo/i.test(fullText) ||
+      /f220|\b220\b/i.test(fileName)
     ) {
       detectedKind = "formato220";
-    } else if (
-      /registro\s*[uú]nico\s*tributario|para\s*uso\s*exclusivo\s*de\s*la\s*dian.*formulario|tipo\s*de\s*contribuyente|c[eé]dula\s*de\s*ciudadan[ií]a.*registradur/i.test(fullText) ||
+    }
+    // 2. Información Exógena DIAN
+    else if (
+      /informaci[oó]n\s*reportada\s*por\s*terceros|consulta\s*de\s*informaci[oó]n\s*ex[oó]gena|formato\s*1001|formato\s*1007|formato\s*1008|formato\s*1009/i.test(fullText) ||
+      /exogena|terceros.*dian/i.test(fileName)
+    ) {
+      detectedKind = "exogenaDian";
+    }
+    // 3. RUT / Identidad DIAN
+    else if (
+      /registro\s*[uú]nico\s*tributario|para\s*uso\s*exclusivo\s*de\s*la\s*dian.*formulario|tipo\s*de\s*contribuyente|\bformulario\s*001\b/i.test(fullText) ||
       /^14\d{9}\.pdf$/i.test(fileName) ||
-      /rut|cedula.*dian|dian.*cedula/i.test(fileName)
+      /\brut\b/i.test(fileName)
     ) {
       detectedKind = "rut";
-    } else if (
-      /cesant[ií]as?|fondo\s*de\s*cesant[ií]as?|porvenir|protecci[oó]n|colfondos|skandia|fna/i.test(fullText) &&
+    }
+    // 4. Extractos y Certificados Bancarios / Entidades Financieras
+    else if (
+      /nu\s*colombia|bancolombia|davivienda|nequi|banco\s*de\s*bogot[aá]|banco\s*de\s*occidente|banco\s*popular|banco\s*agrario|\bita[uú]\b|scotiabank|colpatria|banco\s*falabella|banco\s*pichincha|lulo\s*bank|rappi\s*pay/i.test(fullText) ||
+      /cuenta\s*de\s*ahorros?|cuenta\s*corriente|dinero\s*en\s*tus\s*cajitas|saldo\s*cuenta|saldo\s*final:|4x1000\s*gmf:|gravamen\s*a\s*los\s*movimientos\s*financieros|rendimientos\s*totales/i.test(fullText) ||
+      /extracto|cuenta|costos|banco|nu|nequi|bogota|rendimiento/i.test(fileName)
+    ) {
+      if (/rendimientos\s*totales|rendimientos\s*financieros|intereses\s*pagados|componente\s*inflacionario/i.test(fullText)) {
+        detectedKind = "certRendimientos";
+      } else if (/costos\s*totales|gmf\s*o\s*4x1000|gravamen/i.test(fullText) && !/saldo\s*cuenta/i.test(fullText)) {
+        detectedKind = "certGmf";
+      } else if (/saldo\s*de\s*cuentas|certificado\s*de\s*saldos/i.test(fullText)) {
+        detectedKind = "saldoCuentas";
+      } else {
+        detectedKind = "extractoBanco";
+      }
+    }
+    // 5. Cesantías (Fondos de cesantías)
+    else if (
+      /cesant[ií]as?|fondo\s*de\s*cesant[ií]as?|porvenir|protecci[oó]n|colfondos|skandia|\bfna\b/i.test(fullText) &&
       /cesant[ií]a/i.test(fullText)
     ) {
       detectedKind = "certCesantias";
-    } else if (/afc|avc|voluntari[ao]s?\s*de\s*pensi[oó]n|fvp/i.test(fullText)) {
+    }
+    // 6. AFC / FVP
+    else if (/\bafc\b|\bavc\b|pensi[oó]n\s*voluntaria|\bfvp\b|ahorro\s*para\s*el\s*fomento/i.test(fullText)) {
       detectedKind = "certAfc";
-    } else if (/cr[eé]dito\s*hipotecario|intereses\s*de\s*vivienda|leasing\s*habitacional/i.test(fullText)) {
+    }
+    // 7. Intereses de Vivienda / Hipoteca
+    else if (/cr[eé]dito\s*hipotecario|intereses\s*de\s*vivienda|leasing\s*habitacional/i.test(fullText)) {
       detectedKind = "interesesHipoteca";
-    } else if (/medicina\s*prepagada|plan\s*complementario|p[oó]liza\s*de\s*salud|sura|colsanitas|colmedica|coomeva|sanitas|allianz/i.test(fullText) && /salud|cuota|pago/i.test(fullText)) {
+    }
+    // 8. Medicina Prepagada
+    else if (/medicina\s*prepagada|plan\s*complementario\s*de\s*salud|p[oó]liza\s*de\s*salud|\bcolsanitas\b|\bcolmedica\b|\bcoomeva\b/i.test(fullText)) {
       detectedKind = "medicinaPrepagada";
-    } else if (/planilla\s*[uú]nica|pila|aportes\s*en\s*l[ií]nea|soi|arus|simple|miplanilla/i.test(fullText) || /pila/i.test(fileName)) {
+    }
+    // 9. PILA (Seguridad social con boundaries estrictos)
+    else if (/\bplanilla\s*[uú]nica\b|\bpila\b|aportes\s*en\s*l[ií]nea|\bsoi\b|\bmiplanilla\b|\bpagosimple\b/i.test(fullText) || /\bpila\b/i.test(fileName)) {
       detectedKind = "pila";
-    } else if (/dividendos|participaciones|subc[eé]dula/i.test(fullText)) {
-      detectedKind = "certDividendos";
-    } else if (/honorarios|servicios\s*profesionales|cuenta\s*de\s*cobro/i.test(fullText)) {
-      detectedKind = "certHonorarios";
-    } else if (/aval[uú]o\s*catastral|impuesto\s*predial|predio/i.test(fullText)) {
-      detectedKind = "avaluoCatastral";
-    } else if (/icetex/i.test(fullText) || /icetex/i.test(fileName)) {
-      detectedKind = "icetex";
-    } else if (/donaci[oó]n|donante/i.test(fullText)) {
-      detectedKind = "donaciones";
-    } else if (/mesada\s*pensional|colpensiones|resoluci[oó]n\s*de\s*pensi[oó]n/i.test(fullText)) {
-      detectedKind = "pensionJubilacion";
-    } else if (/obligaci[oó]n\s*financiera|cr[eé]dito\s*de\s*consumo|tarjeta\s*de\s*cr[eé]dito|libranza|saldo\s*deuda/i.test(fullText)) {
+    }
+    // 10. Deudas financieras
+    else if (/obligaci[oó]n\s*financiera|cr[eé]dito\s*de\s*consumo|tarjeta\s*de\s*cr[eé]dito|libranza|saldo\s*deuda/i.test(fullText)) {
       detectedKind = "certDeudas";
-    } else if (/declaraci[oó]n\s*de\s*renta|formulario\s*210/i.test(fullText) && /2024|2023/i.test(fullText)) {
+    }
+    // 11. Dividendos
+    else if (/dividendos|participaciones|subc[eé]dula/i.test(fullText)) {
+      detectedKind = "certDividendos";
+    }
+    // 12. Honorarios
+    else if (/honorarios|servicios\s*profesionales|cuenta\s*de\s*cobro/i.test(fullText)) {
+      detectedKind = "certHonorarios";
+    }
+    // 13. Avalúo / Predial
+    else if (/aval[uú]o\s*catastral|impuesto\s*predial|matr[ií]cula\s*inmobiliaria/i.test(fullText)) {
+      detectedKind = "avaluoCatastral";
+    }
+    // 14. ICETEX
+    else if (/\bicetex\b|cr[eé]dito\s*educativo/i.test(fullText) || /icetex/i.test(fileName)) {
+      detectedKind = "icetex";
+    }
+    // 15. Donaciones
+    else if (/certificado\s*de\s*donaci[oó]n|donante|donataria/i.test(fullText)) {
+      detectedKind = "donaciones";
+    }
+    // 16. Pensiones
+    else if (/mesada\s*pensional|resoluci[oó]n\s*de\s*pensi[oó]n|\bcolpensiones\b/i.test(fullText)) {
+      detectedKind = "pensionJubilacion";
+    }
+    // 17. Declaración 210 anterior
+    else if (/formulario\s*210|declaraci[oó]n\s*de\s*renta/i.test(fullText) && /2024|2023|2022/i.test(fullText)) {
       detectedKind = "form210Anterior";
-    } else if (
-      /extracto|cuenta\s*de\s*ahorro|cuenta\s*corriente|bancolombia|nu\s*colombia|tu\s*cuenta\s*de\s*ahorros|davivienda|banco|costos\s*totales|dep[oó]sito|saldo\s*final:|4x1000\s*gmf:|nequi|rendimientos\s*totales/i.test(
-        fullText
-      ) ||
-      /extracto|cuenta|costos|banco|nu|nequi|bogota|rendimiento/i.test(fileName)
-    ) {
-      detectedKind = "extractoBanco";
-    } else if (/certificado\s*de\s*retenci[oó]n|retenci[oó]n\s*en\s*la\s*fuente/i.test(fullText) || /retencion/i.test(fileName)) {
+    }
+    // 18. Certificado general de Retención
+    else if (/certificado\s*de\s*retenci[oó]n|retenci[oó]n\s*en\s*la\s*fuente/i.test(fullText) || /retencion/i.test(fileName)) {
       detectedKind = "certRetencion";
-    } else if (selectedKind && selectedKind !== "otro") {
+    }
+    // Fallback a selectedKind si fue seleccionado explícitamente
+    else if (selectedKind && selectedKind !== "otro") {
       detectedKind = selectedKind;
     }
 
