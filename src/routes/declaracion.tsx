@@ -314,6 +314,17 @@ function DeclaracionPage() {
                   checked={Boolean(d.identity.fraccionAnioSiguiente)}
                   onChange={(v) => patch((x) => (x.identity.fraccionAnioSiguiente = v))}
                 />
+
+                <div className="pt-2 border-t border-line">
+                  <MoneyField
+                    label="28. Compras con Factura Electrónica (Base para deducción del 1 %)"
+                    casilla={28}
+                    year={y}
+                    value={d.trabajo.comprasFacturaElectronica}
+                    onChange={(n) => patch((x) => (x.trabajo.comprasFacturaElectronica = n))}
+                    hint={`Art. 336 num. 5 E.T. Ingrese el monto de facturación electrónica. Deducción del 1% calculada: ${formatCOP(c.casillas[28] ?? 0)} (tope 240 UVT).`}
+                  />
+                </div>
               </div>
 
               <ToggleField
@@ -658,6 +669,14 @@ function DeclaracionPage() {
             <Card className="space-y-4">
               <CardTitle>Descuentos, retenciones y cierre</CardTitle>
               <div className="grid gap-4 sm:grid-cols-2">
+                <MoneyField
+                  label="Compras con Factura Electrónica (Base del 1 %)"
+                  casilla={28}
+                  year={y}
+                  value={d.trabajo.comprasFacturaElectronica}
+                  onChange={(n) => patch((x) => (x.trabajo.comprasFacturaElectronica = n))}
+                  hint={`Art. 336 num. 5 E.T. Deducción del 1% calculada: ${formatCOP(c.casillas[28] ?? 0)} (máx. 240 UVT).`}
+                />
                 <MoneyField label="Impuestos pagados en el exterior" casilla={122} year={y} value={d.descuentos.impuestosExterior} onChange={(n) => patch((x) => (x.descuentos.impuestosExterior = n))} source="Art. 254 E.T." />
                 <MoneyField label="Donaciones (base del descuento)" casilla={123} year={y} value={d.descuentos.donaciones} onChange={(n) => patch((x) => (x.descuentos.donaciones = n))} hint="ESAL régimen especial: 25 %. I+D+i: 30 %. Tope conjunto 30 % del impuesto." />
                 <MoneyField label="IVA de activos fijos reales productivos" year={y} value={d.descuentos.ivaActivosFijos} onChange={(n) => patch((x) => (x.descuentos.ivaActivosFijos = n))} />
