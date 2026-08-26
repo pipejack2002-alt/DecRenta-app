@@ -1372,10 +1372,10 @@ export function OfficialDian210({
 
               {/* Bloque 3: Seccional y Actividad CIIU */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-muted-mist/40 rounded-xl border border-line">
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <label className="font-semibold text-ink flex items-center gap-1">
-                      <span className="size-4 rounded bg-forest/20 text-forest text-[10px] flex items-center justify-center font-mono">12</span>
+                <div className="space-y-1.5 min-w-0 overflow-hidden">
+                  <div className="flex items-center justify-between gap-1">
+                    <label className="font-semibold text-ink flex items-center gap-1 truncate">
+                      <span className="size-4 rounded bg-forest/20 text-forest text-[10px] flex items-center justify-center font-mono shrink-0">12</span>
                       12. Dirección Seccional
                     </label>
                     <button
@@ -1384,24 +1384,24 @@ export function OfficialDian210({
                         setCatalogModalTab("seccionales");
                         setCatalogModalOpen(true);
                       }}
-                      className="text-[10px] font-semibold text-forest hover:text-forest-deep flex items-center gap-1 bg-forest-mist/80 hover:bg-forest-mist px-1.5 py-0.5 rounded transition-colors"
+                      className="text-[10px] font-semibold text-forest hover:text-forest-deep flex items-center gap-1 bg-forest-mist/80 hover:bg-forest-mist px-1.5 py-0.5 rounded transition-colors shrink-0"
                       title="Editar o añadir nuevas direcciones seccionales"
                     >
                       <Settings2 className="size-3" /> Gestionar
                     </button>
                   </div>
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 min-w-0">
                     <input
                       type="text"
                       maxLength={3}
-                      className="w-12 h-8 px-1.5 font-mono text-xs font-bold text-center rounded-lg border border-line bg-white shadow-2xs"
+                      className="w-12 h-8 px-1.5 font-mono text-xs font-bold text-center rounded-lg border border-line bg-white shadow-2xs shrink-0"
                       value={id.dirSeccional || "02"}
                       onChange={(e) => patch((x) => (x.identity.dirSeccional = e.target.value.replace(/\D/g, "").slice(0, 3)))}
                       placeholder="02"
                       title="Digita el código de seccional"
                     />
                     <select
-                      className="h-8 flex-1 rounded-lg border border-line bg-surface px-2 text-xs font-medium"
+                      className="h-8 flex-1 min-w-0 w-full truncate rounded-lg border border-line bg-surface px-2 text-xs font-medium focus:ring-1 focus:ring-forest"
                       value={id.dirSeccional || "02"}
                       onChange={(e) => patch((x) => (x.identity.dirSeccional = e.target.value))}
                     >
@@ -1414,10 +1414,10 @@ export function OfficialDian210({
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <label className="font-semibold text-ink flex items-center gap-1">
-                      <span className="size-4 rounded bg-forest/20 text-forest text-[10px] flex items-center justify-center font-mono">24</span>
+                <div className="space-y-1.5 min-w-0 overflow-hidden">
+                  <div className="flex items-center justify-between gap-1">
+                    <label className="font-semibold text-ink flex items-center gap-1 truncate">
+                      <span className="size-4 rounded bg-forest/20 text-forest text-[10px] flex items-center justify-center font-mono shrink-0">24</span>
                       24. Actividad CIIU
                     </label>
                     <button
@@ -1426,24 +1426,24 @@ export function OfficialDian210({
                         setCatalogModalTab("ciiu");
                         setCatalogModalOpen(true);
                       }}
-                      className="text-[10px] font-semibold text-forest hover:text-forest-deep flex items-center gap-1 bg-forest-mist/80 hover:bg-forest-mist px-1.5 py-0.5 rounded transition-colors"
+                      className="text-[10px] font-semibold text-forest hover:text-forest-deep flex items-center gap-1 bg-forest-mist/80 hover:bg-forest-mist px-1.5 py-0.5 rounded transition-colors shrink-0"
                       title="Editar o añadir nuevas actividades CIIU"
                     >
                       <Settings2 className="size-3" /> Gestionar
                     </button>
                   </div>
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 min-w-0">
                     <input
                       type="text"
                       maxLength={4}
-                      className="w-16 h-8 px-1.5 font-mono text-xs font-bold text-center rounded-lg border border-line bg-white shadow-2xs"
+                      className="w-16 h-8 px-1.5 font-mono text-xs font-bold text-center rounded-lg border border-line bg-white shadow-2xs shrink-0"
                       value={id.actividadCiiu || "0010"}
                       onChange={(e) => patch((x) => (x.identity.actividadCiiu = e.target.value.replace(/\D/g, "").slice(0, 4)))}
                       placeholder="0010"
                       title="Digita cualquier código CIIU de 4 dígitos"
                     />
                     <select
-                      className="h-8 flex-1 rounded-lg border border-line bg-surface px-2 text-xs font-medium"
+                      className="h-8 flex-1 min-w-0 w-full truncate rounded-lg border border-line bg-surface px-2 text-xs font-medium focus:ring-1 focus:ring-forest"
                       value={id.actividadCiiu || "0010"}
                       onChange={(e) => patch((x) => (x.identity.actividadCiiu = e.target.value))}
                     >

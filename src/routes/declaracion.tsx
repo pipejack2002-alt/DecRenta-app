@@ -196,33 +196,33 @@ function DeclaracionPage() {
 
               {/* Seccional y Actividad CIIU */}
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2 p-3.5 rounded-xl border border-line bg-surface">
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink">12. Dirección seccional</p>
+                <div className="space-y-2 p-3.5 rounded-xl border border-line bg-surface min-w-0 overflow-hidden">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink truncate">12. Dirección seccional</p>
                     <button
                       type="button"
                       onClick={() => {
                         setCatalogModalTab("seccionales");
                         setCatalogModalOpen(true);
                       }}
-                      className="text-[11px] font-semibold text-forest hover:text-forest-deep flex items-center gap-1 bg-forest-mist/70 hover:bg-forest-mist px-2 py-0.5 rounded-md transition-colors"
+                      className="text-[11px] font-semibold text-forest hover:text-forest-deep flex items-center gap-1 bg-forest-mist/70 hover:bg-forest-mist px-2 py-0.5 rounded-md transition-colors shrink-0"
                       title="Editar o añadir nuevas direcciones seccionales"
                     >
                       <Settings2 className="size-3" /> Gestionar catálogo
                     </button>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
                     <input
                       type="text"
                       maxLength={3}
-                      className="w-14 h-10 px-2 font-mono text-xs font-bold text-center rounded-lg border border-line bg-white shadow-2xs"
+                      className="w-14 h-10 px-2 font-mono text-xs font-bold text-center rounded-lg border border-line bg-white shadow-2xs shrink-0"
                       value={d.identity.dirSeccional || "02"}
                       onChange={(e) => patch((x) => (x.identity.dirSeccional = e.target.value.replace(/\D/g, "").slice(0, 3)))}
                       placeholder="02"
                       title="Digita el código de seccional directamente"
                     />
                     <select
-                      className="h-10 flex-1 rounded-lg border border-line bg-surface px-2.5 text-xs font-medium"
+                      className="h-10 flex-1 min-w-0 w-full truncate rounded-lg border border-line bg-surface px-2.5 text-xs font-medium focus:ring-1 focus:ring-forest"
                       value={d.identity.dirSeccional || "02"}
                       onChange={(e) => patch((x) => (x.identity.dirSeccional = e.target.value))}
                     >
@@ -235,33 +235,33 @@ function DeclaracionPage() {
                   </div>
                 </div>
 
-                <div className="space-y-2 p-3.5 rounded-xl border border-line bg-surface">
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink">24. Actividad económica CIIU</p>
+                <div className="space-y-2 p-3.5 rounded-xl border border-line bg-surface min-w-0 overflow-hidden">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink truncate">24. Actividad económica CIIU</p>
                     <button
                       type="button"
                       onClick={() => {
                         setCatalogModalTab("ciiu");
                         setCatalogModalOpen(true);
                       }}
-                      className="text-[11px] font-semibold text-forest hover:text-forest-deep flex items-center gap-1 bg-forest-mist/70 hover:bg-forest-mist px-2 py-0.5 rounded-md transition-colors"
+                      className="text-[11px] font-semibold text-forest hover:text-forest-deep flex items-center gap-1 bg-forest-mist/70 hover:bg-forest-mist px-2 py-0.5 rounded-md transition-colors shrink-0"
                       title="Editar o añadir nuevas actividades económicas CIIU"
                     >
                       <Settings2 className="size-3" /> Gestionar catálogo
                     </button>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
                     <input
                       type="text"
                       maxLength={4}
-                      className="w-18 h-10 px-2 font-mono text-xs font-bold text-center rounded-lg border border-line bg-white shadow-2xs"
+                      className="w-18 h-10 px-2 font-mono text-xs font-bold text-center rounded-lg border border-line bg-white shadow-2xs shrink-0"
                       value={d.identity.actividadCiiu || "0010"}
                       onChange={(e) => patch((x) => (x.identity.actividadCiiu = e.target.value.replace(/\D/g, "").slice(0, 4)))}
                       placeholder="0010"
                       title="Digita cualquier código CIIU de 4 dígitos (ej: 3312)"
                     />
                     <select
-                      className="h-10 flex-1 rounded-lg border border-line bg-surface px-2.5 text-xs font-medium"
+                      className="h-10 flex-1 min-w-0 w-full truncate rounded-lg border border-line bg-surface px-2.5 text-xs font-medium focus:ring-1 focus:ring-forest"
                       value={d.identity.actividadCiiu || "0010"}
                       onChange={(e) => patch((x) => (x.identity.actividadCiiu = e.target.value))}
                     >
