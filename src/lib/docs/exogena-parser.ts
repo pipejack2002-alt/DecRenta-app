@@ -242,6 +242,32 @@ export function parseExogenaExcel(bufferOrArray: ArrayBuffer | Uint8Array): Exog
       }
     }
 
+    // Consolidar automáticamente los topes para el módulo "1. Obligados y Topes"
+    const totalIngresos =
+      resumen.ingresosTrabajo +
+      resumen.ingresosHonorarios +
+      resumen.ingresosCapital +
+      resumen.ingresosNoLaborales +
+      resumen.pensiones +
+      resumen.dividendos +
+      resumen.gananciasOcasionales;
+
+    if (totalIngresos > 0) {
+      amountsToApply["topes.ingresosBrutos"] = totalIngresos;
+    }
+    if (resumen.patrimonioBruto > 0) {
+      amountsToApply["topes.patrimonioBruto"] = resumen.patrimonioBruto;
+    }
+    if (resumen.consignacionesBancarias > 0) {
+      amountsToApply["topes.consignaciones"] = resumen.consignacionesBancarias;
+    }
+    if (resumen.consumosTarjetas > 0) {
+      amountsToApply["topes.consumosTarjeta"] = resumen.consumosTarjetas;
+    }
+    if (resumen.comprasTotales > 0) {
+      amountsToApply["topes.compras"] = resumen.comprasTotales;
+    }
+
     // Filtrar items válidos
     const finalItems = items.length > 0 ? items.filter((x) => x.valor > 0) : items;
 

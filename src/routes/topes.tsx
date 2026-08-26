@@ -55,26 +55,64 @@ function TopesPage() {
   const year = d.year;
   const ov = d.uvtOverrides;
 
+  const ingBrutosDeclarados =
+    (c.casillas[32] || 0) +
+    (c.casillas[43] || 0) +
+    (c.casillas[58] || 0) +
+    (c.casillas[74] || 0) +
+    (c.casillas[99] || 0) +
+    (c.casillas[104] || 0) +
+    (c.casillas[107] || 0) +
+    (c.casillas[108] || 0) +
+    (c.casillas[109] || 0) +
+    (c.casillas[112] || 0);
+
+  const patrimonioDeclarado = c.casillas[29] || 0;
+  const hasDeclarationData = patrimonioDeclarado > 0 || ingBrutosDeclarados > 0;
+
+  function handleSyncFromDeclaration() {
+    patch((x) => {
+      if (patrimonioDeclarado > 0) x.topes.patrimonioBruto = patrimonioDeclarado;
+      if (ingBrutosDeclarados > 0) x.topes.ingresosBrutos = ingBrutosDeclarados;
+    });
+  }
+
   return (
     <div className="space-y-6">
-      <header>
-        <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Criterios de Obligación · Arts. 592, 593 y 594-3 E.T.</p>
-        <h1 className="mt-1 font-display text-4xl font-bold">Obligación de Declarar Renta</h1>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
-          Evaluación técnica de topes al 31 de diciembre de {year} con la UVT oficial de {formatCOP(c.uvt)}. Basta con superar <em>uno</em> de los umbrales legales para estar obligado a presentar el Formulario 210 en el calendario oficial de la DIAN.
-        </p>
+      <header className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Criterios de Obligación · Arts. 592, 593 y 594-3 E.T.</p>
+          <h1 className="mt-1 font-display text-4xl font-bold">Obligación de Declarar Renta</h1>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
+            Evaluación técnica de topes al 31 de diciembre de {year} con la UVT oficial de {formatCOP(c.uvt)}. Basta con superar <em>uno</em> de los umbrales legales para estar obligado a presentar el Formulario 210 en el calendario oficial de la DIAN.
+          </p>
+        </div>
+
+        {hasDeclarationData && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleSyncFromDeclaration}
+            className="gap-2 text-xs border-forest/30 text-forest hover:bg-forest-mist"
+          >
+            Sincronizar Cifras de la Declaración / Exógena
+          </Button>
+        )}
       </header>
 
       <Card className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <CardTitle className="text-lg">Resultado</CardTitle>
+          <CardTitle className="text-lg">Resultado del Diagnóstico</CardTitle>
           <CardHint>
             {c.obligado
-              ? "Con los datos actuales sí está obligado a presentar el Formulario 210 en 2026."
-              : "Ningún tope se ha cruzado todavía. Complete las casillas o declare de forma voluntaria."}
+              ? "Con los datos actuales SÍ está obligado a presentar el Formulario 210 ante la DIAN."
+              : "Ningún tope legal se ha cruzado todavía. Puede presentar la declaración de forma voluntaria para solicitar devolución de retenciones."}
           </CardHint>
         </div>
-        <Badge tone={c.obligado ? "stamp" : "ok"}>{c.obligado ? "Obligado" : "No obligado (por ahora)"}</Badge>
+        <Badge tone={c.obligado ? "stamp" : "ok"} className="text-sm px-3 py-1">
+          {c.obligado ? "🚨 OBLIGADO A DECLARAR" : "✅ NO OBLIGADO (POR AHORA)"}
+        </Badge>
       </Card>
 
       <ToggleField
