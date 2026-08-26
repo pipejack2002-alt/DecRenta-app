@@ -104,7 +104,7 @@
 }
 
 @page {
-  size: landscape !important;
+  size: portrait !important;
   margin: 3mm 4mm !important;
 }
 
@@ -282,10 +282,10 @@
     width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
-    transform: scale(0.91) !important;
+    transform: scale(0.72) !important;
     transform-origin: top center !important;
     margin: 0 auto !important;
-    margin-bottom: -90px !important;
+    margin-bottom: -380px !important;
     border: 1.5px solid black !important;
     box-shadow: none !important;
     page-break-inside: avoid !important;
