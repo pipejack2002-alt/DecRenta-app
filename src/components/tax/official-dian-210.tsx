@@ -78,12 +78,13 @@ export function OfficialDian210({
 
   const normalizedQuery = searchQuery.toLowerCase().trim();
 
-  // Helper para formatear valor de casilla en el PDF exacto
+  // Helper para formatear valor de casilla en el Formulario 210 oficial con redondeo al múltiplo de mil más cercano (Art. 577 E.T.)
   function v(num: number): string {
     const val = c.casillas[num];
-    if (val === undefined || val === null || (val === 0 && num !== 140)) return "";
     if (num === 140) return val ? "X" : "";
-    return formatNumber(Math.round(val));
+    if (val === undefined || val === null || val === 0) return "0";
+    const rounded = Math.round(val / 1000) * 1000;
+    return formatNumber(rounded);
   }
 
   function isMatch(num: number): boolean {

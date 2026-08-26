@@ -270,7 +270,7 @@ export function generateFormulario210Workbook(d: Declaration, c: ComputedDeclara
 
   const numVal = (n: number) => {
     const val = c.casillas[n];
-    return val !== undefined && val !== null ? Math.round(val) : 0;
+    return val !== undefined && val !== null ? Math.round(val / 1000) * 1000 : 0;
   };
 
   // ———————————————————————————————————————————————————————————
@@ -618,7 +618,7 @@ export async function downloadStyledFormulario210Xlsx(
 
   const numVal = (num: number): number => {
     const v = c.casillas[num];
-    return typeof v === "number" ? Math.round(v) : 0;
+    return typeof v === "number" ? Math.round(v / 1000) * 1000 : 0;
   };
 
   const fmt = (v: any) => {
