@@ -22,7 +22,7 @@ test("exogena parser: lee archivo oficial de la DIAN y extrae metadatos del cons
 });
 
 test("exogena parser: clasifica correctamente topes, salarios, honorarios, cuentas y deudas", () => {
-  const filePath = "C:/Users/andre/OneDrive/Escritorio/DECLARACION DE RENTA/ANDRES BERNAL OSORIO/Exogena Andres Bernal.xlsx";
+  const filePath = "Exogena Andres Bernal.xlsx";
   if (!fs.existsSync(filePath)) {
     return;
   }
@@ -33,7 +33,13 @@ test("exogena parser: clasifica correctamente topes, salarios, honorarios, cuent
   assert.equal(result.ok, true);
   assert.equal(result.nit, "1001880133");
   assert.equal(result.nombre, "BERNAL OSORIO ANDRES FELIPE");
-  assert.equal(result.resumen.ingresosTrabajo, 27331800);
-  assert.equal(result.amountsToApply["trabajo.salarios"], 27331800);
+  assert.equal(result.items.length, 24);
+  assert.equal(result.resumen.ingresosTrabajo, 25342904);
+  assert.equal(result.resumen.saludObligatoria, 748800);
+  assert.equal(result.resumen.pensionObligatoria, 748800);
+  assert.equal(result.resumen.patrimonioBruto, 7271226);
   assert.equal(result.amountsToApply["topes.ingresosBrutos"], 27331800);
+  assert.equal(result.amountsToApply["topes.patrimonioBruto"], 7271226);
+  assert.equal(result.amountsToApply["topes.consumosTarjeta"], 3792412);
+  assert.equal(result.amountsToApply["topes.consignaciones"], 65506416);
 });

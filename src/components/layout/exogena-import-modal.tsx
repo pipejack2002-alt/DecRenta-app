@@ -378,6 +378,18 @@ export function ExogenaImportModal({
                         <span className="text-sm font-bold text-ink">{formatCOP(fileData.resumen.gmf)}</span>
                       </div>
                     )}
+                    {fileData.resumen.cesantias > 0 && (
+                      <div className="rounded-xl border border-line bg-surface p-3 shadow-sm">
+                        <span className="text-[11px] text-muted block">Cesantías Pagadas/Consignadas:</span>
+                        <span className="text-sm font-bold text-ink">{formatCOP(fileData.resumen.cesantias)}</span>
+                      </div>
+                    )}
+                    {fileData.resumen.consumosTarjetas > 0 && (
+                      <div className="rounded-xl border border-line bg-surface p-3 shadow-sm">
+                        <span className="text-[11px] text-muted block">Consumos Tarjeta Crédito/Débito:</span>
+                        <span className="text-sm font-bold text-ink">{formatCOP(fileData.resumen.consumosTarjetas)}</span>
+                      </div>
+                    )}
                     {fileData.resumen.consignacionesBancarias > 0 && (
                       <div className="rounded-xl border border-line bg-surface p-3 shadow-sm">
                         <span className="text-[11px] text-muted block">Consignaciones Bancarias (Topes):</span>

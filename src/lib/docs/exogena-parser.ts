@@ -46,6 +46,28 @@ export interface ExogenaParseResult {
   amountsToApply: Record<string, number>;
 }
 
+function getTrueSheetRange(sheet: XLSX.WorkSheet): string {
+  const keys = Object.keys(sheet).filter((k) => !k.startsWith("!"));
+  if (keys.length === 0) return sheet["!ref"] || "A1:A1";
+  let minR = Infinity,
+    maxR = 0,
+    minC = Infinity,
+    maxC = 0;
+  for (const k of keys) {
+    try {
+      const cell = XLSX.utils.decode_cell(k);
+      if (cell.r < minR) minR = cell.r;
+      if (cell.r > maxR) maxR = cell.r;
+      if (cell.c < minC) minC = cell.c;
+      if (cell.c > maxC) maxC = cell.c;
+    } catch {
+      // ignore
+    }
+  }
+  if (!Number.isFinite(minR) || !Number.isFinite(maxR)) return sheet["!ref"] || "A1:A1";
+  return XLSX.utils.encode_range({ s: { r: Math.min(0, minR), c: Math.min(0, minC) }, e: { r: maxR, c: maxC } });
+}
+
 export function parseExogenaExcel(bufferOrArray: ArrayBuffer | Uint8Array): ExogenaParseResult {
   try {
     const wb = XLSX.read(bufferOrArray, { type: "array" });
@@ -57,6 +79,13 @@ export function parseExogenaExcel(bufferOrArray: ArrayBuffer | Uint8Array): Exog
         resumen: emptyResumen(),
         amountsToApply: {},
       };
+    }
+
+    // Corregir dimensiones de todas las hojas para evitar que se trunquen renglones
+    for (const sn of wb.SheetNames) {
+      if (wb.Sheets[sn]) {
+        wb.Sheets[sn]["!ref"] = getTrueSheetRange(wb.Sheets[sn]);
+      }
     }
 
     let year = 2025;
@@ -135,6 +164,7 @@ export function parseExogenaExcel(bufferOrArray: ArrayBuffer | Uint8Array): Exog
       let colDetalle = -1;
       let colValorExplicit = -1;
       let colCasilla = -1;
+      let colInfoAdicional = -1;
 
       const colHeaders: Record<number, string> = {};
 
@@ -163,6 +193,7 @@ export function parseExogenaExcel(bufferOrArray: ArrayBuffer | Uint8Array): Exog
             else if (/detalle|descripci[oó]n/i.test(headLower)) colDetalle = c;
             else if (/^valor$|^saldo$|^monto$|^cuant[ií]a$/i.test(headLower)) colValorExplicit = c;
             else if (/casilla|sugerid/i.test(headLower)) colCasilla = c;
+            else if (/informaci[oó]n\s*adicional/i.test(headLower)) colInfoAdicional = c;
           }
           break;
         }
@@ -170,13 +201,25 @@ export function parseExogenaExcel(bufferOrArray: ArrayBuffer | Uint8Array): Exog
 
       const startIndex = dataHeaderIndex !== -1 ? dataHeaderIndex + 1 : 0;
 
+      // Detectar si hay filas detalladas con terceros reales (no solo filas de Tope)
+      let hasDetailedRows = false;
+      for (let i = startIndex; i < rawRows.length; i++) {
+        const row = rawRows[i] || [];
+        const nitInf = colNitInf !== -1 ? String(row[colNitInf] || "").trim() : "";
+        const nomInf = colNomInf !== -1 ? String(row[colNomInf] || "").trim() : "";
+        if (nitInf && nomInf && !/DIAN|Tope/i.test(nomInf) && /^\d{6,12}$/.test(nitInf)) {
+          hasDetailedRows = true;
+          break;
+        }
+      }
+
       // Procesar cada fila de datos
       for (let i = startIndex; i < rawRows.length; i++) {
         const row = rawRows[i] || [];
         if (!row || row.length === 0) continue;
 
         const rowStr = row.map((c) => String(c || "")).join(" ").trim();
-        // Ignorar filas de encabezado repetidas o vacías
+        // Ignorar filas vacías o de títulos generales
         if (!rowStr || /DIAN|INFORMACIÓN REPORTADA|AÑO GRAVABLE|CONSULTANTE|TOTALES/i.test(rowStr)) continue;
 
         let formato = colFormato !== -1 ? String(row[colFormato] || "").trim() : "";
@@ -187,71 +230,90 @@ export function parseExogenaExcel(bufferOrArray: ArrayBuffer | Uint8Array): Exog
         const reportadoNombre = colNomTerc !== -1 ? String(row[colNomTerc] || "").trim() : "";
         const rowDetalle = colDetalle !== -1 ? String(row[colDetalle] || "").trim() : "";
         const casillaSugerida = colCasilla !== -1 ? String(row[colCasilla] || "").trim() : "";
+        const infoAdicional = colInfoAdicional !== -1 ? String(row[colInfoAdicional] || "").trim() : "";
 
-        // Si no se detectaron columnas fijas, buscar formato y concepto en las primeras celdas
-        if (!concepto) {
-          for (let c = 0; c < Math.min(4, row.length); c++) {
-            const valStr = String(row[c] || "").trim();
-            if (/^(?:500[1-9]|501[0-9]|1019|1020|1009|1008|1007|1003|1001|1056|400[1-9])$/.test(valStr)) {
-              concepto = valStr;
+        // Si el detalle contiene el código de formato/concepto (ej: "Concepto: 2276")
+        const formatoMatch = (rowDetalle + " " + infoAdicional).match(/Concepto[:\s]*(\d{4})/i);
+        if (formatoMatch && !formato) {
+          formato = formatoMatch[1];
+        }
+
+        // Si es una fila de control "Tope 1..5"
+        const isTopeSummary = /^Tope \d/i.test(rowDetalle);
+
+        let rowValor = 0;
+        if (colValorExplicit !== -1) {
+          rowValor = parseExogenaValor(row[colValorExplicit]);
+        }
+        if (rowValor <= 0) {
+          for (let c = 0; c < row.length; c++) {
+            if (c === colFormato || c === colConcepto || c === colNitInf || c === colNomInf || c === colNitTerc || c === colNomTerc || c === colDetalle) {
+              continue;
+            }
+            const val = parseExogenaValor(row[c]);
+            if (val > 0) {
+              rowValor = val;
               break;
             }
           }
         }
-        if (!formato) {
-          for (let c = 0; c < Math.min(4, row.length); c++) {
-            const valStr = String(row[c] || "").trim();
-            if (/^(?:2276|1001|1003|1007|1008|1009|1019|1020|1056|1023)$/.test(valStr)) {
-              formato = valStr;
-              break;
-            }
+        if (rowValor <= 0) continue;
+
+        // Si es una fila de resumen de Tope:
+        if (isTopeSummary) {
+          if (/Tope 1/i.test(rowDetalle)) amountsToApply["topes.ingresosBrutos"] = rowValor;
+          if (/Tope 2/i.test(rowDetalle)) {
+            amountsToApply["topes.patrimonioBruto"] = rowValor;
+            if (!resumen.patrimonioBruto) resumen.patrimonioBruto = rowValor;
           }
-        }
-
-        // Si no hay informante, asignar DIAN
-        if (!informanteNombre) {
-          informanteNombre = rowDetalle.includes("Tope") ? "DIAN - Criterios de Obligación" : "Tercero Informante DIAN";
-        }
-        if (!informanteNit) {
-          informanteNit = "DIAN";
-        }
-
-        // Extraer todos los valores numéricos de la fila
-        for (let c = 0; c < row.length; c++) {
-          if (c === colFormato || c === colConcepto || c === colNitInf || c === colNomInf || c === colNitTerc || c === colNomTerc || c === colDetalle) {
-            continue;
+          if (/Tope 3/i.test(rowDetalle)) {
+            amountsToApply["topes.consumosTarjeta"] = rowValor;
+            if (!resumen.consumosTarjetas) resumen.consumosTarjetas = rowValor;
+          }
+          if (/Tope 4/i.test(rowDetalle)) {
+            amountsToApply["topes.consignaciones"] = rowValor;
+            if (!resumen.consignacionesBancarias) resumen.consignacionesBancarias = rowValor;
+          }
+          if (/Tope 5/i.test(rowDetalle)) {
+            amountsToApply["topes.compras"] = rowValor;
+            if (!resumen.comprasTotales) resumen.comprasTotales = rowValor;
           }
 
-          const rawValor = row[c];
-          const valor = parseExogenaValor(rawValor);
-          if (valor <= 0) continue;
-
-          const colHeader = colHeaders[c] || (colValorExplicit === c ? "Valor" : `Columna ${c + 1}`);
-
-          // Construir descripción contextual completa
-          const contextParts: string[] = [];
-          if (formato) contextParts.push(`Formato ${formato}`);
-          if (concepto) contextParts.push(`Concepto ${concepto}`);
-          if (rowDetalle) contextParts.push(rowDetalle);
-          if (colHeader && !colHeader.startsWith("Columna")) contextParts.push(colHeader);
-          if (sheetName && sheetName !== "Sheet1" && sheetName !== "Hoja1" && sheetName !== "Hoja 1" && sheetName !== "Reporte") contextParts.push(sheetName);
-
-          const fullDetalle = contextParts.length > 0 ? contextParts.join(" - ") : "Reporte Exógena DIAN";
-
-          const item: ExogenaTerceroItem = {
-            informanteNit,
-            informanteNombre,
-            reportadoNit,
-            reportadoNombre,
-            detalle: fullDetalle,
-            valor,
-            casillaSugerida,
-            infoAdicional: `Concepto: ${concepto || "N/A"} | ${colHeader}`,
-          };
-
-          items.push(item);
-          classifyItem(item, resumen, amountsToApply, concepto, formato, colHeader, rowDetalle);
+          // Si el archivo NO tiene informantes detallados, usar Tope 1 como salario sugerido
+          if (!hasDetailedRows && /Tope 1/i.test(rowDetalle)) {
+            items.push({
+              informanteNit: "DIAN",
+              informanteNombre: "DIAN - Criterios de Obligación",
+              reportadoNit: "",
+              reportadoNombre: "",
+              detalle: rowDetalle,
+              valor: rowValor,
+              casillaSugerida,
+              infoAdicional,
+            });
+            resumen.ingresosTrabajo = rowValor;
+            amountsToApply["trabajo.salarios"] = rowValor;
+          }
+          continue;
         }
+
+        // Fila detallada de un informante real
+        if (!informanteNombre) informanteNombre = "Tercero Informante DIAN";
+        if (!informanteNit) informanteNit = "DIAN";
+
+        const item: ExogenaTerceroItem = {
+          informanteNit,
+          informanteNombre,
+          reportadoNit,
+          reportadoNombre,
+          detalle: rowDetalle || "Reporte Exógena DIAN",
+          valor: rowValor,
+          casillaSugerida,
+          infoAdicional,
+        };
+
+        items.push(item);
+        classifyItem(item, resumen, amountsToApply, concepto, formato, "", rowDetalle);
       }
     }
 
@@ -265,24 +327,21 @@ export function parseExogenaExcel(bufferOrArray: ArrayBuffer | Uint8Array): Exog
       resumen.dividendos +
       resumen.gananciasOcasionales;
 
-    if (totalIngresos > 0) {
+    if (totalIngresos > 0 && !amountsToApply["topes.ingresosBrutos"]) {
       amountsToApply["topes.ingresosBrutos"] = totalIngresos;
     }
-    if (resumen.patrimonioBruto > 0) {
+    if (resumen.patrimonioBruto > 0 && !amountsToApply["topes.patrimonioBruto"]) {
       amountsToApply["topes.patrimonioBruto"] = resumen.patrimonioBruto;
     }
-    if (resumen.consignacionesBancarias > 0) {
+    if (resumen.consignacionesBancarias > 0 && !amountsToApply["topes.consignaciones"]) {
       amountsToApply["topes.consignaciones"] = resumen.consignacionesBancarias;
     }
-    if (resumen.consumosTarjetas > 0) {
+    if (resumen.consumosTarjetas > 0 && !amountsToApply["topes.consumosTarjeta"]) {
       amountsToApply["topes.consumosTarjeta"] = resumen.consumosTarjetas;
     }
-    if (resumen.comprasTotales > 0) {
+    if (resumen.comprasTotales > 0 && !amountsToApply["topes.compras"]) {
       amountsToApply["topes.compras"] = resumen.comprasTotales;
     }
-
-    // Filtrar items válidos
-    const finalItems = items.length > 0 ? items.filter((x) => x.valor > 0) : items;
 
     return {
       ok: true,
@@ -290,7 +349,7 @@ export function parseExogenaExcel(bufferOrArray: ArrayBuffer | Uint8Array): Exog
       tipoDocumento: tipoDocumento || "C. C.",
       nit: nit || "",
       nombre: nombre || "",
-      items: finalItems,
+      items,
       resumen,
       amountsToApply,
     };
@@ -364,67 +423,90 @@ function classifyItem(
     amounts[path] = (amounts[path] || 0) + val;
   };
 
-  // 1. Salarios, pagos laborales y "Tope 1 - Ingresos"
+  // 1. Salarios, pagos laborales y prestaciones
   if (
     conceptoCode === "5001" ||
-    conceptoCode === "5003" ||
     conceptoCode === "5004" ||
-    /tope.*1.*ingreso|tope.*ingreso|salario|emolumento|sueldo|pago laboral|comisi[oó]n laboral|horas extra|recargo nocturno|vi[aá]tico|bonificaci[oó]n laboral|indemnizaci[oó]n laboral|concepto 5001|formato 2276/i.test(d)
+    /pagos por salarios|salario|emolumento|sueldo|pago laboral|comisi[oó]n laboral|horas extra|recargo nocturno|vi[aá]tico|concepto 5001/i.test(d)
   ) {
     resumen.ingresosTrabajo += v;
     add("trabajo.salarios", v);
-    add("topes.ingresosBrutos", v);
+  } else if (
+    conceptoCode === "5003" ||
+    conceptoCode === "5010" ||
+    /prestaciones sociales|otros pagos rentas de trabajo|prima.*servicios|bonificaci[oó]n laboral|indemnizaci[oó]n laboral/i.test(d)
+  ) {
+    resumen.ingresosTrabajo += v;
+    add("trabajo.otrasPrestaciones", v);
   }
-  // Cesantías e intereses sobre cesantías (Concepto 5002)
-  else if (conceptoCode === "5002" || /cesant[ií]a|intereses.*cesant[ií]a|concepto 5002/i.test(d)) {
+  // Cesantías e intereses sobre cesantías (Concepto 5002 / Fondo de Cesantías)
+  else if (conceptoCode === "5002" || /cesant[ií]a|intereses.*cesant[ií]a|fondo de cesant[ií]as/i.test(d)) {
     resumen.cesantias += v;
     add("trabajo.cesantiasPagadas", v);
   }
-  // Salud obligatoria (Concepto 5007 / EPS)
-  else if (conceptoCode === "5007" || /aporte.*salud|salud obligatoria|cotizaci[oó]n.*salud|pago.*eps|concepto 5007/i.test(d)) {
+  // Salud obligatoria (Concepto 5007 / EPS / Aporte a salud a cargo trabajador)
+  else if (conceptoCode === "5007" || /salud.*cargo trabajador|aporte.*salud|salud obligatoria|cotizaci[oó]n.*salud|pago.*eps|concepto 5007/i.test(d)) {
     resumen.saludObligatoria += v;
     add("trabajo.aportesSaludObligatorios", v);
   }
-  // Pensión obligatoria y Fondo de Solidaridad Pensional (Concepto 5008)
-  else if (conceptoCode === "5008" || /aporte.*pensi[oó]n|pensi[oó]n obligatoria|cotizaci[oó]n.*pensi[oó]n|fondo de solidaridad|concepto 5008/i.test(d)) {
+  // Pensión obligatoria y Fondo de Solidaridad Pensional (Concepto 5008 / Aporte pensión trabajador)
+  else if (
+    conceptoCode === "5008" ||
+    /pensiones y solidaridad|aporte.*pensi[oó]n|pensi[oó]n obligatoria|cotizaci[oó]n.*pensi[oó]n|fondo de solidaridad|concepto 5008/i.test(d)
+  ) {
     resumen.pensionObligatoria += v;
     add("trabajo.aportesPensionObligatorios", v);
+  }
+  // Promedio mensual 6 meses
+  else if (/ingreso laboral promedio de los [uú]ltimos seis meses|promedio.*6.*meses/i.test(d)) {
+    if (!amounts["trabajo.promedioMensual6m"] || v > amounts["trabajo.promedioMensual6m"]) {
+      amounts["trabajo.promedioMensual6m"] = v;
+    }
   }
   // Pensiones de jubilación, vejez o invalidez
   else if (/mesada pensional|pensi[oó]n.*vejez|pensi[oó]n.*jubilaci[oó]n|pensi[oó]n.*invalidez|pensi[oó]n.*sobreviviente/i.test(d)) {
     resumen.pensiones += v;
     add("pensiones.ingresos", v);
   }
-  // 2. Honorarios, servicios y comisiones independientes (Conceptos 5005, 5006, 5016 / Formato 1001)
-  else if (conceptoCode === "5005" || conceptoCode === "5006" || /honorario|servicio personal|servicio profesional|servicio t[eé]cnico|compensaci[oó]n servicio|concepto 5005|concepto 5006/i.test(d)) {
+  // 2. Honorarios, servicios y comisiones independientes
+  else if (
+    conceptoCode === "5005" ||
+    conceptoCode === "5006" ||
+    conceptoCode === "5016" ||
+    /honorario|servicio personal|servicio profesional|servicio t[eé]cnico|compensaci[oó]n servicio|concepto 5005|concepto 5006/i.test(d)
+  ) {
     resumen.ingresosHonorarios += v;
     add("honorarios.ingresos", v);
-  }
-  else if (/costo.*honorario|deducci[oó]n.*honorario|gasto.*servicio/i.test(d)) {
+  } else if (/costo.*honorario|deducci[oó]n.*honorario|gasto.*servicio/i.test(d)) {
     add("honorarios.costos", v);
   }
-  // 3. Rentas de Capital, Arriendos y Rendimientos Financieros (Conceptos 1019, 1020, 1007, 1001)
-  else if (/rendimiento.*financiero|inter[eé]s.*financiero|intereses abonados|rendimiento.*cdt|intereses.*dep[oó]sito|rendimiento.*fiduciario/i.test(d)) {
+  // 3. Rentas de Capital, Arriendos y Rendimientos Financieros
+  else if (
+    conceptoCode === "5063" ||
+    conceptoCode === "5031" ||
+    /intereses y rendimientos financieros|rendimiento.*financiero|inter[eé]s.*financiero|intereses abonados|rendimiento.*cdt|intereses.*dep[oó]sito|rendimiento.*fiduciario/i.test(
+      d,
+    )
+  ) {
     resumen.ingresosCapital += v;
     add("capital.intereses", v);
-  }
-  else if (/arrendamiento|alquiler.*inmueble|alquiler.*veh[ií]culo|arriendo/i.test(d)) {
+  } else if (/arrendamiento|alquiler.*inmueble|alquiler.*veh[ií]culo|arriendo/i.test(d)) {
     resumen.ingresosCapital += v;
     add("capital.arrendamientos", v);
-  }
-  else if (/regal[ií]a|propiedad intelectual|derecho de autor/i.test(d)) {
+  } else if (/regal[ií]a|propiedad intelectual|derecho de autor/i.test(d)) {
     resumen.ingresosCapital += v;
     add("capital.regalias", v);
   }
   // 4. Rentas No Laborales / Comercio / Negocios
-  else if (formatoCode === "1007" && /ingreso.*comercio|venta.*bienes|venta.*mercanc[ií]a|ingreso no laboral|actividad agropecuaria/i.test(d)) {
+  else if (
+    formatoCode === "1007" &&
+    /ingreso.*comercio|venta.*bienes|venta.*mercanc[ií]a|ingreso no laboral|actividad agropecuaria/i.test(d)
+  ) {
     resumen.ingresosNoLaborales += v;
     add("noLaborales.ingresos", v);
-  }
-  else if (/devoluci[oó]n.*venta|rebaja.*venta|descuento.*venta/i.test(d)) {
+  } else if (/devoluci[oó]n.*venta|rebaja.*venta|descuento.*venta/i.test(d)) {
     add("noLaborales.devoluciones", v);
-  }
-  else if (/costo.*compra|compra.*mercanc[ií]a|adquisici[oó]n.*materia prima|costo no laboral/i.test(d)) {
+  } else if (/costo.*compra|compra.*mercanc[ií]a|adquisici[oó]n.*materia prima|costo no laboral/i.test(d)) {
     add("noLaborales.costos", v);
   }
   // 5. Dividendos y participaciones
@@ -432,55 +514,50 @@ function classifyItem(
     resumen.dividendos += v;
     add("dividendos.subcedula1", v);
   }
-  // 6. Ganancias Ocasionales (Notarías, Loterías, Herencias)
+  // 6. Ganancias Ocasionales
   else if (/herencia|legado|donaci[oó]n|loter[ií]a|rifa|apuesta|premio|venta.*activo fijo/i.test(d)) {
     resumen.gananciasOcasionales += v;
     add("gananciasOcasionales.enajenacionActivos", v);
   }
-  // 7. Retenciones en la fuente a favor (Formato 1003 o columnas de Retención)
+  // 7. Retenciones en la fuente a favor
   else if (formatoCode === "1003" || /retenci[oó]n.*fuente|autorretenci[oó]n|retenci[oó]n practicada|formato 1003/i.test(d)) {
     resumen.retencionesFuente += v;
     add("extra.retenciones", v);
   }
-  // 8. Cuentas bancarias, CDTs, Activos y "Tope 2 - Patrimonio"
+  // 8. Cuentas bancarias y Activos
   else if (
     formatoCode === "1019" ||
     conceptoCode === "1019" ||
-    /tope.*2.*patrimonio|tope.*patrimonio|saldo.*cuenta|cuenta.*ahorro|cuenta.*corriente|dep[oó]sito.*electr[oó]nico|nequi|daviplata|certificado.*dep[oó]sito|cdt|fiducia|fondo.*inversi[oó]n|concepto 1019/i.test(d)
+    /saldo cuentas bancarias|saldo.*cuenta|cuenta.*ahorro|cuenta.*corriente|dep[oó]sito.*electr[oó]nico|nequi|daviplata|certificado.*dep[oó]sito|cdt|fiducia|fondo.*inversi[oó]n|concepto 1019/i.test(
+      d,
+    )
   ) {
-    resumen.patrimonioBruto += v;
-    add("patrimonio.cuentas", v);
-    add("topes.patrimonioBruto", v);
-  }
-  else if (formatoCode === "1020" || conceptoCode === "1020" || /inversiones.*31|saldo.*cdt|saldo.*inversi[oó]n/i.test(d)) {
-    resumen.patrimonioBruto += v;
+    if (!/movimiento.*cuenta|valor total de los movimientos|consumo.*tarjeta/i.test(d)) {
+      add("patrimonio.cuentas", v);
+    }
+  } else if (
+    formatoCode === "1020" ||
+    conceptoCode === "1020" ||
+    conceptoCode === "2214" ||
+    /activos aportes parafiscales|inversiones.*31|saldo.*cdt|saldo.*inversi[oó]n/i.test(d)
+  ) {
     add("patrimonio.inversiones", v);
-    add("topes.patrimonioBruto", v);
-  }
-  else if (/inmueble.*escritura|compra.*inmueble|adquisici[oó]n.*predio/i.test(d)) {
-    resumen.patrimonioBruto += v;
+  } else if (/inmueble.*escritura|compra.*inmueble|adquisici[oó]n.*predio/i.test(d)) {
     add("patrimonio.inmuebles", v);
-    add("topes.patrimonioBruto", v);
-  }
-  else if (/veh[ií]culo.*adquisici[oó]n|compra.*automotor|matr[ií]cula.*veh[ií]culo/i.test(d)) {
-    resumen.patrimonioBruto += v;
+  } else if (/veh[ií]culo.*adquisici[oó]n|compra.*automotor|matr[ií]cula.*veh[ií]culo/i.test(d)) {
     add("patrimonio.vehiculos", v);
-    add("topes.patrimonioBruto", v);
-  }
-  else if (formatoCode === "1008" || /cuenta.*por cobrar|saldo.*a favor.*cliente|pr[eé]stamo.*otorgado|formato 1008/i.test(d)) {
-    resumen.patrimonioBruto += v;
+  } else if (formatoCode === "1008" || /cuenta.*por cobrar|saldo.*a favor.*cliente|pr[eé]stamo.*otorgado|formato 1008/i.test(d)) {
     add("patrimonio.cuentasPorCobrar", v);
   }
-  // 9. Deudas y obligaciones financieras a 31 dic (Formato 1009)
+  // 9. Deudas y obligaciones financieras a 31 dic
   else if (
     formatoCode === "1009" ||
     conceptoCode === "1009" ||
-    /saldo.*deuda|saldo.*cr[eé]dito|obligaci[oó]n financiera|pr[eé]stamo.*bancario|saldo.*tarjeta|concepto 1020|formato 1009/i.test(d)
+    /saldo.*deuda|saldo.*cr[eé]dito|obligaci[oó]n financiera|pr[eé]stamo.*bancario|saldo.*tarjeta|formato 1009/i.test(d)
   ) {
     resumen.deudas += v;
     add("patrimonio.obligacionesFinancieras", v);
-  }
-  else if (/cuenta.*por pagar|deuda.*proveedor|acreedor/i.test(d)) {
+  } else if (/cuenta.*por pagar|deuda.*proveedor|acreedor/i.test(d)) {
     resumen.deudas += v;
     add("patrimonio.otrasDeudas", v);
   }
@@ -488,43 +565,40 @@ function classifyItem(
   else if (/inter[eé]s.*vivienda|cr[eé]dito hipotecario|leasing habitacional/i.test(d)) {
     resumen.interesesVivienda += v;
     add("trabajo.interesesVivienda", v);
-  }
-  else if (/medicina prepagada|plan complementario|p[oó]liza de salud/i.test(d)) {
+  } else if (/medicina prepagada|plan complementario|p[oó]liza de salud/i.test(d)) {
     resumen.medicinaPrepagada += v;
     add("trabajo.medicinaPrepagada", v);
-  }
-  else if (/interes.*icetex|cr[eé]dito educativo/i.test(d)) {
+  } else if (/interes.*icetex|cr[eé]dito educativo/i.test(d)) {
     resumen.icetex += v;
-  }
-  else if (/aporte.*afc|aporte.*fvp|pensi[oó]n voluntaria/i.test(d)) {
+  } else if (/aporte.*afc|aporte.*fvp|pensi[oó]n voluntaria/i.test(d)) {
     resumen.afcFvp += v;
     add("trabajo.aportesAfcFvpAvc", v);
-  }
-  else if (/gmf|gravamen.*movimientos financieros|4x1000/i.test(d)) {
+  } else if (/gmf|gravamen.*movimientos financieros|4x1000/i.test(d)) {
     resumen.gmf += v;
     add("trabajo.gmf", v);
-  }
-  else if (conceptoCode === "1056" || /factura electr[oó]nica|1%.*compras|concepto 1056/i.test(d)) {
+  } else if (conceptoCode === "1056" || /factura electr[oó]nica|1%.*compras|concepto 1056/i.test(d)) {
     resumen.facturaElectronica += v;
     add("trabajo.comprasFacturaElectronica", v);
   }
-  // 11. Consignaciones / Consumos para control de topes de declaración
-  else if (conceptoCode === "4001" || /tope.*3.*consigna|consignaci[oó]n|movimiento cr[eé]dito|dep[oó]sito bancario/i.test(d)) {
-    resumen.consignacionesBancarias += v;
-    add("topes.consignaciones", v);
+  // 11. Consignaciones / Consumos para control de topes
+  else if (conceptoCode === "4001" || /movimientos en cuentas|consignaci[oó]n|movimiento cr[eé]dito|dep[oó]sito bancario/i.test(d)) {
+    // Already in topes
+  } else if (conceptoCode === "1023" || conceptoCode === "4002" || /consumos o gastos con tarjeta|tarjeta.*cr[eé]dito|consumo.*tarjeta/i.test(d)) {
+    // Already in topes
+  } else if (conceptoCode === "4003" || /compra|adquisici[oó]n/i.test(d)) {
+    // Already in topes
   }
-  else if (conceptoCode === "4002" || /tope.*4.*tarjeta|tarjeta.*cr[eé]dito|consumo.*tarjeta/i.test(d)) {
-    resumen.consumosTarjetas += v;
-    add("topes.consumosTarjeta", v);
-  }
-  else if (conceptoCode === "4003" || /tope.*5.*compra|compra|adquisici[oó]n/i.test(d)) {
-    resumen.comprasTotales += v;
-    add("topes.compras", v);
-  }
-  // Si no clasificó pero es una columna de pago o abono general
-  else if (/pago.*abono|ingreso|cuant[ií]a/i.test(columnHeader + " " + rowDetalle)) {
+  // Casilla sugerida DIAN explícita
+  else if (/r32|casilla 32/i.test(item.casillaSugerida || "")) {
     resumen.ingresosTrabajo += v;
     add("trabajo.salarios", v);
-    add("topes.ingresosBrutos", v);
+  } else if (/r58|casilla 58/i.test(item.casillaSugerida || "")) {
+    resumen.ingresosCapital += v;
+    add("capital.intereses", v);
+  } else if (/r29|casilla 29/i.test(item.casillaSugerida || "")) {
+    add("patrimonio.cuentas", v);
+  } else if (/r30|casilla 30/i.test(item.casillaSugerida || "")) {
+    resumen.deudas += v;
+    add("patrimonio.obligacionesFinancieras", v);
   }
 }
