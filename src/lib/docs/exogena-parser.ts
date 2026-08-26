@@ -43,9 +43,7 @@ export interface ExogenaParseResult {
 export function parseExogenaExcel(bufferOrArray: ArrayBuffer | Uint8Array): ExogenaParseResult {
   try {
     const wb = XLSX.read(bufferOrArray, { type: "array" });
-    const firstSheetName = wb.SheetNames[0] || "Reporte";
-    const sheet = wb.Sheets[firstSheetName];
-    if (!sheet) {
+    if (!wb.SheetNames || wb.SheetNames.length === 0) {
       return {
         ok: false,
         error: "El archivo Excel no contiene hojas de datos válidas.",
@@ -55,115 +53,146 @@ export function parseExogenaExcel(bufferOrArray: ArrayBuffer | Uint8Array): Exog
       };
     }
 
-    const rawRows: (string | number | null | undefined)[][] = XLSX.utils.sheet_to_json(sheet, {
-      header: 1,
-    });
-
     let year = 2025;
     let tipoDocumento = "C. C.";
     let nit = "";
     let nombre = "";
 
-    // 1. Extraer Metadatos del Encabezado (Filas 1 a 12)
-    for (let i = 0; i < Math.min(14, rawRows.length); i++) {
-      const row = rawRows[i] || [];
-      const rowText = row.map((c) => String(c || "").trim()).join(" ");
+    const items: ExogenaTerceroItem[] = [];
+    const resumen = emptyResumen();
+    const amountsToApply: Record<string, number> = {};
 
-      if (/Año al que se refiere/i.test(rowText)) {
-        const found = rowText.match(/\b(202[0-9])\b/);
-        if (found) year = parseInt(found[1], 10);
-      }
-      if (/Tipo de documento:/i.test(rowText)) {
-        for (let j = 0; j < row.length; j++) {
-          const val = String(row[j] || "").trim();
-          if (/C\.?\s*C\.?|NIT|C\.?\s*E\.?|Pasaporte/i.test(val) && !val.includes("Tipo de documento")) {
-            tipoDocumento = val;
-            break;
-          }
+    // 1. Extraer Metadatos del Encabezado en todas las hojas
+    for (const sheetName of wb.SheetNames) {
+      const sheet = wb.Sheets[sheetName];
+      if (!sheet) continue;
+      const rawRows: (string | number | null | undefined)[][] = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+      for (let i = 0; i < Math.min(25, rawRows.length); i++) {
+        const row = rawRows[i] || [];
+        const rowText = row.map((c) => String(c || "").trim()).join(" ");
+
+        if (/Año al que se refiere/i.test(rowText) && !year) {
+          const found = rowText.match(/\b(202[0-9])\b/);
+          if (found) year = parseInt(found[1], 10);
         }
-      }
-      if (/Identificación:/i.test(rowText) && !/consultante/i.test(rowText)) {
-        const numMatch = rowText.match(/Identificación:\s*([0-9]+)/i);
-        if (numMatch) {
-          nit = numMatch[1];
-        } else {
+        if (/Tipo de documento:/i.test(rowText) && tipoDocumento === "C. C.") {
           for (let j = 0; j < row.length; j++) {
             const val = String(row[j] || "").trim();
-            if (/^\d{6,12}$/.test(val)) {
-              nit = val;
+            if (/C\.?\s*C\.?|NIT|C\.?\s*E\.?|Pasaporte/i.test(val) && !val.includes("Tipo de documento")) {
+              tipoDocumento = val;
+              break;
+            }
+          }
+        }
+        if (/Identificación:/i.test(rowText) && !nit && !/consultante/i.test(rowText)) {
+          const numMatch = rowText.match(/Identificación:\s*([0-9]+)/i);
+          if (numMatch) {
+            nit = numMatch[1];
+          } else {
+            for (let j = 0; j < row.length; j++) {
+              const val = String(row[j] || "").trim();
+              if (/^\d{6,12}$/.test(val)) {
+                nit = val;
+                break;
+              }
+            }
+          }
+        }
+        if (/Nombres\s*\/\s*Razón social:/i.test(rowText) && !nombre) {
+          for (let j = 0; j < row.length; j++) {
+            const val = String(row[j] || "").trim();
+            if (val && !val.includes("Nombres") && !val.includes("Razón social") && val.length > 3) {
+              nombre = val;
               break;
             }
           }
         }
       }
-      if (/Nombres\s*\/\s*Razón social:/i.test(rowText)) {
-        for (let j = 0; j < row.length; j++) {
-          const val = String(row[j] || "").trim();
-          if (val && !val.includes("Nombres") && !val.includes("Razón social") && val.length > 3) {
-            nombre = val;
-            break;
+    }
+
+    // 2. Procesar Tablas de Datos en todas las hojas del archivo Excel
+    for (const sheetName of wb.SheetNames) {
+      const sheet = wb.Sheets[sheetName];
+      if (!sheet) continue;
+      const rawRows: (string | number | null | undefined)[][] = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+      if (rawRows.length === 0) continue;
+
+      // Detectar fila de encabezados de la tabla y mapeo de columnas
+      let dataHeaderIndex = -1;
+      let colNitInf = 0;
+      let colNomInf = 1;
+      let colNitTerc = 2;
+      let colNomTerc = 3;
+      let colDetalle = 4;
+      let colValor = 5;
+      let colSugerida = 6;
+      let colInfoAdic = 7;
+
+      for (let i = 0; i < Math.min(30, rawRows.length); i++) {
+        const row = rawRows[i] || [];
+        const rowStr = row.map((c) => String(c || "")).join("|");
+
+        if (/NIT/i.test(rowStr) && (/Detalle|Concepto/i.test(rowStr) || /Valor|Saldo|Monto/i.test(rowStr) || /Razón Social|Nombre/i.test(rowStr))) {
+          dataHeaderIndex = i;
+
+          // Mapear columnas dinámicamente si los nombres coinciden
+          for (let c = 0; c < row.length; c++) {
+            const head = String(row[c] || "").trim().toLowerCase();
+            if (/nit.*informante|nit.*persona.*reporta/i.test(head)) colNitInf = c;
+            else if (/nombre.*informante|raz[oó]n.*informante/i.test(head)) colNomInf = c;
+            else if (/nit.*tercero|identificaci[oó]n.*reportad/i.test(head)) colNitTerc = c;
+            else if (/nombre.*tercero|raz[oó]n.*reportad/i.test(head)) colNomTerc = c;
+            else if (/detalle|concepto|descripci[oó]n/i.test(head)) colDetalle = c;
+            else if (/valor|saldo|monto|cuant[ií]a/i.test(head)) colValor = c;
+            else if (/sugerid|casilla/i.test(head)) colSugerida = c;
+            else if (/adicional|informaci[oó]n.*adic/i.test(head)) colInfoAdic = c;
           }
+          break;
         }
       }
-    }
 
-    // 2. Buscar la fila donde inician los datos (Header: NIT, Nombre, Detalle, Valor...)
-    let dataHeaderIndex = -1;
-    for (let i = 0; i < rawRows.length; i++) {
-      const row = rawRows[i] || [];
-      const rowStr = row.map((c) => String(c || "")).join("|");
-      if (/NIT/i.test(rowStr) && (/Detalle/i.test(rowStr) || /Valor/i.test(rowStr) || /Razón Social/i.test(rowStr))) {
-        dataHeaderIndex = i;
-        break;
+      const startIndex = dataHeaderIndex !== -1 ? dataHeaderIndex + 1 : 14;
+
+      for (let i = startIndex; i < rawRows.length; i++) {
+        const row = rawRows[i] || [];
+        if (!row || row.length === 0) continue;
+
+        const informanteNit = String(row[colNitInf] || "").trim();
+        const informanteNombre = String(row[colNomInf] || "").trim();
+        const reportadoNit = String(row[colNitTerc] || "").trim();
+        const reportadoNombre = String(row[colNomTerc] || "").trim();
+        const detalle = String(row[colDetalle] || "").trim();
+        const rawValor = row[colValor];
+        const casillaSugerida = String(row[colSugerida] || "").trim();
+        const infoAdicional = String(row[colInfoAdic] || "").trim();
+
+        const valor = typeof rawValor === "number" ? Math.round(rawValor) : parseValorNumber(rawValor);
+
+        // Ignorar filas vacías
+        if (!detalle && valor === 0 && !informanteNombre) continue;
+
+        // Ignorar encabezados repetidos
+        if (/NIT.*Informante|Concepto.*Detalle|Razón Social/i.test(informanteNit + informanteNombre + detalle)) continue;
+
+        const item: ExogenaTerceroItem = {
+          informanteNit,
+          informanteNombre,
+          reportadoNit,
+          reportadoNombre,
+          detalle,
+          valor,
+          casillaSugerida,
+          infoAdicional,
+        };
+
+        items.push(item);
+        classifyItem(item, resumen, amountsToApply);
       }
     }
 
-    const items: ExogenaTerceroItem[] = [];
-    const resumen = emptyResumen();
-    const amountsToApply: Record<string, number> = {};
-
-    const startIndex = dataHeaderIndex !== -1 ? dataHeaderIndex + 1 : 14;
-
-    for (let i = startIndex; i < rawRows.length; i++) {
-      const row = rawRows[i] || [];
-      if (!row || row.length === 0) continue;
-
-      // Estructura oficial DIAN:
-      // Col 0: NIT informante
-      // Col 1: Nombre informante
-      // Col 2: NIT tercero
-      // Col 3: Nombre tercero
-      // Col 4: Detalle / Concepto
-      // Col 5: Valor
-      // Col 6: Uso declaración Sugerida
-      // Col 7: Información Adicional
-      const informanteNit = String(row[0] || "").trim();
-      const informanteNombre = String(row[1] || "").trim();
-      const reportadoNit = String(row[2] || "").trim();
-      const reportadoNombre = String(row[3] || "").trim();
-      const detalle = String(row[4] || "").trim();
-      const rawValor = row[5];
-      const casillaSugerida = String(row[6] || "").trim();
-      const infoAdicional = String(row[7] || "").trim();
-
-      const valor = typeof rawValor === "number" ? Math.round(rawValor) : parseValorNumber(rawValor);
-
-      if (!detalle && valor === 0 && !informanteNombre) continue;
-
-      const item: ExogenaTerceroItem = {
-        informanteNit,
-        informanteNombre,
-        reportadoNit,
-        reportadoNombre,
-        detalle,
-        valor,
-        casillaSugerida,
-        infoAdicional,
-      };
-
-      items.push(item);
-      classifyItem(item, resumen, amountsToApply);
-    }
+    // Filtrar si hay múltiples registros y solo uno era un resumen de $0
+    const finalItems = items.length > 1 ? items.filter((x) => x.valor > 0 || x.informanteNombre || !x.detalle.includes("Tope")) : items;
 
     return {
       ok: true,
@@ -171,7 +200,7 @@ export function parseExogenaExcel(bufferOrArray: ArrayBuffer | Uint8Array): Exog
       tipoDocumento,
       nit,
       nombre,
-      items,
+      items: finalItems,
       resumen,
       amountsToApply,
     };
