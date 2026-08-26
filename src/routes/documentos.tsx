@@ -620,7 +620,11 @@ function SubirPanel() {
     
     if (doc.kind === "formato220" || /220/i.test(doc.name)) {
       parsedData = parseFormato220Text(textToScan);
-    } else if (["extractoBanco", "saldoCuentas", "certGmf", "certRendimientos"].includes(doc.kind) || /extracto|cuenta|banco/i.test(doc.name)) {
+    } else if (
+      ["extractoBanco", "saldoCuentas", "certGmf", "certRendimientos", "certRetencion"].includes(doc.kind) ||
+      /extracto|cuenta|banco|retencion|rendimiento|costos|nu|nequi|bogota/i.test(doc.name) ||
+      /cuenta\s*de\s*ahorros?|rendimientos|gravamen|4x1000|saldo\s*cuenta/i.test(textToScan)
+    ) {
       parsedData = parseCertificadoBancarioText(textToScan);
     }
 

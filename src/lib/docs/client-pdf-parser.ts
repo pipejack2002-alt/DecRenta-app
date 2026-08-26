@@ -94,10 +94,10 @@ export async function parseDocumentInBrowser(
       ) {
         detectedKind = "rut";
       } else if (
-        /extracto|cuenta\s*de\s*ahorro|cuenta\s*corriente|bancolombia|nu\s*colombia|davivienda|banco|costos\s*totales|dep[oó]sito|saldo\s*final:|4x1000\s*gmf:|nequi/i.test(
+        /extracto|cuenta\s*de\s*ahorro|cuenta\s*corriente|bancolombia|nu\s*colombia|tu\s*cuenta\s*de\s*ahorros|davivienda|banco|costos\s*totales|dep[oó]sito|saldo\s*final:|4x1000\s*gmf:|nequi|rendimientos\s*totales/i.test(
           fullText
         ) ||
-        /extracto|cuenta|costos|banco|nu|nequi|bogota/i.test(fileName)
+        /extracto|cuenta|costos|banco|nu|nequi|bogota|rendimiento/i.test(fileName)
       ) {
         detectedKind = "extractoBanco";
       } else if (/certificado\s*de\s*retenci[oó]n|retenci[oó]n\s*en\s*la\s*fuente/i.test(fullText) || /retencion/i.test(fileName)) {
@@ -111,17 +111,22 @@ export async function parseDocumentInBrowser(
     if (detectedKind === "formato220" || /220/i.test(fileName)) {
       parsedData = parseFormato220Text(fullText);
     } else if (
-      ["extractoBanco", "saldoCuentas", "certGmf", "certRendimientos"].includes(detectedKind) ||
-      /extracto|cuenta|banco|costos|nu|nequi|bogota/i.test(fileName)
+      ["extractoBanco", "saldoCuentas", "certGmf", "certRendimientos", "certRetencion"].includes(detectedKind) ||
+      /extracto|cuenta|banco|costos|nu|nequi|bogota|retencion/i.test(fileName) ||
+      /cuenta\s*de\s*ahorros?|rendimientos|gravamen|4x1000|saldo\s*cuenta|bancolombia|nu\s*colombia/i.test(fullText)
     ) {
+      // 1. Ejecutar extractor bancario universal (saldo, rendimientos, GMF, retención bancaria)
       parsedData = parseCertificadoBancarioText(fullText);
-    } else if (detectedKind === "certRetencion" || /retenci[oó]n/i.test(fileName)) {
-      const retMatch = fullText.match(/(?:retenci[oó]n|valor\s*retenido|total\s*retenido)[\s\S]{1,50}?\$?\s*([0-9]{1,3}(?:[\.,][0-9]{3})+|[0-9]{4,12})/i);
-      if (retMatch) {
-        const val = cleanCurrency(retMatch[1]);
-        if (val > 0) {
-          parsedData.amounts["extra.retenciones"] = val;
-          parsedData.notes = `Retención en la fuente extraída: $${val.toLocaleString("es-CO")}`;
+
+      // 2. Si no encontró retención en banco y es un certificado general de retención, buscar retención estándar
+      if (!parsedData.amounts["extra.retenciones"]) {
+        const retMatch = fullText.match(/(?:retenci[oó]n|valor\s*retenido|total\s*retenido)[\s\S]{1,50}?\$?\s*([0-9]{1,3}(?:[\.,][0-9]{3})+|[0-9]{4,12})/i);
+        if (retMatch) {
+          const val = cleanCurrency(retMatch[1]);
+          if (val > 0) {
+            parsedData.amounts["extra.retenciones"] = val;
+            if (!parsedData.notes) parsedData.notes = `Retención en la fuente extraída: $${val.toLocaleString("es-CO")}`;
+          }
         }
       }
     } else if (detectedKind === "rut") {
