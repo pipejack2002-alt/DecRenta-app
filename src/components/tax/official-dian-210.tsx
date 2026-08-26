@@ -368,7 +368,7 @@ export function OfficialDian210({
 
               <div className="flex-1 grid grid-cols-12 divide-x divide-black">
                 <div
-                  className={`col-span-3 p-1 cursor-pointer transition-colors ${
+                  className={`col-span-2 p-1 cursor-pointer transition-colors ${
                     selectedCasilla === 5 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
                   }`}
                   onClick={() => setSelectedCasilla(5)}
@@ -398,7 +398,7 @@ export function OfficialDian210({
                   title="Casilla 7: Primer apellido - Clic para instructivo / Doble clic para editar"
                 >
                   <span className="block text-[8px] text-gray-600">7. Primer apellido</span>
-                  <span className="font-semibold uppercase text-[11px] truncate block">{id.primerApellido || "—"}</span>
+                  <span className="font-semibold uppercase text-[11px] whitespace-nowrap block">{id.primerApellido || "—"}</span>
                 </div>
                 <div
                   className={`col-span-2 p-1 cursor-pointer transition-colors ${
@@ -409,7 +409,7 @@ export function OfficialDian210({
                   title="Casilla 8: Segundo apellido - Clic para instructivo / Doble clic para editar"
                 >
                   <span className="block text-[8px] text-gray-600">8. Segundo apellido</span>
-                  <span className="font-semibold uppercase text-[11px] truncate block">{id.segundoApellido || "—"}</span>
+                  <span className="font-semibold uppercase text-[11px] whitespace-nowrap block">{id.segundoApellido || "—"}</span>
                 </div>
                 <div
                   className={`col-span-2 p-1 cursor-pointer transition-colors ${
@@ -420,18 +420,18 @@ export function OfficialDian210({
                   title="Casilla 9: Primer nombre - Clic para instructivo / Doble clic para editar"
                 >
                   <span className="block text-[8px] text-gray-600">9. Primer nombre</span>
-                  <span className="font-semibold uppercase text-[11px] truncate block">{id.primerNombre || "—"}</span>
+                  <span className="font-semibold uppercase text-[11px] whitespace-nowrap block">{id.primerNombre || "—"}</span>
                 </div>
                 <div
-                  className={`col-span-1 p-1 cursor-pointer transition-colors ${
+                  className={`col-span-2 p-1 cursor-pointer transition-colors ${
                     selectedCasilla === 10 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
                   }`}
                   onClick={() => setSelectedCasilla(10)}
                   onDoubleClick={() => setIsEditingDeclarante(true)}
                   title="Casilla 10: Otros nombres - Clic para instructivo / Doble clic para editar"
                 >
-                  <span className="block text-[8px] text-gray-600">10. Otros</span>
-                  <span className="font-semibold uppercase text-[11px] truncate block">{id.otrosNombres || "—"}</span>
+                  <span className="block text-[8px] text-gray-600">10. Otros nombres</span>
+                  <span className="font-semibold uppercase text-[11px] whitespace-nowrap block">{id.otrosNombres || "—"}</span>
                 </div>
                 <div
                   className={`col-span-1 p-1 text-center cursor-pointer transition-colors ${
