@@ -21,6 +21,7 @@ import {
   type VaultDoc,
 } from "@/lib/docs/types";
 import { useAppStore, useComputed } from "@/lib/store";
+import { extractPdfServerFn } from "@/lib/docs/pdf-extractor";
 import { formatCOP, formatNumber } from "@/lib/tax/format";
 import { Button } from "@/components/ui/button";
 import { Card, CardHint, CardTitle } from "@/components/ui/card";
@@ -438,34 +439,73 @@ function SubirPanel() {
 
   async function onFiles(files: FileList | null) {
     if (!files) return;
-    for (const file of Array.from(files)) {
-      const isText =
-        /text\/|xml|json|csv/.test(file.type) || /\.(txt|xml|json|csv)$/i.test(file.name);
-      let text = "";
-      if (isText) {
-        text = (await file.text()).slice(0, MAX_NORMA_CHARS);
-      }
-      const doc: VaultDoc = {
-        id: crypto.randomUUID(),
-        kind,
-        name: file.name,
-        mime: file.type || "application/octet-stream",
-        size: file.size,
-        addedAt: new Date().toISOString(),
-        notes: text ? text.slice(0, 400) : file.type.includes("pdf") ? "PDF registrado. Pegue el texto para extraer cifras o ingerir la norma." : "",
-      };
-      addDoc(doc);
-      if (isNormaKind(kind) && text.trim()) {
-        addNorma({
+    setBusy(true);
+    setErr(null);
+    try {
+      for (const file of Array.from(files)) {
+        const isPdf = file.type.includes("pdf") || /\.pdf$/i.test(file.name);
+        const isText =
+          /text\/|xml|json|csv/.test(file.type) || /\.(txt|xml|json|csv)$/i.test(file.name);
+
+        let text = "";
+        let extractedAmounts: Record<string, number> = {};
+        let notes = "";
+
+        if (isPdf) {
+          try {
+            const arrayBuffer = await file.arrayBuffer();
+            const bytes = new Uint8Array(arrayBuffer);
+            let binary = "";
+            for (let i = 0; i < bytes.byteLength; i++) {
+              binary += String.fromCharCode(bytes[i]);
+            }
+            const base64 = btoa(binary);
+            const pdfRes = await extractPdfServerFn({ data: { base64, fileName: file.name, kind } });
+            if (pdfRes.ok) {
+              text = pdfRes.text.slice(0, MAX_NORMA_CHARS);
+              extractedAmounts = pdfRes.amounts || {};
+              notes = pdfRes.notes || (text ? text.slice(0, 400) : "PDF procesado exitosamente.");
+            } else {
+              notes = "PDF registrado. " + (pdfRes.error || "");
+            }
+          } catch (e: any) {
+            notes = "PDF registrado.";
+          }
+        } else if (isText) {
+          text = (await file.text()).slice(0, MAX_NORMA_CHARS);
+          notes = text ? text.slice(0, 400) : "";
+        }
+
+        const doc: VaultDoc = {
           id: crypto.randomUUID(),
           kind,
-          title: file.name.replace(/\.[^.]+$/, ""),
-          citation: file.name,
-          text,
+          name: file.name,
+          mime: file.type || "application/octet-stream",
+          size: file.size,
           addedAt: new Date().toISOString(),
-          fileName: file.name,
-        });
+          notes,
+          extracted: Object.keys(extractedAmounts).length > 0 ? extractedAmounts : undefined,
+        };
+        addDoc(doc);
+
+        if (isNormaKind(kind) && text.trim()) {
+          addNorma({
+            id: crypto.randomUUID(),
+            kind,
+            title: file.name.replace(/\.[^.]+$/, ""),
+            citation: file.name,
+            text,
+            addedAt: new Date().toISOString(),
+            fileName: file.name,
+          });
+        }
+
+        if (Object.keys(extractedAmounts).length > 0) {
+          setPreviewData({ doc, amounts: extractedAmounts, notes });
+        }
       }
+    } finally {
+      setBusy(false);
     }
   }
 
