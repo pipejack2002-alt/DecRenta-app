@@ -57,7 +57,7 @@ function DeclaracionPage() {
 
   const live = useMemo(() => {
     const pick = (n: number) => ({ n, v: c.casillas[n] ?? 0, l: CASILLA_LABELS[n] });
-    return [29, 31, 32, 42, 97, 126, 136, 137].map(pick);
+    return [29, 30, 31, 32, 42, 97, 126, 136, 137].map(pick);
   }, [c.casillas]);
 
   return (
