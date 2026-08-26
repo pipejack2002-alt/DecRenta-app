@@ -262,7 +262,7 @@ function classifyItem(
   resumen: ReturnType<typeof emptyResumen>,
   amounts: Record<string, number>,
 ) {
-  const d = item.detalle.toLowerCase();
+  const d = (item.detalle + " " + item.casillaSugerida + " " + item.infoAdicional).toLowerCase();
   const v = item.valor;
   if (v <= 0) return;
 
@@ -271,37 +271,37 @@ function classifyItem(
   };
 
   // 1. Salarios y pagos laborales (Formato 2276 / 1001)
-  if (/salario|emolumento|sueldo|pago laboral|comisi[oó]n laboral|horas extra|recargo nocturno|vi[aá]tico|bonificaci[oó]n laboral|indemnizaci[oó]n laboral/i.test(d)) {
+  if (/salario|emolumento|sueldo|pago laboral|comisi[oó]n laboral|horas extra|recargo nocturno|vi[aá]tico|bonificaci[oó]n laboral|indemnizaci[oó]n laboral|concepto 5001|formato 2276/i.test(d)) {
     resumen.ingresosTrabajo += v;
     add("trabajo.salarios", v);
   }
   // Cesantías e intereses sobre cesantías
-  else if (/cesant[ií]a|intereses.*cesant[ií]a/i.test(d)) {
+  else if (/cesant[ií]a|intereses.*cesant[ií]a|concepto 5002/i.test(d)) {
     resumen.cesantias += v;
     add("trabajo.cesantiasPagadas", v);
   }
   // Salud obligatoria (EPS / ADRES)
-  else if (/aporte.*salud|salud obligatoria|cotizaci[oó]n.*salud|pago.*eps/i.test(d)) {
+  else if (/aporte.*salud|salud obligatoria|cotizaci[oó]n.*salud|pago.*eps|concepto 5007/i.test(d)) {
     resumen.saludObligatoria += v;
     add("trabajo.aportesSaludObligatorios", v);
   }
   // Pensión obligatoria y Fondo de Solidaridad Pensional
-  else if (/aporte.*pensi[oó]n|pensi[oó]n obligatoria|cotizaci[oó]n.*pensi[oó]n|fondo de solidaridad/i.test(d)) {
+  else if (/aporte.*pensi[oó]n|pensi[oó]n obligatoria|cotizaci[oó]n.*pensi[oó]n|fondo de solidaridad|concepto 5008/i.test(d)) {
     resumen.pensionObligatoria += v;
     add("trabajo.aportesPensionObligatorios", v);
   }
   // Pensiones de jubilación, vejez o invalidez
   else if (/mesada pensional|pensi[oó]n.*vejez|pensi[oó]n.*jubilaci[oó]n|pensi[oó]n.*invalidez|pensi[oó]n.*sobreviviente/i.test(d)) {
     resumen.pensiones += v;
-    add("pensiones.ingresosBrutos", v);
+    add("pensiones.ingresos", v);
   }
   // 2. Honorarios, servicios y comisiones independientes (Formato 1001 / 1007)
-  else if (/honorario|servicio personal|servicio profesional|servicio t[eé]cnico|compensaci[oó]n servicio/i.test(d)) {
+  else if (/honorario|servicio personal|servicio profesional|servicio t[eé]cnico|compensaci[oó]n servicio|concepto 5005|concepto 5006/i.test(d)) {
     resumen.ingresosHonorarios += v;
     add("honorarios.ingresos", v);
   }
   else if (/costo.*honorario|deducci[oó]n.*honorario|gasto.*servicio/i.test(d)) {
-    add("honorarios.costosProcedentes", v);
+    add("honorarios.costos", v);
   }
   // 3. Rentas de Capital, Arriendos y Rendimientos Financieros (Formato 1019 / 1020 / 1001 / 1007)
   else if (/rendimiento.*financiero|inter[eé]s.*financiero|intereses abonados|rendimiento.*cdt|intereses.*dep[oó]sito|rendimiento.*fiduciario/i.test(d)) {
@@ -314,7 +314,7 @@ function classifyItem(
   }
   else if (/regal[ií]a|propiedad intelectual|derecho de autor/i.test(d)) {
     resumen.ingresosCapital += v;
-    add("capital.otros", v);
+    add("capital.regalias", v);
   }
   // 4. Rentas No Laborales / Comercio / Negocios (Formato 1007 / 1001)
   else if (/ingreso.*comercio|venta.*bienes|venta.*mercanc[ií]a|ingreso no laboral|actividad agropecuaria/i.test(d)) {
@@ -325,42 +325,42 @@ function classifyItem(
     add("noLaborales.devoluciones", v);
   }
   else if (/costo.*compra|compra.*mercanc[ií]a|adquisici[oó]n.*materia prima|costo no laboral/i.test(d)) {
-    add("noLaborales.costosProcedentes", v);
+    add("noLaborales.costos", v);
   }
   // 5. Dividendos y participaciones
   else if (/dividendo|participaci[oó]n.*societaria|utilidad.*socio/i.test(d)) {
     resumen.dividendos += v;
-    add("dividendos.ordinarios2017", v);
+    add("dividendos.subcedula1", v);
   }
   // 6. Ganancias Ocasionales (Notarías, Loterías, Herencias)
   else if (/herencia|legado|donaci[oó]n|loter[ií]a|rifa|apuesta|premio|venta.*activo fijo/i.test(d)) {
     resumen.gananciasOcasionales += v;
-    add("gananciasOcasionales.ingresosBrutos", v);
+    add("gananciasOcasionales.enajenacionActivos", v);
   }
   // 7. Retenciones en la fuente a favor (Formato 1003)
-  else if (/retenci[oó]n.*fuente|autorretenci[oó]n|retenci[oó]n practicada/i.test(d)) {
+  else if (/retenci[oó]n.*fuente|autorretenci[oó]n|retenci[oó]n practicada|formato 1003/i.test(d)) {
     resumen.retencionesFuente += v;
     add("extra.retenciones", v);
   }
   // 8. Cuentas bancarias, CDTs y Activos (Patrimonio a 31 dic - Formato 1019 / 1020 / 1008)
-  else if (/saldo.*cuenta|cuenta.*ahorro|cuenta.*corriente|dep[oó]sito.*electr[oó]nico|nequi|daviplata|certificado.*dep[oó]sito|cdt|fiducia|fondo.*inversi[oó]n/i.test(d)) {
+  else if (/saldo.*cuenta|cuenta.*ahorro|cuenta.*corriente|dep[oó]sito.*electr[oó]nico|nequi|daviplata|certificado.*dep[oó]sito|cdt|fiducia|fondo.*inversi[oó]n|concepto 1019/i.test(d)) {
     resumen.patrimonioBruto += v;
     add("patrimonio.cuentas", v);
   }
   else if (/inmueble.*escritura|compra.*inmueble|adquisici[oó]n.*predio/i.test(d)) {
     resumen.patrimonioBruto += v;
-    add("patrimonio.bienesInmuebles", v);
+    add("patrimonio.inmuebles", v);
   }
   else if (/veh[ií]culo.*adquisici[oó]n|compra.*automotor|matr[ií]cula.*veh[ií]culo/i.test(d)) {
     resumen.patrimonioBruto += v;
     add("patrimonio.vehiculos", v);
   }
-  else if (/cuenta.*por cobrar|saldo.*a favor.*cliente|pr[eé]stamo.*otorgado/i.test(d)) {
+  else if (/cuenta.*por cobrar|saldo.*a favor.*cliente|pr[eé]stamo.*otorgado|formato 1008/i.test(d)) {
     resumen.patrimonioBruto += v;
     add("patrimonio.cuentasPorCobrar", v);
   }
   // 9. Deudas y obligaciones financieras a 31 dic (Formato 1009 / 1019 / 1020)
-  else if (/saldo.*deuda|saldo.*cr[eé]dito|obligaci[oó]n financiera|pr[eé]stamo.*bancario|saldo.*tarjeta/i.test(d)) {
+  else if (/saldo.*deuda|saldo.*cr[eé]dito|obligaci[oó]n financiera|pr[eé]stamo.*bancario|saldo.*tarjeta|concepto 1020|formato 1009/i.test(d)) {
     resumen.deudas += v;
     add("patrimonio.obligacionesFinancieras", v);
   }
@@ -379,19 +379,19 @@ function classifyItem(
   }
   else if (/interes.*icetex|cr[eé]dito educativo/i.test(d)) {
     resumen.icetex += v;
-    add("trabajo.interesesIcetex", v);
+    add("trabajo.icetex", v);
   }
   else if (/aporte.*afc|aporte.*fvp|pensi[oó]n voluntaria/i.test(d)) {
     resumen.afcFvp += v;
-    add("trabajo.rentasExentasAfc", v);
+    add("trabajo.aportesAfcFvpAvc", v);
   }
   else if (/gmf|gravamen.*movimientos financieros|4x1000/i.test(d)) {
     resumen.gmf += v;
     add("trabajo.gmf", v);
   }
-  else if (/factura electr[oó]nica|1%.*compras/i.test(d)) {
+  else if (/factura electr[oó]nica|1%.*compras|concepto 1056/i.test(d)) {
     resumen.facturaElectronica += v;
-    add("extra.comprasFacturaElectronica", v);
+    add("trabajo.comprasFacturaElectronica", v);
   }
   // 11. Consignaciones / Consumos para control de topes de declaración
   else if (/consignaci[oó]n|movimiento cr[eé]dito|dep[oó]sito bancario/i.test(d)) {
@@ -400,10 +400,10 @@ function classifyItem(
   }
   else if (/tarjeta.*cr[eé]dito|consumo.*tarjeta/i.test(d)) {
     resumen.consumosTarjetas += v;
-    add("topes.consumosTarjetas", v);
+    add("topes.consumosTarjeta", v);
   }
   else if (/compra|adquisici[oó]n/i.test(d)) {
     resumen.comprasTotales += v;
-    add("topes.comprasTotales", v);
+    add("topes.compras", v);
   }
 }
