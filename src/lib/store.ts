@@ -280,10 +280,23 @@ export const useAppStore = create<AppState>()(
       createProfile: (name = "Nuevo Cliente", nit = "", year = 2025) => {
         const id = `cli-${Date.now()}`;
         const newDecl = emptyDeclaration(year);
-        if (nit) newDecl.identity.nit = nit;
-        const parts = name.split(" ");
-        if (parts[0]) newDecl.identity.primerNombre = parts[0];
-        if (parts[1]) newDecl.identity.primerApellido = parts[1];
+        if (nit) newDecl.identity.nit = nit.replace(/\D/g, "");
+        const parts = name.trim().split(/\s+/).filter(Boolean);
+        if (parts.length === 1) {
+          newDecl.identity.primerNombre = parts[0];
+        } else if (parts.length === 2) {
+          newDecl.identity.primerNombre = parts[0];
+          newDecl.identity.primerApellido = parts[1];
+        } else if (parts.length === 3) {
+          newDecl.identity.primerNombre = parts[0];
+          newDecl.identity.primerApellido = parts[1];
+          newDecl.identity.segundoApellido = parts[2];
+        } else if (parts.length >= 4) {
+          newDecl.identity.primerNombre = parts[0];
+          newDecl.identity.otrosNombres = parts[1];
+          newDecl.identity.primerApellido = parts[2];
+          newDecl.identity.segundoApellido = parts.slice(3).join(" ");
+        }
 
         const now = new Date().toISOString();
         const profile: ClientProfile = {
@@ -412,10 +425,28 @@ export const useAppStore = create<AppState>()(
       updateProfileInfo: (id, name, nit, year) => {
         set((s) => {
           const cleanName = name.trim();
-          const cleanNit = nit.trim();
-          const parts = cleanName.split(" ");
-          const primerNombre = parts[0] || "";
-          const primerApellido = parts.slice(1).join(" ") || "";
+          const cleanNit = nit.trim().replace(/\D/g, "");
+          const parts = cleanName.split(/\s+/).filter(Boolean);
+          let primerNombre = "";
+          let otrosNombres = "";
+          let primerApellido = "";
+          let segundoApellido = "";
+
+          if (parts.length === 1) {
+            primerNombre = parts[0];
+          } else if (parts.length === 2) {
+            primerNombre = parts[0];
+            primerApellido = parts[1];
+          } else if (parts.length === 3) {
+            primerNombre = parts[0];
+            primerApellido = parts[1];
+            segundoApellido = parts[2];
+          } else if (parts.length >= 4) {
+            primerNombre = parts[0];
+            otrosNombres = parts[1];
+            primerApellido = parts[2];
+            segundoApellido = parts.slice(3).join(" ");
+          }
 
           if (s.activeProfileId === id) {
             const nextDecl = {
@@ -424,7 +455,9 @@ export const useAppStore = create<AppState>()(
               identity: {
                 ...s.declaration.identity,
                 primerNombre: primerNombre || s.declaration.identity.primerNombre,
+                otrosNombres: otrosNombres || s.declaration.identity.otrosNombres,
                 primerApellido: primerApellido || s.declaration.identity.primerApellido,
+                segundoApellido: segundoApellido || s.declaration.identity.segundoApellido,
                 nit: cleanNit || s.declaration.identity.nit,
               },
             };
