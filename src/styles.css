@@ -217,6 +217,7 @@
     overflow: visible !important;
   }
 
+  /* Estilos específicos para el Informe del Cliente */
   #informe-cliente-print {
     display: block !important;
     width: 100% !important;
@@ -281,11 +282,11 @@
     width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
-    transform: scale(0.86) !important;
+    transform: scale(0.94) !important;
     transform-origin: top center !important;
     margin: 0 auto !important;
-    margin-bottom: -140px !important;
-    border: 1.5px solid #1b4f72 !important;
+    margin-bottom: -50px !important;
+    border: 1.5px solid black !important;
     box-shadow: none !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
@@ -295,20 +296,20 @@
     background: #ffffff !important;
   }
 
-  /* Ajustes de tipografía y espaciado ultra-compacto para encajar en 1 sola hoja vertical */
+  /* Ajustes de tipografía y espaciado ultra-compacto para encajar en 1 sola hoja */
   #dian-form-pdf-container * {
-    line-height: 1.02 !important;
+    line-height: 1.06 !important;
   }
 
   #dian-form-pdf-container .text-\[13px\] {
-    font-size: 8px !important;
+    font-size: 8.5px !important;
   }
 
   #dian-form-pdf-container .text-\[11px\],
   #dian-form-pdf-container .text-\[10px\],
   #dian-form-pdf-container .text-\[9\.5px\],
   #dian-form-pdf-container .text-\[9px\] {
-    font-size: 6.5px !important;
+    font-size: 7px !important;
   }
 
   #dian-form-pdf-container .text-\[8\.5px\],
@@ -316,56 +317,56 @@
   #dian-form-pdf-container .text-\[7\.5px\],
   #dian-form-pdf-container .text-\[7px\],
   #dian-form-pdf-container .text-\[6\.5px\] {
-    font-size: 5.5px !important;
+    font-size: 6px !important;
   }
 
   #dian-form-pdf-container .text-5xl {
-    font-size: 22px !important;
+    font-size: 24px !important;
   }
 
   #dian-form-pdf-container .text-3xl {
-    font-size: 14px !important;
+    font-size: 15px !important;
   }
 
   #dian-form-pdf-container .text-2xl {
-    font-size: 13px !important;
+    font-size: 14px !important;
   }
 
   #dian-form-pdf-container .text-xs {
-    font-size: 6.5px !important;
+    font-size: 7px !important;
   }
 
   #dian-form-pdf-container .text-sm {
-    font-size: 7.5px !important;
+    font-size: 8px !important;
   }
 
   #dian-form-pdf-container .py-0\.5,
   #dian-form-pdf-container .py-1 {
-    padding-top: 0px !important;
-    padding-bottom: 0px !important;
+    padding-top: 0.2px !important;
+    padding-bottom: 0.2px !important;
   }
 
   #dian-form-pdf-container .p-1,
   #dian-form-pdf-container .p-1\.5,
   #dian-form-pdf-container .p-2 {
-    padding-top: 0.5px !important;
-    padding-bottom: 0.5px !important;
+    padding-top: 0.8px !important;
+    padding-bottom: 0.8px !important;
   }
 
   #dian-form-pdf-container .h-9 {
-    height: 14px !important;
+    height: 16px !important;
   }
 
   #dian-form-pdf-container .w-5 {
-    width: 12px !important;
-    min-width: 12px !important;
+    width: 13px !important;
+    min-width: 13px !important;
   }
 
   #dian-form-pdf-container .w-24,
   #dian-form-pdf-container .w-28,
   #dian-form-pdf-container .w-32 {
     width: auto !important;
-    min-width: 44px !important;
+    min-width: 52px !important;
     flex-shrink: 0 !important;
   }
 
@@ -373,8 +374,5 @@
     white-space: nowrap !important;
     overflow: visible !important;
     text-overflow: clip !important;
-    font-size: 6.5px !important;
   }
 }
-
-
