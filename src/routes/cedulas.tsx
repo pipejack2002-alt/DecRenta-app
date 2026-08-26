@@ -174,7 +174,7 @@ function CedulasPage() {
           <CardHint>Num. 5 art. 206. Exentas hasta 1.000 UVT mensuales ({formatCOP(pesosFromUvt(1000, y, ov))} por mes).</CardHint>
           <dl className="mt-3 space-y-2 text-sm">
             <Row k="Ingresos brutos (casilla 99)" v={c.casillas[99] ?? 0} />
-            <Row k="INCRNGO (casilla 100)" v={c.casillas[100] ?? 0} />
+            <Row k="Aportes a salud y solidaridad (casilla 100)" v={c.casillas[100] ?? 0} />
             <Row k="Renta líquida (101)" v={c.casillas[101] ?? 0} />
             <Row k="Rentas exentas (102)" v={c.casillas[102] ?? 0} />
             <Row k="Renta líquida gravable (103)" v={c.casillas[103] ?? 0} />
