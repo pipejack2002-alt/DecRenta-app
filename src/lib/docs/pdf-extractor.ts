@@ -138,26 +138,22 @@ export function parseCertificadoBancarioText(text: string): { amounts: Record<st
     return 0;
   }
 
-  // 1. Saldo Nu (Dinero en tus cajitas / Cuenta Nu al 31 de diciembre)
-  const nuSaldo = extractPattern(/Dinero\s*en\s*tus\s*cajitas[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:\.[0-9]{3})*(?:,[0-9]{2})?)/i) ||
-    extractPattern(/Saldo\s*al\s*cierre[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:\.[0-9]{3})*(?:,[0-9]{2})?)/i);
-  if (nuSaldo > 0) {
-    amounts["patrimonio.cuentas"] = (amounts["patrimonio.cuentas"] || 0) + nuSaldo;
-    notesLines.push(`Saldo Cajitas Nu: $${nuSaldo.toLocaleString("es-CO")}`);
-  }
-
-  // 2. Saldo Bancolombia / Nequi / Davivienda / Otros Bancos (formato colombiano $X.XXX,XX)
-  const banSaldo = extractPattern(/Saldo\s*Dep[oó]sito\s*de\s*bajo\s*monto[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i) ||
+  // 1. Saldo Nu / Bancolombia / Nequi / Davivienda / BBVA / Occidente / Otros Bancos
+  const banSaldo = extractPattern(/Saldo\s*cuenta\s*(?:de\s*)?ahorros[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i) ||
+    extractPattern(/Saldo\s*cuenta\s*corriente[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i) ||
+    extractPattern(/Dinero\s*en\s*tus\s*cajitas[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:\.[0-9]{3})*(?:,[0-9]{2})?)/i) ||
+    extractPattern(/Saldo\s*al\s*cierre[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i) ||
+    extractPattern(/Saldo\s*Dep[oó]sito\s*de\s*bajo\s*monto[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i) ||
     extractPattern(/Saldo\s*al\s*corte[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i) ||
-    extractPattern(/Saldo\s*a\s*31\s*de\s*diciembre[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i) ||
-    extractPattern(/Saldo\s*Final[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i);
+    extractPattern(/Saldo\s*a(?:l)?\s*31\s*de\s*diciembre[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i) ||
+    extractPattern(/Saldo\s*Final[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i) ||
+    extractPattern(/Total\s*Saldo[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i);
   if (banSaldo > 0) {
     amounts["patrimonio.cuentas"] = (amounts["patrimonio.cuentas"] || 0) + banSaldo;
     notesLines.push(`Saldo Bancario: $${banSaldo.toLocaleString("es-CO")}`);
   }
 
-  // 2c. Nequi extracto — "Total cargos Saldo actual $X,XXX.XX $Y,YYY.YY"
-  // pdfjs pone Total cargos y Saldo actual en la misma línea; el 1.er $ es Total cargos, el 2.º es Saldo actual
+  // 1b. Nequi extracto — "Total cargos Saldo actual $X,XXX.XX $Y,YYY.YY"
   if (!amounts["patrimonio.cuentas"]) {
     const nequiSaldoMatch = text.match(/Total\s+cargos\s+Saldo\s+actual\s+\$[0-9,\.]+\s+\$([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{1,2})?)/i) ||
       text.match(/Saldo\s+actual\s+\$[0-9,\.]+\s+\$([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{1,2})?)/i);
@@ -170,54 +166,56 @@ export function parseCertificadoBancarioText(text: string): { amounts: Record<st
     }
   }
 
-  // 2b. Banco Bogotá extracto — "Saldo Final:   1,234.56" (formato US con coma-miles y punto-decimal)
+  // 1c. Banco Bogotá extracto — "Saldo Final:   1,234.56" (formato US)
   const bogSaldo = extractPattern(/Saldo\s+Final:\s+([0-9]+(?:,[0-9]{3})*(?:\.[0-9]{1,2})?)/i);
   if (bogSaldo > 0 && !amounts["patrimonio.cuentas"]) {
     amounts["patrimonio.cuentas"] = (amounts["patrimonio.cuentas"] || 0) + bogSaldo;
     notesLines.push(`Saldo Final (Banco Bogotá): $${bogSaldo.toLocaleString("es-CO")}`);
   }
 
-  // 3. GMF Nu / Nequi / Bancolombia / Bogotá (4x1.000)
-  const gmf = extractPattern(/Grav[aá]men(?:es)?\s*a\s*los\s*movimientos\s*financieros[\s\S]{0,100}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:,\d{2})?)/i) ||
-    extractPattern(/Total\s*GMF[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:,\d{2})?)/i) ||
+  // 2. GMF (4x1.000) Nu / Nequi / Bancolombia / Bogotá / Otros
+  const gmf = extractPattern(/Grav[aá]men(?:es)?\s*a\s*los\s*movimientos\s*financieros[\s\S]{0,100}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i) ||
+    extractPattern(/Total\s*GMF[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i) ||
+    extractPattern(/GMF\s*(?:o\s*4x1000)?[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i) ||
     extractPattern(/Vr\s*Gravamen[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.\d{2})?)/i);
   if (gmf > 0) {
     amounts["trabajo.gmf"] = (amounts["trabajo.gmf"] || 0) + gmf;
     notesLines.push(`GMF (4x1000): $${gmf.toLocaleString("es-CO")}`);
   }
 
-  // 3b. Banco Bogotá extracto GMF — "Total   4x1000 GMF:   1,234.56" (formato US)
+  // 2b. Banco Bogotá extracto GMF — "Total   4x1000 GMF:   1,234.56" (formato US)
   const bogGmf = extractPattern(/Total\s+4x1000\s+GMF:\s+([0-9]+(?:,[0-9]{3})*(?:\.[0-9]{1,2})?)/i);
   if (bogGmf > 0 && !amounts["trabajo.gmf"]) {
     amounts["trabajo.gmf"] = (amounts["trabajo.gmf"] || 0) + bogGmf;
     notesLines.push(`GMF 4x1000 (Banco Bogotá): $${bogGmf.toLocaleString("es-CO")}`);
   }
 
-  // 4. Rendimientos / Intereses Nu / Nequi / Bancolombia  (formato CO: ,xx — formato US: .xx)
-  const rend = extractPattern(/Rendimientos\s*\|\s*[\d,]+%\s*Efectivo[\s\S]{0,30}?\+\$?\s*([0-9]{1,3}(?:\.[0-9]{3})*(?:,[0-9]{2})?)/i) ||
+  // 3. Rendimientos / Intereses (Rentas de Capital) Nu / Nequi / Bancolombia / Davivienda / BBVA
+  const rend = extractPattern(/Rendimientos\s*(?:totales|financieros|causados|abonados|brutos|pagados)?(?:\s*del\s*a[ñn]o)?[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i) ||
+    extractPattern(/Rendimientos\s*\|\s*[\d,]+%\s*Efectivo[\s\S]{0,30}?\+\$?\s*([0-9]{1,3}(?:\.[0-9]{3})*(?:,[0-9]{2})?)/i) ||
     extractPattern(/Valor\s+de\s+intereses\s+pagados\s+\$([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{1,2})?)/i) ||
-    extractPattern(/Intereses\s*pagados[\s\S]{0,30}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i) ||
-    extractPattern(/Rendimientos\s*financieros\s*abonados[\s\S]{0,30}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i);
+    extractPattern(/Intereses\s*(?:totales|financieros|causados|abonados|pagados)?(?:\s*del\s*a[ñn]o)?[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i) ||
+    extractPattern(/Total\s*Rendimientos[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i);
   if (rend > 0) {
     amounts["capital.intereses"] = (amounts["capital.intereses"] || 0) + rend;
     notesLines.push(`Rendimientos/Intereses: $${rend.toLocaleString("es-CO")}`);
   }
 
-  // 4b. Banco Bogotá extracto intereses — "Total   Intereses:   123.45" (formato US)
+  // 3b. Banco Bogotá extracto intereses — "Total   Intereses:   123.45" (formato US)
   const bogIntereses = extractPattern(/Total\s+Intereses:\s+([0-9]+(?:,[0-9]{3})*(?:\.[0-9]{1,2})?)/i);
   if (bogIntereses > 0 && !amounts["capital.intereses"]) {
     amounts["capital.intereses"] = (amounts["capital.intereses"] || 0) + bogIntereses;
     notesLines.push(`Intereses (Banco Bogotá): $${bogIntereses.toLocaleString("es-CO")}`);
   }
 
-  // 5. Retenciones bancarias practicadas
-  const retBan = extractPattern(/Retenci[oó]n\s*en\s*la\s*fuente\s*practicada[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i);
+  // 4. Retenciones bancarias practicadas
+  const retBan = extractPattern(/Retenci[oó]n\s*en\s*la\s*fuente(?:\s*practicada)?[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i);
   if (retBan > 0) {
     amounts["extra.retenciones"] = (amounts["extra.retenciones"] || 0) + retBan;
     notesLines.push(`Retención bancaria: $${retBan.toLocaleString("es-CO")}`);
   }
 
-  // 5b. Banco Bogotá extracto retención — "Total   Retencion:   123.45" (formato US)
+  // 4b. Banco Bogotá extracto retención — "Total   Retencion:   123.45" (formato US)
   const bogRet = extractPattern(/Total\s+Retenci[oó]n:\s+([0-9]+(?:,[0-9]{3})*(?:\.[0-9]{1,2})?)/i);
   if (bogRet > 0 && !amounts["extra.retenciones"]) {
     amounts["extra.retenciones"] = (amounts["extra.retenciones"] || 0) + bogRet;
