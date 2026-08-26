@@ -11,6 +11,21 @@ export interface CasillaMetaInfo {
 }
 
 export const CASILLAS_OFICIALES_210: CasillaMetaInfo[] = [
+  // Encabezado y Datos del Declarante
+  { num: 1, label: "Año gravable", legal: "Art. 596 E.T.", section: "Encabezado Oficial DIAN" },
+  { num: 4, label: "Número de formulario", legal: "Art. 578 E.T.", section: "Encabezado Oficial DIAN" },
+  { num: 5, label: "Número de Identificación Tributaria (NIT)", legal: "Art. 555-2 E.T.", section: "Datos del Declarante (RUT)" },
+  { num: 6, label: "Dígito de verificación (DV)", legal: "Art. 555-2 E.T.", section: "Datos del Declarante (RUT)" },
+  { num: 7, label: "Primer apellido", legal: "Casilla 31 RUT", section: "Datos del Declarante (RUT)" },
+  { num: 8, label: "Segundo apellido", legal: "Casilla 32 RUT", section: "Datos del Declarante (RUT)" },
+  { num: 9, label: "Primer nombre", legal: "Casilla 33 RUT", section: "Datos del Declarante (RUT)" },
+  { num: 10, label: "Otros nombres", legal: "Casilla 34 RUT", section: "Datos del Declarante (RUT)" },
+  { num: 12, label: "Código Dirección Seccional", legal: "Casilla 12 RUT", section: "Datos del Declarante (RUT)" },
+  { num: 24, label: "Actividad económica principal CIIU", legal: "Casillas 46/48/50 RUT", section: "Datos del Declarante (RUT)" },
+  { num: 25, label: "Código de corrección", legal: "Arts. 588 y 589 E.T.", section: "Datos del Declarante (RUT)" },
+  { num: 26, label: "No. Formulario anterior", legal: "Art. 588 E.T.", section: "Datos del Declarante (RUT)" },
+  { num: 27, label: "Fracción año gravable siguiente", legal: "Art. 595 E.T.", section: "Datos del Declarante (RUT)" },
+
   // Patrimonio
   { num: 28, label: "1 % compras con factura electrónica", legal: "Art. 336 inc. 2 E.T.", section: "Patrimonio", formula: "Máx 240 UVT" },
   { num: 29, label: "Total patrimonio bruto", legal: "Arts. 261 a 281 E.T.", section: "Patrimonio" },

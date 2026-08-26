@@ -1,16 +1,21 @@
 import {
   CheckCircle2,
+  Edit3,
   FileCode,
   FileSpreadsheet,
   Maximize2,
   Minimize2,
+  Pencil,
   Printer,
   Search,
+  UserCheck,
+  X,
   ZoomIn,
   ZoomOut,
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { CIIU_COMMON, SECCIONALES } from "@/lib/catalogs";
 import { useAppStore, useComputed } from "@/lib/store";
 import {
   CASILLAS_OFICIALES_210,
@@ -23,6 +28,7 @@ import {
 } from "@/lib/tax/export-dian";
 import { formatCOP, formatNumber } from "@/lib/tax/format";
 import { INSTRUCTIVO_DIAN_210 } from "@/lib/tax/instructivo-dian";
+import type { TaxYear } from "@/lib/tax/types";
 
 interface OfficialDian210Props {
   compact?: boolean;
@@ -36,12 +42,15 @@ export function OfficialDian210({
   className = "",
 }: OfficialDian210Props) {
   const d = useAppStore((s) => s.declaration);
+  const patch = useAppStore((s) => s.patch);
+  const setYear = useAppStore((s) => s.setYear);
   const c = useComputed();
   const id = d.identity;
 
   const [searchQuery, setSearchQuery] = useState("");
   const [zoomLevel, setZoomLevel] = useState<number>(compact ? 85 : 100);
   const [selectedCasilla, setSelectedCasilla] = useState<number | null>(null);
+  const [isEditingDeclarante, setIsEditingDeclarante] = useState(false);
 
   const fullName =
     [id.primerApellido, id.segundoApellido, id.primerNombre, id.otrosNombres]
@@ -176,8 +185,18 @@ export function OfficialDian210({
             </div>
           </div>
 
-          {/* Botones de Exportación */}
+          {/* Botones de Acción y Exportación */}
           <div className="flex flex-wrap items-center gap-1.5">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsEditingDeclarante(true)}
+              className="h-8 text-xs border-forest/50 text-forest-deep hover:bg-forest-mist font-semibold shadow-xs"
+              title="Editar Año, Número de formulario, NIT, Nombres, Seccional y Actividad CIIU"
+            >
+              <Pencil className="mr-1.5 size-3.5 text-forest" />
+              Editar Cabecera / RUT
+            </Button>
             <Button
               variant="default"
               size="sm"
@@ -251,7 +270,14 @@ export function OfficialDian210({
               ——————————————————————————————————————————————————————————— */}
           <div className="grid grid-cols-12 border-b border-black">
             {/* Logo DIAN y Casilla 1 */}
-            <div className="col-span-3 border-r border-black p-2 flex flex-col justify-between">
+            <div
+              className={`col-span-3 border-r border-black p-2 flex flex-col justify-between cursor-pointer transition-colors ${
+                selectedCasilla === 1 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
+              }`}
+              onClick={() => setSelectedCasilla(1)}
+              onDoubleClick={() => setIsEditingDeclarante(true)}
+              title="Casilla 1: Año gravable (Art. 596 E.T.) - Clic para instructivo / Doble clic para editar"
+            >
               <div className="flex items-center gap-1.5">
                 {/* Logotipo DIAN oficial */}
                 <div className="font-sans text-2xl font-black tracking-tight text-black flex items-baseline uppercase">
@@ -262,8 +288,8 @@ export function OfficialDian210({
               </div>
               <div className="mt-2 text-[9px] leading-tight">
                 <span className="font-bold">1. Año:</span>
-                <span className="ml-2 font-mono text-sm font-black">{d.year}</span>
-                <p className="text-[8px] text-gray-500 mt-1">Espacio reservado para la DIAN</p>
+                <span className="ml-2 font-mono text-sm font-black text-forest-deep">{d.year}</span>
+                <p className="text-[8px] text-gray-500 mt-1">Espacio reservado para la DIAN (Clic para editar)</p>
               </div>
             </div>
 
@@ -272,7 +298,14 @@ export function OfficialDian210({
               <h1 className="font-sans text-[13px] font-bold uppercase tracking-tight leading-snug px-4">
                 Declaración de renta y complementario personas naturales y asimiladas residentes y sucesiones ilíquidas de causantes residentes
               </h1>
-              <div className="mt-2 flex items-center justify-center gap-2 text-[10px]">
+              <div
+                className={`mt-2 inline-flex items-center justify-center gap-2 text-[10px] cursor-pointer rounded p-1 transition-colors self-center ${
+                  selectedCasilla === 4 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
+                }`}
+                onClick={() => setSelectedCasilla(4)}
+                onDoubleClick={() => setIsEditingDeclarante(true)}
+                title="Casilla 4: Número de formulario único (Art. 578 E.T.) - Clic para instructivo / Doble clic para editar"
+              >
                 <span className="font-bold">4. Número de formulario:</span>
                 <span className="font-mono font-bold text-xs bg-gray-50 px-2 py-0.5 border border-gray-300">
                   {id.numeroFormulario || `210${d.year}000${id.nit ? id.nit.slice(-5) : "41029"}`}
@@ -301,31 +334,80 @@ export function OfficialDian210({
               </div>
 
               <div className="flex-1 grid grid-cols-12 divide-x divide-black">
-                <div className="col-span-3 p-1">
+                <div
+                  className={`col-span-3 p-1 cursor-pointer transition-colors ${
+                    selectedCasilla === 5 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
+                  }`}
+                  onClick={() => setSelectedCasilla(5)}
+                  onDoubleClick={() => setIsEditingDeclarante(true)}
+                  title="Casilla 5: Número de Identificación Tributaria (NIT) - Clic para instructivo / Doble clic para editar"
+                >
                   <span className="block text-[8px] text-gray-600">5. Número de Identificación Tributaria (NIT)</span>
                   <span className="font-mono font-bold text-xs">{id.nit || "—"}</span>
                 </div>
-                <div className="col-span-1 p-1 text-center">
+                <div
+                  className={`col-span-1 p-1 text-center cursor-pointer transition-colors ${
+                    selectedCasilla === 6 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
+                  }`}
+                  onClick={() => setSelectedCasilla(6)}
+                  onDoubleClick={() => setIsEditingDeclarante(true)}
+                  title="Casilla 6: Dígito de Verificación (DV) - Clic para instructivo / Doble clic para editar"
+                >
                   <span className="block text-[8px] text-gray-600">6.DV</span>
                   <span className="font-mono font-bold text-xs">{id.dv || "0"}</span>
                 </div>
-                <div className="col-span-2 p-1">
+                <div
+                  className={`col-span-2 p-1 cursor-pointer transition-colors ${
+                    selectedCasilla === 7 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
+                  }`}
+                  onClick={() => setSelectedCasilla(7)}
+                  onDoubleClick={() => setIsEditingDeclarante(true)}
+                  title="Casilla 7: Primer apellido - Clic para instructivo / Doble clic para editar"
+                >
                   <span className="block text-[8px] text-gray-600">7. Primer apellido</span>
                   <span className="font-semibold uppercase text-[11px] truncate block">{id.primerApellido || "—"}</span>
                 </div>
-                <div className="col-span-2 p-1">
+                <div
+                  className={`col-span-2 p-1 cursor-pointer transition-colors ${
+                    selectedCasilla === 8 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
+                  }`}
+                  onClick={() => setSelectedCasilla(8)}
+                  onDoubleClick={() => setIsEditingDeclarante(true)}
+                  title="Casilla 8: Segundo apellido - Clic para instructivo / Doble clic para editar"
+                >
                   <span className="block text-[8px] text-gray-600">8. Segundo apellido</span>
                   <span className="font-semibold uppercase text-[11px] truncate block">{id.segundoApellido || "—"}</span>
                 </div>
-                <div className="col-span-2 p-1">
+                <div
+                  className={`col-span-2 p-1 cursor-pointer transition-colors ${
+                    selectedCasilla === 9 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
+                  }`}
+                  onClick={() => setSelectedCasilla(9)}
+                  onDoubleClick={() => setIsEditingDeclarante(true)}
+                  title="Casilla 9: Primer nombre - Clic para instructivo / Doble clic para editar"
+                >
                   <span className="block text-[8px] text-gray-600">9. Primer nombre</span>
                   <span className="font-semibold uppercase text-[11px] truncate block">{id.primerNombre || "—"}</span>
                 </div>
-                <div className="col-span-1 p-1">
+                <div
+                  className={`col-span-1 p-1 cursor-pointer transition-colors ${
+                    selectedCasilla === 10 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
+                  }`}
+                  onClick={() => setSelectedCasilla(10)}
+                  onDoubleClick={() => setIsEditingDeclarante(true)}
+                  title="Casilla 10: Otros nombres - Clic para instructivo / Doble clic para editar"
+                >
                   <span className="block text-[8px] text-gray-600">10. Otros</span>
                   <span className="font-semibold uppercase text-[11px] truncate block">{id.otrosNombres || "—"}</span>
                 </div>
-                <div className="col-span-1 p-1 text-center">
+                <div
+                  className={`col-span-1 p-1 text-center cursor-pointer transition-colors ${
+                    selectedCasilla === 12 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
+                  }`}
+                  onClick={() => setSelectedCasilla(12)}
+                  onDoubleClick={() => setIsEditingDeclarante(true)}
+                  title="Casilla 12: Código Dirección Seccional DIAN - Clic para instructivo / Doble clic para editar"
+                >
                   <span className="block text-[7.5px] text-gray-600 leading-none">12.Cód.Secc</span>
                   <span className="font-mono font-bold text-xs">{id.dirSeccional || "03"}</span>
                 </div>
@@ -334,23 +416,57 @@ export function OfficialDian210({
 
             {/* Fila Actividad CIIU, Correcciones y Casilla 28 */}
             <div className="grid grid-cols-12 divide-x divide-black bg-[#f4f7f9]">
-              <div className="col-span-3 p-1">
+              <div
+                className={`col-span-3 p-1 cursor-pointer transition-colors ${
+                  selectedCasilla === 24 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
+                }`}
+                onClick={() => setSelectedCasilla(24)}
+                onDoubleClick={() => setIsEditingDeclarante(true)}
+                title="Casilla 24: Actividad económica principal CIIU - Clic para instructivo / Doble clic para editar"
+              >
                 <span className="block text-[8px] text-gray-600">24. Actividad económica principal</span>
                 <span className="font-mono font-bold text-xs">{id.actividadCiiu || "0010"}</span>
               </div>
-              <div className="col-span-1 p-1 text-center">
+              <div
+                className={`col-span-1 p-1 text-center cursor-pointer transition-colors ${
+                  selectedCasilla === 25 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
+                }`}
+                onClick={() => setSelectedCasilla(25)}
+                onDoubleClick={() => setIsEditingDeclarante(true)}
+                title="Casilla 25: Código de corrección (1, 2, 3) - Clic para instructivo / Doble clic para editar"
+              >
                 <span className="block text-[7.5px] text-gray-600 leading-none">25. Cód</span>
                 <span className="font-mono font-bold text-xs">{id.esCorreccion ? (id.codCorreccion || "1") : "—"}</span>
               </div>
-              <div className="col-span-3 p-1">
+              <div
+                className={`col-span-3 p-1 cursor-pointer transition-colors ${
+                  selectedCasilla === 26 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
+                }`}
+                onClick={() => setSelectedCasilla(26)}
+                onDoubleClick={() => setIsEditingDeclarante(true)}
+                title="Casilla 26: Número de formulario anterior - Clic para instructivo / Doble clic para editar"
+              >
                 <span className="block text-[8px] text-gray-600">26. No. Formulario anterior</span>
                 <span className="font-mono text-xs">{id.esCorreccion ? (id.formAnterior || "—") : "—"}</span>
               </div>
-              <div className="col-span-2 p-1 text-center">
+              <div
+                className={`col-span-2 p-1 text-center cursor-pointer transition-colors ${
+                  selectedCasilla === 27 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
+                }`}
+                onClick={() => setSelectedCasilla(27)}
+                onDoubleClick={() => setIsEditingDeclarante(true)}
+                title="Casilla 27: Fracción año gravable siguiente - Clic para instructivo / Doble clic para editar"
+              >
                 <span className="block text-[7.5px] text-gray-600 leading-none">27. Fracción año gravable sig.</span>
                 <span className="font-semibold text-xs">{id.fraccionAnioSiguiente ? "SÍ" : "NO"}</span>
               </div>
-              <div className="col-span-3 p-1 bg-white flex items-center justify-between">
+              <div
+                className={`col-span-3 p-1 bg-white flex items-center justify-between cursor-pointer ${
+                  selectedCasilla === 28 ? "bg-[#ffeb99] ring-2 ring-amber-500" : ""
+                }`}
+                onClick={() => setSelectedCasilla(28)}
+                title="Casilla 28: 1% compras factura electrónica (Tope 240 UVT) - Clic para ver instructivo"
+              >
                 <span className="text-[7.5px] text-gray-700 leading-tight">
                   28. Uno por ciento (1%) de compras con factura electrónica
                 </span>
@@ -968,6 +1084,17 @@ export function OfficialDian210({
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
+                    {selectedCasilla <= 27 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsEditingDeclarante(true)}
+                        className="h-8 text-xs border-forest/40 text-forest-deep hover:bg-forest-mist font-medium"
+                      >
+                        <Pencil className="mr-1.5 size-3" />
+                        Editar este dato
+                      </Button>
+                    )}
                     <div className="text-right">
                       <span className="text-[10px] uppercase tracking-wider text-muted">Valor liquidado</span>
                       <p className="font-mono text-lg font-bold text-forest-deep">
@@ -998,6 +1125,263 @@ export function OfficialDian210({
               </>
             );
           })()}
+        </div>
+      )}
+
+      {/* =========================================================================
+          MODAL DE EDICIÓN DE DATOS DEL DECLARANTE Y ENCABEZADO (Casillas 1 a 27)
+          ========================================================================= */}
+      {isEditingDeclarante && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in">
+          <div className="bg-surface w-full max-w-2xl rounded-2xl border border-line shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            {/* Cabecera del modal */}
+            <div className="flex items-center justify-between p-4 border-b border-line bg-forest-mist/30">
+              <div className="flex items-center gap-2.5">
+                <span className="size-9 rounded-xl bg-forest/15 text-forest flex items-center justify-center font-bold">
+                  <Pencil className="size-4" />
+                </span>
+                <div>
+                  <h3 className="font-bold text-ink text-base">Editar Datos del Declarante y Encabezado</h3>
+                  <p className="text-xs text-muted">Casillas 1 a 27 del Formulario 210 y Registro Único Tributario (RUT)</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsEditingDeclarante(false)}
+                className="size-8 rounded-lg text-muted hover:text-ink hover:bg-muted-mist flex items-center justify-center transition-colors"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            {/* Contenido scrolleable del modal */}
+            <div className="p-5 overflow-y-auto space-y-4 text-xs">
+              {/* Bloque 1: Año y Número de Formulario */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-muted-mist/40 rounded-xl border border-line">
+                <div className="space-y-1">
+                  <label className="font-semibold text-ink flex items-center gap-1.5">
+                    <span className="size-4 rounded bg-forest/20 text-forest text-[10px] flex items-center justify-center font-mono">1</span>
+                    Año Gravable
+                  </label>
+                  <select
+                    className="h-9 w-full rounded-lg border border-line bg-surface px-2.5 text-xs font-semibold"
+                    value={d.year}
+                    onChange={(e) => setYear(Number(e.target.value) as TaxYear)}
+                  >
+                    <option value={2025}>2025 (Declaración en 2026)</option>
+                    <option value={2024}>2024 (Declaración en 2025)</option>
+                    <option value={2023}>2023 (Declaración en 2024)</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-ink flex items-center gap-1.5">
+                    <span className="size-4 rounded bg-forest/20 text-forest text-[10px] flex items-center justify-center font-mono">4</span>
+                    Número de Formulario (Casilla 4)
+                  </label>
+                  <input
+                    type="text"
+                    className="h-9 w-full rounded-lg border border-line bg-surface px-2.5 font-mono text-xs font-semibold"
+                    placeholder={`210${d.year}000${id.nit ? id.nit.slice(-5) : "41029"}`}
+                    value={id.numeroFormulario || ""}
+                    onChange={(e) => patch((x) => (x.identity.numeroFormulario = e.target.value.replace(/\D/g, "")))}
+                  />
+                  <p className="text-[10px] text-muted">Dejar vacío para usar el autogenerado oficial DIAN.</p>
+                </div>
+              </div>
+
+              {/* Bloque 2: NIT y Nombres */}
+              <div className="space-y-3 p-3 bg-white rounded-xl border border-line">
+                <h4 className="font-bold text-ink-soft text-[11px] uppercase tracking-wider">Identificación y Nombres (RUT)</h4>
+                <div className="grid grid-cols-12 gap-2">
+                  <div className="col-span-8 space-y-1">
+                    <label className="font-semibold text-ink">5. Cédula / NIT (sin DV)</label>
+                    <input
+                      type="text"
+                      className="h-9 w-full rounded-lg border border-line bg-surface px-2.5 font-mono text-xs font-semibold"
+                      value={id.nit || ""}
+                      onChange={(e) => patch((x) => (x.identity.nit = e.target.value.replace(/\D/g, "")))}
+                      placeholder="Ej: 1045678901"
+                    />
+                  </div>
+                  <div className="col-span-4 space-y-1">
+                    <label className="font-semibold text-ink text-center block">6. DV</label>
+                    <input
+                      type="text"
+                      maxLength={1}
+                      className="h-9 w-full rounded-lg border border-line bg-surface px-2.5 font-mono text-xs font-bold text-center"
+                      value={id.dv || "0"}
+                      onChange={(e) => patch((x) => (x.identity.dv = e.target.value.slice(0, 1)))}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div className="space-y-1">
+                    <label className="font-semibold text-ink text-[11px]">7. Primer Apellido</label>
+                    <input
+                      type="text"
+                      className="h-9 w-full rounded-lg border border-line bg-surface px-2 text-xs uppercase"
+                      value={id.primerApellido || ""}
+                      onChange={(e) => patch((x) => (x.identity.primerApellido = e.target.value.toUpperCase()))}
+                      placeholder="PÉREZ"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-ink text-[11px]">8. Segundo Apellido</label>
+                    <input
+                      type="text"
+                      className="h-9 w-full rounded-lg border border-line bg-surface px-2 text-xs uppercase"
+                      value={id.segundoApellido || ""}
+                      onChange={(e) => patch((x) => (x.identity.segundoApellido = e.target.value.toUpperCase()))}
+                      placeholder="GÓMEZ"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-ink text-[11px]">9. Primer Nombre</label>
+                    <input
+                      type="text"
+                      className="h-9 w-full rounded-lg border border-line bg-surface px-2 text-xs uppercase"
+                      value={id.primerNombre || ""}
+                      onChange={(e) => patch((x) => (x.identity.primerNombre = e.target.value.toUpperCase()))}
+                      placeholder="JUAN"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-ink text-[11px]">10. Otros Nombres</label>
+                    <input
+                      type="text"
+                      className="h-9 w-full rounded-lg border border-line bg-surface px-2 text-xs uppercase"
+                      value={id.otrosNombres || ""}
+                      onChange={(e) => patch((x) => (x.identity.otrosNombres = e.target.value.toUpperCase()))}
+                      placeholder="CARLOS"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Bloque 3: Seccional y Actividad CIIU */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-muted-mist/40 rounded-xl border border-line">
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="font-semibold text-ink">12. Dirección Seccional</label>
+                    <span className="font-mono text-[10px] font-bold text-forest">Cód. {id.dirSeccional || "03"}</span>
+                  </div>
+                  <select
+                    className="h-9 w-full rounded-lg border border-line bg-surface px-2.5 text-xs"
+                    value={id.dirSeccional || "03"}
+                    onChange={(e) => patch((x) => (x.identity.dirSeccional = e.target.value))}
+                  >
+                    {SECCIONALES.map((s) => (
+                      <option key={s.code} value={s.code}>
+                        {s.code} · {s.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="font-semibold text-ink">24. Actividad CIIU</label>
+                    <input
+                      type="text"
+                      maxLength={4}
+                      className="w-14 h-5 px-1 font-mono text-[11px] font-bold text-center rounded border border-line bg-white"
+                      value={id.actividadCiiu || "0010"}
+                      onChange={(e) => patch((x) => (x.identity.actividadCiiu = e.target.value.replace(/\D/g, "").slice(0, 4)))}
+                      placeholder="0010"
+                    />
+                  </div>
+                  <select
+                    className="h-9 w-full rounded-lg border border-line bg-surface px-2.5 text-xs"
+                    value={id.actividadCiiu || "0010"}
+                    onChange={(e) => patch((x) => (x.identity.actividadCiiu = e.target.value))}
+                  >
+                    {CIIU_COMMON.map((s) => (
+                      <option key={s.code} value={s.code}>
+                        {s.code} · {s.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Bloque 4: Corrección y Fracción */}
+              <div className="p-3 bg-white rounded-xl border border-line space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="font-bold text-ink text-xs">25. ¿Esta declaración es una corrección?</span>
+                    <p className="text-[10px] text-muted">Habilita casillas 25 y 26 según Art. 588 / 589 E.T.</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={!!id.esCorreccion}
+                      onChange={(e) => patch((x) => (x.identity.esCorreccion = e.target.checked))}
+                    />
+                    <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-forest"></div>
+                  </label>
+                </div>
+
+                {id.esCorreccion && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-line">
+                    <div className="space-y-1">
+                      <label className="font-semibold text-ink text-[11px]">25. Código de Corrección</label>
+                      <select
+                        className="h-9 w-full rounded-lg border border-line bg-surface px-2.5 text-xs"
+                        value={id.codCorreccion || "1"}
+                        onChange={(e) => patch((x) => (x.identity.codCorreccion = e.target.value))}
+                      >
+                        <option value="1">1 · Corrección declaración privada (Art. 588)</option>
+                        <option value="2">2 · Disminuye impuesto o aumenta saldo (Art. 589)</option>
+                        <option value="3">3 · Provocada por acto administrativo DIAN</option>
+                      </select>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="font-semibold text-ink text-[11px]">26. No. Formulario Anterior</label>
+                      <input
+                        type="text"
+                        className="h-9 w-full rounded-lg border border-line bg-surface px-2.5 font-mono text-xs"
+                        placeholder="Ej: 210202400012345"
+                        value={id.formAnterior || ""}
+                        onChange={(e) => patch((x) => (x.identity.formAnterior = e.target.value.replace(/\D/g, "")))}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between pt-2 border-t border-line">
+                  <div>
+                    <span className="font-bold text-ink text-xs">27. Fracción de año gravable siguiente</span>
+                    <p className="text-[10px] text-muted">Sucesión ilíquida o cancelación de RUT</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={!!id.fraccionAnioSiguiente}
+                      onChange={(e) => patch((x) => (x.identity.fraccionAnioSiguiente = e.target.checked))}
+                    />
+                    <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-forest"></div>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer del modal */}
+            <div className="p-4 border-t border-line bg-surface flex items-center justify-between">
+              <span className="text-[11px] text-muted">Los cambios se aplican automáticamente en vivo.</span>
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => setIsEditingDeclarante(false)}
+                className="bg-forest hover:bg-forest-deep text-white font-semibold"
+              >
+                <UserCheck className="mr-1.5 size-3.5" />
+                Guardar y Cerrar
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>
