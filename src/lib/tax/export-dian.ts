@@ -1010,7 +1010,7 @@ export async function downloadStyledFormulario210Xlsx(
   renderCasilla(`A${R}`, 91, numVal(91), { formula: "C12+E12+G12+I12", bg: CLR.blueSoft, sz: 8.5, border: { top: M, left: TK, bottom: T, right: T } });
 
   ws.mergeCells(`C${R}:D${R}`);
-  renderCasilla(`C${R}`, 92, numVal(92), { formula: "C20+E20+G20+I20+J5+D45", bg: CLR.blueSoft, sz: 8.5, border: { top: M, left: T, bottom: T, right: T } });
+  renderCasilla(`C${R}`, 92, numVal(92), { formula: "C20+E20+G20+I20+J5+E45", bg: CLR.blueSoft, sz: 8.5, border: { top: M, left: T, bottom: T, right: T } });
 
   ws.mergeCells(`E${R}:G${R}`);
   renderCasilla(`E${R}`, 93, numVal(93), { formula: "C24+E24+G24+I24", bg: CLR.blueSoft, bold: true, sz: 9, border: { top: M, left: T, bottom: T, right: T } });
@@ -1174,53 +1174,128 @@ export async function downloadStyledFormulario210Xlsx(
   renderTab(`A${startLower+13}:A${startLower+16}`, "Ganancias ocasionales", CLR.tabGray, CLR.black, 6.5);
   renderTab(`G${startLower}:G${startLower+16}`, "Liquidación privada", CLR.tabGray, CLR.black, 7.5);
 
-  // 7. TOTALES DE SALDO
-  ws.getRow(R).height = 22;
-  ws.mergeCells(`A${R}:C${R}`);
-  renderCasilla(`A${R}`, 134, numVal(134), { formula: "MAX(0, I38-I39-I40-I41+I42)", bg: CLR.blueLight, sz: 9, border: { top: M, left: TK, bottom: T, right: T } });
-
-  ws.mergeCells(`D${R}:E${R}`);
-  renderCasilla(`D${R}`, 135, numVal(135), { bg: CLR.blueLight, sz: 9, border: { top: M, left: T, bottom: T, right: T } });
-
-  ws.mergeCells(`F${R}:G${R}`);
-  renderCasilla(`F${R}`, 136, c.saldoPagar ?? numVal(136), {
-    formula: "IF(I38+I42+D44>I39+I40+I41, I38+I42+D44-I39-I40-I41, 0)",
-    bg: CLR.redPayBg,
-    textColor: CLR.redPayText,
-    bold: true,
-    sz: 10,
+  // 7. TOTALES DE SALDO (Fila 44)
+  ws.getRow(R).height = 24;
+  
+  // Casilla 134: Saldo a pagar por impuesto
+  ws.mergeCells(`A${R}:B${R}`);
+  const l134 = ws.getCell(`A${R}`);
+  l134.value = "Saldo a pagar por impuesto";
+  l134.font = font(7.5, false, CLR.black);
+  l134.fill = fill(CLR.white);
+  l134.border = { top: M, left: TK, bottom: T, right: T };
+  l134.alignment = aln("left", "middle", true);
+  renderCasilla(`C${R}`, 134, numVal(134), {
+    formula: "MAX(0, I38-I39-I40-I41+I42)",
+    bg: CLR.blueLight,
+    sz: 8.5,
     border: { top: M, left: T, bottom: T, right: T },
   });
 
-  ws.mergeCells(`H${R}:J${R}`);
-  renderCasilla(`H${R}`, 137, c.saldoFavor ?? numVal(137), {
-    formula: "IF(I39+I40+I41>I38+I42+D44, I39+I40+I41-I38-I42-D44, 0)",
+  // Casilla 135: Sanciones
+  const l135 = ws.getCell(`D${R}`);
+  l135.value = "Sanciones";
+  l135.font = font(7.5, false, CLR.black);
+  l135.fill = fill(CLR.white);
+  l135.border = { top: M, left: T, bottom: T, right: T };
+  l135.alignment = aln("left", "middle", true);
+  renderCasilla(`E${R}`, 135, numVal(135), {
+    bg: CLR.blueLight,
+    sz: 8.5,
+    border: { top: M, left: T, bottom: T, right: T },
+  });
+
+  // Casilla 136: TOTAL SALDO A PAGAR
+  ws.mergeCells(`F${R}:G${R}`);
+  const l136 = ws.getCell(`F${R}`);
+  l136.value = "Total saldo a pagar";
+  l136.font = font(7.5, true, CLR.redPayText);
+  l136.fill = fill(CLR.redPayBg);
+  l136.border = { top: M, left: T, bottom: T, right: T };
+  l136.alignment = aln("left", "middle", true);
+  renderCasilla(`H${R}`, 136, c.saldoPagar ?? numVal(136), {
+    formula: "IF(I38+I42+E44>I39+I40+I41, I38+I42+E44-I39-I40-I41, 0)",
+    bg: CLR.redPayBg,
+    textColor: CLR.redPayText,
+    bold: true,
+    sz: 9.5,
+    border: { top: M, left: T, bottom: T, right: T },
+  });
+
+  // Casilla 137: TOTAL SALDO A FAVOR
+  const l137 = ws.getCell(`I${R}`);
+  l137.value = "Total saldo a favor";
+  l137.font = font(7.5, true, CLR.greenFavText);
+  l137.fill = fill(CLR.greenFavBg);
+  l137.border = { top: M, left: T, bottom: T, right: T };
+  l137.alignment = aln("left", "middle", true);
+  renderCasilla(`J${R}`, 137, c.saldoFavor ?? numVal(137), {
+    formula: "IF(I39+I40+I41>I38+I42+E44, I39+I40+I41-I38-I42-E44, 0)",
     bg: CLR.greenFavBg,
     textColor: CLR.greenFavText,
     bold: true,
-    sz: 10,
+    sz: 9.5,
     border: { top: M, left: T, bottom: T, right: TK },
   });
   R++;
 
-  // Fila Datos Informativos
-  ws.getRow(R).height = 20;
-  ws.mergeCells(`A${R}:C${R}`);
-  renderCasilla(`A${R}`, 138, numVal(138), { sz: 8.5, bold: true, border: { top: T, left: TK, bottom: M, right: T } });
+  // Fila Datos Informativos (Fila 45)
+  ws.getRow(R).height = 22;
+  
+  // Casilla 138: Número de dependientes
+  ws.mergeCells(`A${R}:B${R}`);
+  const l138 = ws.getCell(`A${R}`);
+  l138.value = "Número de dependientes económicos";
+  l138.font = font(7, false, CLR.black);
+  l138.fill = fill(CLR.white);
+  l138.border = { top: T, left: TK, bottom: M, right: T };
+  l138.alignment = aln("left", "middle", true);
+  renderCasilla(`C${R}`, 138, numVal(138), {
+    sz: 8.5,
+    bold: true,
+    border: { top: T, left: T, bottom: M, right: T },
+  });
 
-  ws.mergeCells(`D${R}:E${R}`);
-  renderCasilla(`D${R}`, 139, numVal(139), { sz: 8.5, border: { top: T, left: T, bottom: M, right: T } });
+  // Casilla 139: Adición dependientes
+  const l139 = ws.getCell(`D${R}`);
+  l139.value = "Adición dependientes a casilla 92";
+  l139.font = font(7, false, CLR.black);
+  l139.fill = fill(CLR.white);
+  l139.border = { top: T, left: T, bottom: M, right: T };
+  l139.alignment = aln("left", "middle", true);
+  renderCasilla(`E${R}`, 139, numVal(139), {
+    sz: 8.5,
+    border: { top: T, left: T, bottom: M, right: T },
+  });
 
+  // Casilla 140: Superó tope 60%
   ws.mergeCells(`F${R}:G${R}`);
-  const s140 = ws.getCell(`F${R}`);
+  const l140 = ws.getCell(`F${R}`);
+  l140.value = "Ud. superó tope indicativo art. 336-1 E.T., marque X";
+  l140.font = font(6.5, false, CLR.black);
+  l140.fill = fill(CLR.white);
+  l140.border = { top: T, left: T, bottom: M, right: T };
+  l140.alignment = aln("left", "middle", true);
+
+  const s140 = ws.getCell(`H${R}`);
   s140.value = c.casillas[140] ? "X" : "NO";
   s140.font = font(8.5, true, CLR.black);
   s140.fill = fill(CLR.white);
   s140.border = { top: T, left: T, bottom: M, right: T };
   s140.alignment = aln("center", "middle", false);
+  s140.note = "Casilla 140 · Superó límite del 60% de costos y gastos";
 
-  ws.mergeCells(`H${R}:J${R}`);
-  renderCasilla(`H${R}`, 141, numVal(141), { sz: 8.5, border: { top: T, left: T, bottom: M, right: TK } });
+  // Casilla 141: Aporte voluntario
+  const l141 = ws.getCell(`I${R}`);
+  l141.value = "Aporte voluntario";
+  l141.font = font(7, false, CLR.black);
+  l141.fill = fill(CLR.white);
+  l141.border = { top: T, left: T, bottom: M, right: T };
+  l141.alignment = aln("left", "middle", true);
+  renderCasilla(`J${R}`, 141, numVal(141), {
+    sz: 8.5,
+    border: { top: T, left: T, bottom: M, right: TK },
+  });
   R++;
 
   // 8. FIRMAS
@@ -1250,10 +1325,17 @@ export async function downloadStyledFormulario210Xlsx(
   fCont.border = { top: T, left: TK, bottom: TK, right: T };
   fCont.alignment = aln("left", "middle", true);
 
-  ws.mergeCells(`F${R}:H${R}`);
-  renderCasilla(`F${R}`, 980, c.saldoPagar > 0 ? numVal(136) : 0, {
-    formula: "F44",
-    bg: CLR.blueTotal,
+  ws.mergeCells(`F${R}:G${R}`);
+  const l980 = ws.getCell(`F${R}`);
+  l980.value = "980. Pago total $";
+  l980.font = font(8.5, true, CLR.black);
+  l980.fill = fill(CLR.blueTotal);
+  l980.border = { top: T, left: T, bottom: TK, right: T };
+  l980.alignment = aln("left", "middle", true);
+
+  renderCasilla(`H${R}`, 980, c.saldoPagar > 0 ? numVal(136) : 0, {
+    formula: "H44",
+    bg: CLR.white,
     bold: true,
     sz: 10,
     border: { top: T, left: T, bottom: TK, right: T },
@@ -1261,7 +1343,7 @@ export async function downloadStyledFormulario210Xlsx(
 
   ws.mergeCells(`I${R}:J${R}`);
   const fAdh = ws.getCell(`I${R}`);
-  fAdh.value = "996. Espacio número interno DIAN / Adhesivo";
+  fAdh.value = "996. Espacio para el número interno de la DIAN/ Adhesivo";
   fAdh.font = font(6, false, CLR.numMuted);
   fAdh.fill = fill(CLR.white);
   fAdh.border = { top: T, left: T, bottom: TK, right: TK };
