@@ -121,96 +121,65 @@ export function parseFormato220Text(text: string): { amounts: Record<string, num
 }
 
 /**
- * Parsea texto de extractos o certificados bancarios
+ * Parsea texto de extractos o certificados bancarios de entidades financieras colombianas
  */
 export function parseCertificadoBancarioText(text: string): { amounts: Record<string, number>; notes: string } {
   const amounts: Record<string, number> = {};
   const notesLines: string[] = [];
-  const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-
-    // Dinero en cajitas / cuentas Nu
-    if (/dinero\s*en\s*tus\s*cajitas/i.test(line)) {
-      const next = lines[i + 1] || "";
-      const val = cleanCurrency(next);
-      if (val > 0) {
-        amounts["patrimonio.cuentas"] = (amounts["patrimonio.cuentas"] || 0) + val;
-        notesLines.push(`Saldo Cajitas Nu: $${val.toLocaleString("es-CO")}`);
+  function extractPattern(regex: RegExp): number {
+    const match = text.match(regex);
+    if (match && match[1]) {
+      const num = cleanCurrency(match[1]);
+      if (num > 0 && num !== 2024 && num !== 2025 && num !== 2026 && num !== 202511 && num !== 20251231) {
+        return num;
       }
     }
+    return 0;
+  }
 
-    // Saldo Deposito bajo monto
-    if (/saldo\s*dep[oó]sito\s*de\s*bajo\s*monto/i.test(line)) {
-      const m = line.match(/\$?\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/);
-      if (m) {
-        const val = cleanCurrency(m[1]);
-        if (val > 0) {
-          amounts["patrimonio.cuentas"] = (amounts["patrimonio.cuentas"] || 0) + val;
-          notesLines.push(`Saldo Depósito Bancolombia: $${val.toLocaleString("es-CO")}`);
-        }
-      }
-    }
+  // 1. Saldo Nu (Dinero en tus cajitas / Cuenta Nu al 31 de diciembre)
+  const nuSaldo = extractPattern(/Dinero\s*en\s*tus\s*cajitas[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:\.[0-9]{3})*(?:,[0-9]{2})?)/i) ||
+    extractPattern(/Saldo\s*al\s*cierre[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:\.[0-9]{3})*(?:,[0-9]{2})?)/i);
+  if (nuSaldo > 0) {
+    amounts["patrimonio.cuentas"] = (amounts["patrimonio.cuentas"] || 0) + nuSaldo;
+    notesLines.push(`Saldo Cajitas Nu: $${nuSaldo.toLocaleString("es-CO")}`);
+  }
 
-    // GMF Nu / General
-    if (/gravamen\s*a\s*los\s*movimientos\s*financieros|gmf/i.test(line)) {
-      const m = line.match(/\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:,\d{2})?)/i);
-      if (m) {
-        const val = cleanCurrency(m[1]);
-        if (val > 0) {
-          amounts["trabajo.gmf"] = (amounts["trabajo.gmf"] || 0) + val;
-          notesLines.push(`GMF: $${val.toLocaleString("es-CO")}`);
-        }
-      }
-    }
+  // 2. Saldo Bancolombia / Nequi / Davivienda / Otros Bancos
+  const banSaldo = extractPattern(/Saldo\s*Dep[oó]sito\s*de\s*bajo\s*monto[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i) ||
+    extractPattern(/Saldo\s*al\s*corte[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i) ||
+    extractPattern(/Saldo\s*a\s*31\s*de\s*diciembre[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i) ||
+    extractPattern(/Saldo\s*Final[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i);
+  if (banSaldo > 0) {
+    amounts["patrimonio.cuentas"] = (amounts["patrimonio.cuentas"] || 0) + banSaldo;
+    notesLines.push(`Saldo Bancario: $${banSaldo.toLocaleString("es-CO")}`);
+  }
 
-    // GMF Bancolombia
-    if (/Vr\s*Gravamen/i.test(line)) {
-      const next = lines[i + 1] || "";
-      const m = next.match(/\$?\s*([0-9]{1,3}(?:,\d{3})*(?:\.\d{2})?)$/);
-      if (m) {
-        const val = cleanCurrency(m[1]);
-        if (val > 0) {
-          amounts["trabajo.gmf"] = (amounts["trabajo.gmf"] || 0) + val;
-          notesLines.push(`GMF Bancolombia: $${val.toLocaleString("es-CO")}`);
-        }
-      }
-    }
+  // 3. GMF Nu / Nequi / Bancolombia / Bogotá (4x1.000)
+  const gmf = extractPattern(/Grav[aá]men(?:es)?\s*a\s*los\s*movimientos\s*financieros[\s\S]{0,100}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:,\d{2})?)/i) ||
+    extractPattern(/Total\s*GMF[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:,\d{2})?)/i) ||
+    extractPattern(/Vr\s*Gravamen[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.\d{2})?)/i) ||
+    extractPattern(/Total\s*4x1000\s*GMF[\s\S]{0,30}?:\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.\d{2})?)/i);
+  if (gmf > 0) {
+    amounts["trabajo.gmf"] = (amounts["trabajo.gmf"] || 0) + gmf;
+    notesLines.push(`GMF (4x1000): $${gmf.toLocaleString("es-CO")}`);
+  }
 
-    // Rendimientos Nu
-    if (/Rendimientos\s*\|\s*[\d,]+%\s*Efectivo/i.test(line)) {
-      const next = lines[i + 1] || "";
-      const val = cleanCurrency(next);
-      if (val > 0) {
-        amounts["capital.intereses"] = (amounts["capital.intereses"] || 0) + val;
-        notesLines.push(`Rendimientos Nu: $${val.toLocaleString("es-CO")}`);
-      }
-    }
+  // 4. Rendimientos / Intereses Nu / Nequi / Bancolombia
+  const rend = extractPattern(/Rendimientos\s*\|\s*[\d,]+%\s*Efectivo[\s\S]{0,30}?\+\$?\s*([0-9]{1,3}(?:\.[0-9]{3})*(?:,[0-9]{2})?)/i) ||
+    extractPattern(/Intereses\s*pagados[\s\S]{0,30}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:,\d{2})?)/i) ||
+    extractPattern(/Rendimientos\s*financieros\s*abonados[\s\S]{0,30}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:,\d{2})?)/i);
+  if (rend > 0) {
+    amounts["capital.intereses"] = (amounts["capital.intereses"] || 0) + rend;
+    notesLines.push(`Rendimientos/Intereses: $${rend.toLocaleString("es-CO")}`);
+  }
 
-    // Intereses Bancolombia
-    if (/Intereses\s*pagados/i.test(line)) {
-      const m = line.match(/Intereses\s*pagados[\s\S]*?\$?\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:,\d{2})?)/i);
-      if (m) {
-        const val = cleanCurrency(m[1]);
-        if (val > 0) {
-          amounts["capital.intereses"] = (amounts["capital.intereses"] || 0) + val;
-          notesLines.push(`Intereses Bancolombia: $${val.toLocaleString("es-CO")}`);
-        }
-      }
-    }
-
-    // Retenciones bancarias
-    if (/retenci[oó]n\s*en\s*la\s*fuente/i.test(line)) {
-      const m = line.match(/(?:valor|total|vr)?\s*retenci[oó]n[\s\S]*?\$?\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i);
-      if (m) {
-        const val = cleanCurrency(m[1]);
-        if (val > 0) {
-          amounts["extra.retenciones"] = (amounts["extra.retenciones"] || 0) + val;
-          notesLines.push(`Retención bancaria: $${val.toLocaleString("es-CO")}`);
-        }
-      }
-    }
+  // 5. Retenciones bancarias practicadas
+  const retBan = extractPattern(/Retenci[oó]n\s*en\s*la\s*fuente\s*practicada[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i);
+  if (retBan > 0) {
+    amounts["extra.retenciones"] = (amounts["extra.retenciones"] || 0) + retBan;
+    notesLines.push(`Retención bancaria: $${retBan.toLocaleString("es-CO")}`);
   }
 
   return {
