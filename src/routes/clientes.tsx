@@ -68,12 +68,12 @@ function ClientesRoute() {
   // Formulario Crear
   const [newName, setNewName] = useState("");
   const [newNit, setNewNit] = useState("");
-  const [newYear, setNewYear] = useState<TaxYear>(2025);
+  const [newYearStr, setNewYearStr] = useState<string>("2025");
 
   // Formulario Editar
   const [editName, setEditName] = useState("");
   const [editNit, setEditNit] = useState("");
-  const [editYear, setEditYear] = useState<TaxYear>(2025);
+  const [editYearStr, setEditYearStr] = useState<string>("2025");
   const [editStatus, setEditStatus] = useState<ProfileStatus>("borrador");
 
   // Lista de perfiles enriquecidos con su liquidación computada
@@ -132,9 +132,11 @@ function ClientesRoute() {
   // Handlers
   function handleCreate() {
     if (!newName.trim()) return;
-    const id = createProfile(newName.trim(), newNit.trim(), newYear);
+    const yearNum = Number(newYearStr) || 2025;
+    const id = createProfile(newName.trim(), newNit.trim(), yearNum as TaxYear);
     setNewName("");
     setNewNit("");
+    setNewYearStr("2025");
     setShowCreateModal(false);
     switchProfile(id);
     navigate({ to: "/declaracion" });
@@ -144,13 +146,14 @@ function ClientesRoute() {
     setEditingProfile(p);
     setEditName(p.name);
     setEditNit(p.nit === "Sin NIT" ? "" : p.nit);
-    setEditYear(p.year || 2025);
+    setEditYearStr(String(p.year || 2025));
     setEditStatus(p.status || "borrador");
   }
 
   function handleSaveEdit() {
     if (!editingProfile || !editName.trim()) return;
-    updateProfileInfo(editingProfile.id, editName.trim(), editNit.trim(), editYear);
+    const yearNum = Number(editYearStr) || 2025;
+    updateProfileInfo(editingProfile.id, editName.trim(), editNit.trim(), yearNum as TaxYear);
     updateProfileStatus(editingProfile.id, editStatus);
     setEditingProfile(null);
   }
@@ -597,16 +600,42 @@ function ClientesRoute() {
                   <Label htmlFor="new-year" className="text-xs font-semibold text-ink">
                     Año Gravable
                   </Label>
-                  <select
-                    id="new-year"
-                    value={newYear}
-                    onChange={(e) => setNewYear(Number(e.target.value) as TaxYear)}
-                    className="w-full h-9 rounded-lg border border-line bg-bg px-3 text-xs text-ink focus:outline-none focus:ring-1 focus:ring-forest font-semibold"
-                  >
-                    <option value={2025}>2025 (Declara en 2026)</option>
-                    <option value={2024}>2024 (Declara en 2025)</option>
-                    <option value={2023}>2023</option>
-                  </select>
+                  <div className="flex items-center gap-1.5">
+                    <select
+                      id="new-year"
+                      value={["2027", "2026", "2025", "2024", "2023", "2022", "2021", "2020", "2019", "2018"].includes(newYearStr) ? newYearStr : "custom"}
+                      onChange={(e) => {
+                        if (e.target.value !== "custom") setNewYearStr(e.target.value);
+                      }}
+                      className="flex-1 h-9 rounded-lg border border-line bg-bg px-2 text-xs text-ink focus:outline-none focus:ring-1 focus:ring-forest font-semibold cursor-pointer"
+                    >
+                      <option value="2027">AG 2027 (Declarar en 2028)</option>
+                      <option value="2026">AG 2026 (Declarar en 2027)</option>
+                      <option value="2025">AG 2025 (Declarar en 2026)</option>
+                      <option value="2024">AG 2024 (Declarar en 2025)</option>
+                      <option value="2023">AG 2023</option>
+                      <option value="2022">AG 2022</option>
+                      <option value="2021">AG 2021</option>
+                      <option value="2020">AG 2020</option>
+                      <option value="2019">AG 2019</option>
+                      <option value="2018">AG 2018</option>
+                      {!["2027", "2026", "2025", "2024", "2023", "2022", "2021", "2020", "2019", "2018"].includes(newYearStr) && newYearStr && (
+                        <option value={newYearStr}>AG {newYearStr}</option>
+                      )}
+                    </select>
+                    <Input
+                      type="text"
+                      maxLength={4}
+                      placeholder="2025"
+                      value={newYearStr}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, "").slice(0, 4);
+                        setNewYearStr(val);
+                      }}
+                      className="w-18 h-9 text-xs font-mono font-bold text-center border-line bg-bg"
+                      title="Digita cualquier año gravable libremente"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -690,16 +719,42 @@ function ClientesRoute() {
                   <Label htmlFor="edit-year" className="text-xs font-semibold text-ink">
                     Año Gravable
                   </Label>
-                  <select
-                    id="edit-year"
-                    value={editYear}
-                    onChange={(e) => setEditYear(Number(e.target.value) as TaxYear)}
-                    className="w-full h-9 rounded-lg border border-line bg-bg px-3 text-xs text-ink focus:outline-none focus:ring-1 focus:ring-forest"
-                  >
-                    <option value={2025}>AG 2025</option>
-                    <option value={2024}>AG 2024</option>
-                    <option value={2023}>AG 2023</option>
-                  </select>
+                  <div className="flex items-center gap-1.5">
+                    <select
+                      id="edit-year"
+                      value={["2027", "2026", "2025", "2024", "2023", "2022", "2021", "2020", "2019", "2018"].includes(editYearStr) ? editYearStr : "custom"}
+                      onChange={(e) => {
+                        if (e.target.value !== "custom") setEditYearStr(e.target.value);
+                      }}
+                      className="flex-1 h-9 rounded-lg border border-line bg-bg px-2 text-xs text-ink focus:outline-none focus:ring-1 focus:ring-forest font-semibold cursor-pointer"
+                    >
+                      <option value="2027">AG 2027 (Declarar en 2028)</option>
+                      <option value="2026">AG 2026 (Declarar en 2027)</option>
+                      <option value="2025">AG 2025 (Declarar en 2026)</option>
+                      <option value="2024">AG 2024 (Declarar en 2025)</option>
+                      <option value="2023">AG 2023</option>
+                      <option value="2022">AG 2022</option>
+                      <option value="2021">AG 2021</option>
+                      <option value="2020">AG 2020</option>
+                      <option value="2019">AG 2019</option>
+                      <option value="2018">AG 2018</option>
+                      {!["2027", "2026", "2025", "2024", "2023", "2022", "2021", "2020", "2019", "2018"].includes(editYearStr) && editYearStr && (
+                        <option value={editYearStr}>AG {editYearStr}</option>
+                      )}
+                    </select>
+                    <Input
+                      type="text"
+                      maxLength={4}
+                      placeholder="2025"
+                      value={editYearStr}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, "").slice(0, 4);
+                        setEditYearStr(val);
+                      }}
+                      className="w-18 h-9 text-xs font-mono font-bold text-center border-line bg-bg"
+                      title="Digita cualquier año gravable libremente"
+                    />
+                  </div>
                 </div>
               </div>
 
