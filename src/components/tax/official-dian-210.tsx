@@ -263,13 +263,14 @@ export function OfficialDian210({
       {/* =========================================================================
           CONTENEDOR DEL FORMULARIO 210 (RÉPLICA EXACTA DEL Formulario_210_2024.pdf)
           ========================================================================= */}
-      <div className="overflow-x-auto rounded-xl border border-gray-400 bg-gray-100 p-2 sm:p-6 shadow-2xl flex justify-center print:p-0 print:m-0 print:border-none print:bg-transparent print:shadow-none">
+      <div className="overflow-x-auto rounded-2xl border border-line bg-surface/30 p-1 sm:p-2 shadow-xs flex justify-center print:p-0 print:m-0 print:border-none print:bg-transparent print:shadow-none">
         <div
           id="dian-form-pdf-container"
-          className="relative bg-white text-black border border-black shadow-md origin-top select-text print:!transform-none print:!m-0 print:!w-full print:!min-w-0 print:!mb-0 print:border-black"
+          className="relative bg-white text-black border border-black shadow-sm origin-top select-text print:!transform-none print:!m-0 print:!w-full print:!min-w-0 print:!mb-0 print:border-black"
           style={{
-            width: "980px",
-            minWidth: "980px",
+            width: "100%",
+            maxWidth: "1060px",
+            minWidth: "960px",
             transform: zoomLevel !== 100 ? `scale(${zoomLevel / 100})` : "none",
             transformOrigin: "top center",
             marginBottom: zoomLevel < 100 ? `-${(100 - zoomLevel) * 11}px` : zoomLevel > 100 ? `${(zoomLevel - 100) * 11}px` : "0",
