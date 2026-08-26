@@ -266,7 +266,7 @@ export function OfficialDian210({
       <div className="overflow-x-auto rounded-2xl border border-line bg-surface/30 p-1 sm:p-2 shadow-xs flex justify-center print:p-0 print:m-0 print:border-none print:bg-transparent print:shadow-none">
         <div
           id="dian-form-pdf-container"
-          className="relative bg-white text-black border border-black shadow-sm origin-top select-text print:!transform-none print:!m-0 print:!w-full print:!min-w-0 print:!mb-0 print:border-black"
+          className="relative bg-white text-black border border-black shadow-sm origin-top select-text print:!transform-none print:!m-0 print:!w-full print:!max-w-none print:!min-w-0 print:!mb-0 print:border-black print:!bg-white"
           style={{
             width: "100%",
             maxWidth: "1060px",

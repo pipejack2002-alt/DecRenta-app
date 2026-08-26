@@ -117,16 +117,33 @@
     box-sizing: border-box !important;
   }
 
+  :root {
+    --color-bg: #ffffff !important;
+    --color-bg-raised: #ffffff !important;
+    --color-surface: #ffffff !important;
+    --color-background: #ffffff !important;
+    --color-card: #ffffff !important;
+    --color-paper: #ffffff !important;
+  }
+
   html,
   body {
     margin: 0 !important;
     padding: 0 !important;
-    background: white !important;
-    color: black !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
     width: 100% !important;
     height: auto !important;
     overflow: visible !important;
     -webkit-font-smoothing: antialiased !important;
+  }
+
+  #app,
+  .min-h-screen,
+  main {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
   }
 
   /* Ocultar el app de fondo cuando se imprime un modal como el Informe para el Cliente */
@@ -211,18 +228,34 @@
 
   /* Reset outer container and background wrappers */
   .overflow-x-auto,
+  .p-1,
   .p-2,
+  .p-3,
+  .p-4,
+  .sm\:p-2,
+  .sm\:p-3,
   .sm\:p-6,
+  .sm\:p-8,
   .bg-gray-100,
+  .bg-surface,
+  .bg-surface\/30,
+  .bg-surface\/40,
+  .bg-surface\/50,
+  .bg-bg,
+  .bg-bg-raised,
   .shadow-2xl,
-  .shadow-md {
+  .shadow-md,
+  .shadow-sm,
+  .shadow-xs {
     padding: 0 !important;
     margin: 0 !important;
     background: transparent !important;
+    background-color: transparent !important;
     border: none !important;
     box-shadow: none !important;
     overflow: visible !important;
     display: block !important;
+    width: 100% !important;
   }
 
   /* Contenedor oficial del Formulario 210 */
