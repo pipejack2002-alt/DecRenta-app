@@ -88,16 +88,20 @@ export async function parseDocumentInBrowser(
       ) {
         detectedKind = "formato220";
       } else if (
-        /extracto|cuenta\s*de\s*ahorro|cuenta\s*corriente|bancolombia|nu\s*colombia|davivienda|banco|costos\s*totales|dep[oó]sito/i.test(
+        /registro\s*[uú]nico\s*tributario|para\s*uso\s*exclusivo\s*de\s*la\s*dian.*formulario|tipo\s*de\s*contribuyente|c[eé]dula\s*de\s*ciudadan[ií]a.*registradur/i.test(fullText) ||
+        /^14\d{9}\.pdf$/i.test(fileName) ||
+        /rut|cedula.*dian|dian.*cedula/i.test(fileName)
+      ) {
+        detectedKind = "rut";
+      } else if (
+        /extracto|cuenta\s*de\s*ahorro|cuenta\s*corriente|bancolombia|nu\s*colombia|davivienda|banco|costos\s*totales|dep[oó]sito|saldo\s*final:|4x1000\s*gmf:|nequi/i.test(
           fullText
         ) ||
-        /extracto|cuenta|costos|banco|nu/i.test(fileName)
+        /extracto|cuenta|costos|banco|nu|nequi|bogota/i.test(fileName)
       ) {
         detectedKind = "extractoBanco";
       } else if (/certificado\s*de\s*retenci[oó]n|retenci[oó]n\s*en\s*la\s*fuente/i.test(fullText) || /retencion/i.test(fileName)) {
         detectedKind = "certRetencion";
-      } else if (/c[eé]dula\s*de\s*ciudadan[ií]a|rep[uú]blica\s*de\s*colombia|registradur[ií]a/i.test(fullText) || /cedula/i.test(fileName)) {
-        detectedKind = "rut";
       }
     }
 
@@ -108,7 +112,7 @@ export async function parseDocumentInBrowser(
       parsedData = parseFormato220Text(fullText);
     } else if (
       ["extractoBanco", "saldoCuentas", "certGmf", "certRendimientos"].includes(detectedKind) ||
-      /extracto|cuenta|banco|costos|nu/i.test(fileName)
+      /extracto|cuenta|banco|costos|nu|nequi|bogota/i.test(fileName)
     ) {
       parsedData = parseCertificadoBancarioText(fullText);
     } else if (detectedKind === "certRetencion" || /retenci[oó]n/i.test(fileName)) {
@@ -120,6 +124,23 @@ export async function parseDocumentInBrowser(
           parsedData.notes = `Retención en la fuente extraída: $${val.toLocaleString("es-CO")}`;
         }
       }
+    } else if (detectedKind === "rut") {
+      // RUT / Cédula: extraer nombre y NIT para nota pero sin montos
+      const nitMatch = fullText.match(/(?:NIT|N[uú]mero\s*de\s*Identificaci[oó]n)[^\d]*(\d{7,12})/i);
+      const nameMatch = fullText.match(/([A-Z]{2,}(?:\s+[A-Z]{2,}){1,3})\s*(?:CL|CR|KR|AV|TV|DG|CQ|\d{2})/i);
+      const nit = nitMatch ? nitMatch[1] : "";
+      const name = nameMatch ? nameMatch[1].replace(/\s+/g, " ").trim() : "";
+      parsedData.notes = `RUT / Documento DIAN registrado.${name ? ` Nombre: ${name}.` : ""}${nit ? ` NIT/CC: ${nit}.` : ""} Este documento no contiene montos tributarios — es un soporte de identidad.`;
+    }
+
+    // Si no hay notas útiles, mostrar vista previa del texto extraído
+    // para que el usuario pueda verificar que el documento sí fue leído
+    let finalNotes = parsedData.notes;
+    if (!finalNotes || finalNotes === "Valores extraídos de certificado bancario.") {
+      const preview = fullText.replace(/\s+/g, " ").trim().slice(0, 300);
+      finalNotes = preview
+        ? `Documento leído. Texto detectado: «${preview}...» (sin montos automáticos — puede agregar manualmente abajo).`
+        : "Archivo procesado. No se detectó texto (puede ser imagen — use OCR o péguelo manualmente).";
     }
 
     return {
@@ -127,7 +148,7 @@ export async function parseDocumentInBrowser(
       text: fullText,
       numpages,
       amounts: parsedData.amounts,
-      notes: parsedData.notes || (fullText ? `Texto extraído (${fullText.slice(0, 150)}...)` : "Archivo procesado."),
+      notes: finalNotes,
       detectedKind,
     };
   } catch (err: any) {

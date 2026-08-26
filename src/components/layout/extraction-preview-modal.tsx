@@ -200,8 +200,16 @@ export function ExtractionPreviewModal({
 
           {/* Tabla de montos */}
           {keys.length === 0 ? (
-            <div className="rounded-xl border border-line bg-surface p-6 text-center text-muted text-xs space-y-3">
-              <p>No se detectaron montos automáticos. Puede agregar los conceptos del soporte a continuación:</p>
+            <div className="rounded-xl border border-warn/30 bg-warn-mist/30 p-5 space-y-3 text-sm">
+              <p className="font-semibold text-warn-deep flex items-center gap-2">
+                ⚠️ No se detectaron montos automáticamente
+              </p>
+              <p className="text-xs text-ink-soft leading-relaxed">
+                El documento fue leído (vea el resumen de arriba). Para tipos como <strong>RUT, Cédula</strong> o <strong>Banco Bogotá con saldo $0</strong> esto es normal. Puede agregar los conceptos manualmente usando el selector de abajo.
+              </p>
+              <p className="text-xs text-muted">
+                💡 Tip: Use <strong>"Añadir al Soporte"</strong> para registrar valores de este documento en la declaración.
+              </p>
             </div>
           ) : (
             <div className="overflow-hidden rounded-xl border border-line bg-surface">

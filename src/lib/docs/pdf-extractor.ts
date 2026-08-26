@@ -146,7 +146,7 @@ export function parseCertificadoBancarioText(text: string): { amounts: Record<st
     notesLines.push(`Saldo Cajitas Nu: $${nuSaldo.toLocaleString("es-CO")}`);
   }
 
-  // 2. Saldo Bancolombia / Nequi / Davivienda / Otros Bancos
+  // 2. Saldo Bancolombia / Nequi / Davivienda / Otros Bancos (formato colombiano $X.XXX,XX)
   const banSaldo = extractPattern(/Saldo\s*Dep[oó]sito\s*de\s*bajo\s*monto[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i) ||
     extractPattern(/Saldo\s*al\s*corte[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i) ||
     extractPattern(/Saldo\s*a\s*31\s*de\s*diciembre[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i) ||
@@ -156,14 +156,27 @@ export function parseCertificadoBancarioText(text: string): { amounts: Record<st
     notesLines.push(`Saldo Bancario: $${banSaldo.toLocaleString("es-CO")}`);
   }
 
+  // 2b. Banco Bogotá extracto — "Saldo Final:   1,234.56" (formato US con coma-miles y punto-decimal)
+  const bogSaldo = extractPattern(/Saldo\s+Final:\s+([0-9]+(?:,[0-9]{3})*(?:\.[0-9]{1,2})?)/i);
+  if (bogSaldo > 0 && !amounts["patrimonio.cuentas"]) {
+    amounts["patrimonio.cuentas"] = (amounts["patrimonio.cuentas"] || 0) + bogSaldo;
+    notesLines.push(`Saldo Final (Banco Bogotá): $${bogSaldo.toLocaleString("es-CO")}`);
+  }
+
   // 3. GMF Nu / Nequi / Bancolombia / Bogotá (4x1.000)
   const gmf = extractPattern(/Grav[aá]men(?:es)?\s*a\s*los\s*movimientos\s*financieros[\s\S]{0,100}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:,\d{2})?)/i) ||
     extractPattern(/Total\s*GMF[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:,\d{2})?)/i) ||
-    extractPattern(/Vr\s*Gravamen[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.\d{2})?)/i) ||
-    extractPattern(/Total\s*4x1000\s*GMF[\s\S]{0,30}?:\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.\d{2})?)/i);
+    extractPattern(/Vr\s*Gravamen[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.\d{2})?)/i);
   if (gmf > 0) {
     amounts["trabajo.gmf"] = (amounts["trabajo.gmf"] || 0) + gmf;
     notesLines.push(`GMF (4x1000): $${gmf.toLocaleString("es-CO")}`);
+  }
+
+  // 3b. Banco Bogotá extracto GMF — "Total   4x1000 GMF:   1,234.56" (formato US)
+  const bogGmf = extractPattern(/Total\s+4x1000\s+GMF:\s+([0-9]+(?:,[0-9]{3})*(?:\.[0-9]{1,2})?)/i);
+  if (bogGmf > 0 && !amounts["trabajo.gmf"]) {
+    amounts["trabajo.gmf"] = (amounts["trabajo.gmf"] || 0) + bogGmf;
+    notesLines.push(`GMF 4x1000 (Banco Bogotá): $${bogGmf.toLocaleString("es-CO")}`);
   }
 
   // 4. Rendimientos / Intereses Nu / Nequi / Bancolombia
@@ -175,6 +188,13 @@ export function parseCertificadoBancarioText(text: string): { amounts: Record<st
     notesLines.push(`Rendimientos/Intereses: $${rend.toLocaleString("es-CO")}`);
   }
 
+  // 4b. Banco Bogotá extracto intereses — "Total   Intereses:   123.45" (formato US)
+  const bogIntereses = extractPattern(/Total\s+Intereses:\s+([0-9]+(?:,[0-9]{3})*(?:\.[0-9]{1,2})?)/i);
+  if (bogIntereses > 0 && !amounts["capital.intereses"]) {
+    amounts["capital.intereses"] = (amounts["capital.intereses"] || 0) + bogIntereses;
+    notesLines.push(`Intereses (Banco Bogotá): $${bogIntereses.toLocaleString("es-CO")}`);
+  }
+
   // 5. Retenciones bancarias practicadas
   const retBan = extractPattern(/Retenci[oó]n\s*en\s*la\s*fuente\s*practicada[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i);
   if (retBan > 0) {
@@ -182,9 +202,27 @@ export function parseCertificadoBancarioText(text: string): { amounts: Record<st
     notesLines.push(`Retención bancaria: $${retBan.toLocaleString("es-CO")}`);
   }
 
+  // 5b. Banco Bogotá extracto retención — "Total   Retencion:   123.45" (formato US)
+  const bogRet = extractPattern(/Total\s+Retenci[oó]n:\s+([0-9]+(?:,[0-9]{3})*(?:\.[0-9]{1,2})?)/i);
+  if (bogRet > 0 && !amounts["extra.retenciones"]) {
+    amounts["extra.retenciones"] = (amounts["extra.retenciones"] || 0) + bogRet;
+    notesLines.push(`Retención (Banco Bogotá): $${bogRet.toLocaleString("es-CO")}`);
+  }
+
+  // Detectar entidad bancaria para nota informativa
+  const entityNote = /nu\s*colombia|nu\s*bank|cuentanu/i.test(text) ? "Nu Colombia" :
+    /bancolombia/i.test(text) ? "Bancolombia" :
+    /nequi/i.test(text) ? "Nequi" :
+    /banco\s*de\s*bogot[aá]|banco\s*bogot[aá]/i.test(text) ? "Banco de Bogotá" :
+    /davivienda/i.test(text) ? "Davivienda" : null;
+
+  const defaultNote = notesLines.length === 0
+    ? `Documento bancario leído${entityNote ? ` (${entityNote})` : ""}. No se encontraron montos con valor positivo (pueden ser cuentas en $0 o documentos sin cifras tributarias).`
+    : null;
+
   return {
     amounts,
-    notes: notesLines.join(" | ") || "Valores extraídos de certificado bancario.",
+    notes: notesLines.join(" | ") || defaultNote || "Certificado bancario registrado.",
   };
 }
 

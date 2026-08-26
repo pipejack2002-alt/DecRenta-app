@@ -451,15 +451,22 @@ function SubirPanel() {
 
         try {
           const arrayBuffer = await file.arrayBuffer();
-          // 1. Procesamiento directo en el cliente (idéntico a Exógena)
+          // 1. Procesamiento directo en el cliente
           const clientRes = await parseDocumentInBrowser(arrayBuffer, file.name, kind);
+          const ext = (file.name.split(".").pop() || "").toLowerCase();
+          const isTextualPdf = ext === "pdf" || ext === "xlsx" || ext === "csv" || ext === "txt";
 
-          if (clientRes.ok && Object.keys(clientRes.amounts).length > 0) {
+          if (clientRes.ok && (clientRes.text.length > 30 || Object.keys(clientRes.amounts).length > 0)) {
+            // Cliente leyó el contenido — usar directamente sin servidor
             text = clientRes.text.slice(0, MAX_NORMA_CHARS);
             extractedAmounts = clientRes.amounts;
             notes = clientRes.notes;
+          } else if (clientRes.ok && isTextualPdf) {
+            // PDF leído pero sin texto (posiblemente imagen escaneada)
+            text = "";
+            notes = clientRes.notes || "Documento registrado. Parece ser un PDF de imagen — use el área de texto o Gemini para ingresar el contenido.";
           } else {
-            // 2. Fallback a servidor para OCR de imágenes y Word
+            // 2. Fallback a servidor sólo para imágenes, Word y PowerPoint
             try {
               const blob = new Blob([arrayBuffer]);
               const reader = new FileReader();
@@ -520,6 +527,8 @@ function SubirPanel() {
           });
         }
 
+        // Siempre abrir la modal para que el usuario vea lo que se leyó
+        // y pueda agregar/confirmar montos manualmente
         setPreviewData({ doc, amounts: extractedAmounts, notes });
       }
     } finally {
