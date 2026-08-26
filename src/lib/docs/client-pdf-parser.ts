@@ -94,59 +94,60 @@ export async function parseDocumentInBrowser(
       fullText = decoder.decode(buffer);
     }
 
-    // Clasificación de tipo
-    let detectedKind: DocKind = selectedKind || "otro";
-    if (!selectedKind || selectedKind === "otro") {
-      if (
-        /formulario\s*220|certificado\s*de\s*ingresos\s*y\s*retenciones|rentas\s*de\s*trabajo/i.test(fullText) ||
-        /f220|220/i.test(fileName)
-      ) {
-        detectedKind = "formato220";
-      } else if (
-        /registro\s*[uú]nico\s*tributario|para\s*uso\s*exclusivo\s*de\s*la\s*dian.*formulario|tipo\s*de\s*contribuyente|c[eé]dula\s*de\s*ciudadan[ií]a.*registradur/i.test(fullText) ||
-        /^14\d{9}\.pdf$/i.test(fileName) ||
-        /rut|cedula.*dian|dian.*cedula/i.test(fileName)
-      ) {
-        detectedKind = "rut";
-      } else if (
-        /cesant[ií]as?|fondo\s*de\s*cesant[ií]as?|porvenir|protecci[oó]n|colfondos|skandia|fna/i.test(fullText) &&
-        /cesant[ií]a/i.test(fullText)
-      ) {
-        detectedKind = "certCesantias";
-      } else if (/afc|avc|voluntari[ao]s?\s*de\s*pensi[oó]n|fvp/i.test(fullText)) {
-        detectedKind = "certAfc";
-      } else if (/cr[eé]dito\s*hipotecario|intereses\s*de\s*vivienda|leasing\s*habitacional/i.test(fullText)) {
-        detectedKind = "interesesHipoteca";
-      } else if (/medicina\s*prepagada|plan\s*complementario|p[oó]liza\s*de\s*salud|sura|colsanitas|colmedica|coomeva|sanitas|allianz/i.test(fullText) && /salud|cuota|pago/i.test(fullText)) {
-        detectedKind = "medicinaPrepagada";
-      } else if (/planilla\s*[uú]nica|pila|aportes\s*en\s*l[ií]nea|soi|arus|simple|miplanilla/i.test(fullText) || /pila/i.test(fileName)) {
-        detectedKind = "pila";
-      } else if (/dividendos|participaciones|subc[eé]dula/i.test(fullText)) {
-        detectedKind = "certDividendos";
-      } else if (/honorarios|servicios\s*profesionales|cuenta\s*de\s*cobro/i.test(fullText)) {
-        detectedKind = "certHonorarios";
-      } else if (/aval[uú]o\s*catastral|impuesto\s*predial|predio/i.test(fullText)) {
-        detectedKind = "avaluoCatastral";
-      } else if (/icetex/i.test(fullText) || /icetex/i.test(fileName)) {
-        detectedKind = "icetex";
-      } else if (/donaci[oó]n|donante/i.test(fullText)) {
-        detectedKind = "donaciones";
-      } else if (/mesada\s*pensional|colpensiones|resoluci[oó]n\s*de\s*pensi[oó]n/i.test(fullText)) {
-        detectedKind = "pensionJubilacion";
-      } else if (/obligaci[oó]n\s*financiera|cr[eé]dito\s*de\s*consumo|tarjeta\s*de\s*cr[eé]dito|libranza|saldo\s*deuda/i.test(fullText)) {
-        detectedKind = "certDeudas";
-      } else if (/declaraci[oó]n\s*de\s*renta|formulario\s*210/i.test(fullText) && /2024|2023/i.test(fullText)) {
-        detectedKind = "form210Anterior";
-      } else if (
-        /extracto|cuenta\s*de\s*ahorro|cuenta\s*corriente|bancolombia|nu\s*colombia|tu\s*cuenta\s*de\s*ahorros|davivienda|banco|costos\s*totales|dep[oó]sito|saldo\s*final:|4x1000\s*gmf:|nequi|rendimientos\s*totales/i.test(
-          fullText
-        ) ||
-        /extracto|cuenta|costos|banco|nu|nequi|bogota|rendimiento/i.test(fileName)
-      ) {
-        detectedKind = "extractoBanco";
-      } else if (/certificado\s*de\s*retenci[oó]n|retenci[oó]n\s*en\s*la\s*fuente/i.test(fullText) || /retencion/i.test(fileName)) {
-        detectedKind = "certRetencion";
-      }
+    // Clasificación inteligente del tipo de documento por contenido y nombre
+    let detectedKind: DocKind = "otro";
+
+    if (
+      /formulario\s*220|certificado\s*de\s*ingresos\s*y\s*retenciones|rentas\s*de\s*trabajo/i.test(fullText) ||
+      /f220|220/i.test(fileName)
+    ) {
+      detectedKind = "formato220";
+    } else if (
+      /registro\s*[uú]nico\s*tributario|para\s*uso\s*exclusivo\s*de\s*la\s*dian.*formulario|tipo\s*de\s*contribuyente|c[eé]dula\s*de\s*ciudadan[ií]a.*registradur/i.test(fullText) ||
+      /^14\d{9}\.pdf$/i.test(fileName) ||
+      /rut|cedula.*dian|dian.*cedula/i.test(fileName)
+    ) {
+      detectedKind = "rut";
+    } else if (
+      /cesant[ií]as?|fondo\s*de\s*cesant[ií]as?|porvenir|protecci[oó]n|colfondos|skandia|fna/i.test(fullText) &&
+      /cesant[ií]a/i.test(fullText)
+    ) {
+      detectedKind = "certCesantias";
+    } else if (/afc|avc|voluntari[ao]s?\s*de\s*pensi[oó]n|fvp/i.test(fullText)) {
+      detectedKind = "certAfc";
+    } else if (/cr[eé]dito\s*hipotecario|intereses\s*de\s*vivienda|leasing\s*habitacional/i.test(fullText)) {
+      detectedKind = "interesesHipoteca";
+    } else if (/medicina\s*prepagada|plan\s*complementario|p[oó]liza\s*de\s*salud|sura|colsanitas|colmedica|coomeva|sanitas|allianz/i.test(fullText) && /salud|cuota|pago/i.test(fullText)) {
+      detectedKind = "medicinaPrepagada";
+    } else if (/planilla\s*[uú]nica|pila|aportes\s*en\s*l[ií]nea|soi|arus|simple|miplanilla/i.test(fullText) || /pila/i.test(fileName)) {
+      detectedKind = "pila";
+    } else if (/dividendos|participaciones|subc[eé]dula/i.test(fullText)) {
+      detectedKind = "certDividendos";
+    } else if (/honorarios|servicios\s*profesionales|cuenta\s*de\s*cobro/i.test(fullText)) {
+      detectedKind = "certHonorarios";
+    } else if (/aval[uú]o\s*catastral|impuesto\s*predial|predio/i.test(fullText)) {
+      detectedKind = "avaluoCatastral";
+    } else if (/icetex/i.test(fullText) || /icetex/i.test(fileName)) {
+      detectedKind = "icetex";
+    } else if (/donaci[oó]n|donante/i.test(fullText)) {
+      detectedKind = "donaciones";
+    } else if (/mesada\s*pensional|colpensiones|resoluci[oó]n\s*de\s*pensi[oó]n/i.test(fullText)) {
+      detectedKind = "pensionJubilacion";
+    } else if (/obligaci[oó]n\s*financiera|cr[eé]dito\s*de\s*consumo|tarjeta\s*de\s*cr[eé]dito|libranza|saldo\s*deuda/i.test(fullText)) {
+      detectedKind = "certDeudas";
+    } else if (/declaraci[oó]n\s*de\s*renta|formulario\s*210/i.test(fullText) && /2024|2023/i.test(fullText)) {
+      detectedKind = "form210Anterior";
+    } else if (
+      /extracto|cuenta\s*de\s*ahorro|cuenta\s*corriente|bancolombia|nu\s*colombia|tu\s*cuenta\s*de\s*ahorros|davivienda|banco|costos\s*totales|dep[oó]sito|saldo\s*final:|4x1000\s*gmf:|nequi|rendimientos\s*totales/i.test(
+        fullText
+      ) ||
+      /extracto|cuenta|costos|banco|nu|nequi|bogota|rendimiento/i.test(fileName)
+    ) {
+      detectedKind = "extractoBanco";
+    } else if (/certificado\s*de\s*retenci[oó]n|retenci[oó]n\s*en\s*la\s*fuente/i.test(fullText) || /retencion/i.test(fileName)) {
+      detectedKind = "certRetencion";
+    } else if (selectedKind && selectedKind !== "otro") {
+      detectedKind = selectedKind;
     }
 
     // Extracción de montos estructurados

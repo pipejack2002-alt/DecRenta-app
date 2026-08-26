@@ -449,12 +449,19 @@ function SubirPanel() {
         let extractedAmounts: Record<string, number> = {};
         let notes = "";
 
+        let docKindToUse = kind;
         try {
           const arrayBuffer = await file.arrayBuffer();
-          // 1. Procesamiento directo en el cliente
-          const clientRes = await parseDocumentInBrowser(arrayBuffer, file.name, kind);
+          // 1. Procesamiento directo en el cliente con auto-clasificación inteligente
+          const clientRes = await parseDocumentInBrowser(arrayBuffer, file.name);
           const ext = (file.name.split(".").pop() || "").toLowerCase();
           const isTextualPdf = ext === "pdf" || ext === "xlsx" || ext === "csv" || ext === "txt";
+
+          // Si el clasificador reconoció el tipo de documento, actualizar el selector de la UI automáticamente
+          if (clientRes.detectedKind && clientRes.detectedKind !== "otro") {
+            docKindToUse = clientRes.detectedKind;
+            setKind(clientRes.detectedKind);
+          }
 
           if (clientRes.ok && (clientRes.text.length > 30 || Object.keys(clientRes.amounts).length > 0)) {
             // Cliente leyó el contenido — usar directamente sin servidor
@@ -484,7 +491,7 @@ function SubirPanel() {
                   base64,
                   fileName: file.name,
                   mimeType: file.type || "application/octet-stream",
-                  kind,
+                  kind: docKindToUse,
                 },
               });
 
@@ -505,7 +512,7 @@ function SubirPanel() {
 
         const doc: VaultDoc = {
           id: crypto.randomUUID(),
-          kind,
+          kind: docKindToUse,
           name: file.name,
           mime: file.type || "application/octet-stream",
           size: file.size,
@@ -515,10 +522,10 @@ function SubirPanel() {
         };
         addDoc(doc);
 
-        if (isNormaKind(kind) && text.trim()) {
+        if (isNormaKind(docKindToUse) && text.trim()) {
           addNorma({
             id: crypto.randomUUID(),
-            kind,
+            kind: docKindToUse,
             title: file.name.replace(/\.[^.]+$/, ""),
             citation: file.name,
             text,
