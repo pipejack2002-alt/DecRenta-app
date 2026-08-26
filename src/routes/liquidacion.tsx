@@ -304,7 +304,7 @@ function DepuracionCard() {
   const d = c.depuracion;
   const rows: { k: string; v: number; hint?: string }[] = [
     { k: "Ingresos brutos cédula general", v: d.ingresosBrutos },
-    { k: "(−) Ingresos no constitutivos de renta (Salud/Pensión)", v: d.incrngo },
+    { k: "(−) Aportes a Salud, Pensión y ARL obligatorios (No gravados)", v: d.incrngo },
     { k: "Base para el límite del 40 %", v: d.subtotal },
     { k: "Tope conjunto del 40 % (máx. 1.340 UVT)", v: d.poolLimit, hint: `40 % = ${formatCOP(d.cuarentaPct)} · 1.340 UVT = ${formatCOP(d.tope1340)}` },
     { k: "Exentas y deducciones independientes (fuera del 40 %)", v: d.ilimitadas, hint: "Indemnizaciones laborales, gastos de representación, CAN." },

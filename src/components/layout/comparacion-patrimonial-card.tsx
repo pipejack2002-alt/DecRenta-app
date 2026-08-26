@@ -176,7 +176,7 @@ export function ComparacionPatrimonialCard() {
                       <td className="p-3 text-muted text-[11px]">Arts. 206 y 206-1 E.T.</td>
                     </tr>
                     <tr>
-                      <td className="p-3 text-ink pl-6">(+) Ingresos No Constitutivos de Renta (INCRNGO)</td>
+                      <td className="p-3 text-ink pl-6">(+) Aportes a Salud y Pensión obligatorios (No gravados)</td>
                       <td className="p-3 text-right text-emerald-700">{formatCOP(comp.incrngo)}</td>
                       <td className="p-3 text-muted text-[11px]">Arts. 36 a 57-1 E.T.</td>
                     </tr>

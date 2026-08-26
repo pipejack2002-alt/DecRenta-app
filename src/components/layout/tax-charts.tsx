@@ -77,7 +77,7 @@ export function TaxCharts({
 
   const flowData = [
     { name: "Ingresos Brutos", valor: ingresosBrutosTotal, fill: "#1F4F47" },
-    { name: "(−) INCRNGO", valor: totalIncrngo, fill: "#6B6358" },
+    { name: "(−) Salud/Pensión", valor: totalIncrngo, fill: "#6B6358" },
     { name: "(−) Costos", valor: totalCostos, fill: "#8A6232" },
     { name: "(−) Exentas/Ded.", valor: totalExentasDeducciones, fill: "#4A6B63" },
     { name: "Base Gravable", valor: rentaGravable, fill: "#2D5A45" },

@@ -231,7 +231,7 @@ export function InformeClienteModal({ isOpen, onClose, computed: c, declaration:
                     <td className="p-2.5 text-right font-mono font-semibold">{formatCOP(ingresosBrutosTotal)}</td>
                   </tr>
                   <tr>
-                    <td className="p-2.5 pl-6 text-muted">(−) Ingresos No Constitutivos de Renta (Salud, Pensión, ARL obligatoria)</td>
+                    <td className="p-2.5 pl-6 text-muted">(−) Aportes a Salud y Pensión obligatorios (No gravados)</td>
                     <td className="p-2.5 text-right font-mono text-muted">− {formatCOP(totalIncrngo)}</td>
                   </tr>
                   <tr>
