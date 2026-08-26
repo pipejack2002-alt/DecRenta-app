@@ -114,15 +114,15 @@ export const DOC_CATALOG: {
   },
   {
     kind: "certGmf",
-    label: "Certificado de GMF (4×1.000)",
-    help: "El banco certifica el gravamen a los movimientos financieros. Es deducible el 50 %.",
+    label: "Reporte anual de costos totales y GMF (4×1.000)",
+    help: "Informe anual de costos y comisiones de entidades financieras (Ley 1328 de 2009). El 50 % del GMF es deducible.",
     maps: [{ path: "trabajo.gmf", label: "GMF pagado" }],
-    source: "Art. 115 E.T.",
+    source: "Art. 115 E.T. · Ley 1328 de 2009",
   },
   {
     kind: "extractoBanco",
-    label: "Extractos bancarios",
-    help: "Sirven para el tope de consignaciones (art. 594-3) y para cuadrar efectivo y cuentas.",
+    label: "Extractos bancarios (mensuales / anuales)",
+    help: "Sirven para el tope de consignaciones (art. 594-3) y para cuadrar efectivo, movimientos y cuentas.",
     maps: [
       { path: "topes.consignaciones", label: "Consignaciones del año" },
       { path: "patrimonio.cuentas", label: "Saldo a 31 de diciembre" },
@@ -132,7 +132,7 @@ export const DOC_CATALOG: {
   {
     kind: "saldoCuentas",
     label: "Certificado de saldos (banco / fiduciaria)",
-    help: "Saldo patrimonial de cuentas de ahorro, corrientes, CDT e inversiones.",
+    help: "Saldo patrimonial de cuentas de ahorro, corrientes, CDT e inversiones a 31 de diciembre.",
     maps: [
       { path: "patrimonio.cuentas", label: "Cuentas" },
       { path: "patrimonio.inversiones", label: "Inversiones" },
@@ -204,13 +204,16 @@ export const DOC_CATALOG: {
   },
   {
     kind: "certRendimientos",
-    label: "Certificado de rendimientos financieros",
-    help: "Intereses, CDT, fondos. Incluye el componente inflacionario (arts. 38 y 41 E.T.).",
+    label: "Certificado tributario bancario / Rendimientos y retenciones",
+    help: "Expedido anualmente por bancos (Nu, Bancolombia, Nequi, Davivienda, etc.). Contiene saldo a 31/12, rendimientos, GMF (4x1000) y componente inflacionario.",
     maps: [
-      { path: "capital.intereses", label: "Rendimientos" },
-      { path: "capital.componenteInflacionario", label: "Componente inflacionario" },
+      { path: "patrimonio.cuentas", label: "Saldo en cuentas a 31 de diciembre" },
+      { path: "capital.intereses", label: "Rendimientos e intereses brutos" },
+      { path: "capital.componenteInflacionario", label: "Componente inflacionario no gravado" },
+      { path: "trabajo.gmf", label: "GMF (4x1000) pagado" },
+      { path: "extra.retenciones", label: "Retención en la fuente practicada" },
     ],
-    source: "Arts. 38, 39 y 41 E.T.",
+    source: "Arts. 38, 39, 41, 115 y 267 E.T.",
   },
   {
     kind: "arrendamiento",
