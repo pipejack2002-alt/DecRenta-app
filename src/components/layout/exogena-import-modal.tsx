@@ -257,8 +257,41 @@ export function ExogenaImportModal({
 
               {/* Resumen de Cifras Detectadas */}
               <div>
+                {/* Banner Destacado de Tope 1 DIAN */}
+                {(() => {
+                  const totalIngresosTope1 =
+                    fileData.resumen.ingresosTrabajo +
+                    fileData.resumen.ingresosHonorarios +
+                    fileData.resumen.ingresosCapital +
+                    fileData.resumen.ingresosNoLaborales +
+                    fileData.resumen.pensiones +
+                    fileData.resumen.dividendos +
+                    (fileData.resumen.cesantias || 0);
+
+                  return (
+                    <div className="mb-4 rounded-xl border-2 border-forest/30 bg-forest-mist/30 p-4">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-forest">
+                            Tope 1 - Ingresos Brutos Totales (DIAN):
+                          </span>
+                          <p className="text-xl font-display font-bold text-forest-deep">
+                            {formatCOP(totalIngresosTope1)}
+                          </p>
+                        </div>
+                        <Badge tone="forest" className="text-xs">
+                          Suma de todas las rentas reportadas por terceros
+                        </Badge>
+                      </div>
+                      <p className="mt-1 text-[11px] text-muted leading-relaxed">
+                        Corresponde a la suma de <strong>Salarios, Prestaciones, Cesantías y Rendimientos</strong> de todos sus informantes (empleadores y entidades financieras). A continuación se desglosa por cédula para el Formulario 210:
+                      </p>
+                    </div>
+                  );
+                })()}
+
                 <p className="text-[11px] font-bold uppercase tracking-wider text-muted mb-2">
-                  Resumen de Conceptos Extraídos:
+                  Desglose Cedular para la Declaración:
                 </p>
                 {Object.values(fileData.resumen).every((v) => v === 0) ? (
                   <div className="rounded-xl border border-line bg-amber-50/50 p-4 text-xs text-ink space-y-1">
@@ -274,7 +307,7 @@ export function ExogenaImportModal({
                   <div className="grid gap-3 sm:grid-cols-3">
                     {fileData.resumen.ingresosTrabajo > 0 && (
                       <div className="rounded-xl border border-line bg-surface p-3 shadow-sm">
-                        <span className="text-[11px] text-muted block">Salarios y Pagos Laborales:</span>
+                        <span className="text-[11px] text-muted block">Salarios y Pagos Laborales (C32):</span>
                         <span className="text-sm font-bold text-ink">{formatCOP(fileData.resumen.ingresosTrabajo)}</span>
                       </div>
                     )}
