@@ -1,4 +1,4 @@
-import { Check, CheckSquare, FileText, Sparkles, Square, X } from "lucide-react";
+import { Check, CheckSquare, FileText, Plus, Sparkles, Square, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,12 +8,13 @@ import { formatCOP } from "@/lib/tax/format";
 import type { VaultDoc } from "@/lib/docs/types";
 
 const FIELD_LABELS: Record<string, { label: string; casilla?: number; source?: string }> = {
-  "trabajo.salarios": { label: "Salarios, emolumentos y prestaciones", casilla: 32, source: "Art. 103 E.T." },
-  "trabajo.cesantiasPagadas": { label: "Cesantías pagadas/consignadas", casilla: 32, source: "Art. 206 num. 4" },
+  "trabajo.salarios": { label: "Salarios, emolumentos y honorarios laborales", casilla: 32, source: "Art. 103 E.T." },
   "trabajo.otrasPrestaciones": { label: "Otras prestaciones y primas", casilla: 32, source: "Art. 103 E.T." },
-  "trabajo.aportesSaludObligatorios": { label: "Aportes obligatorios a salud (No gravados)", casilla: 33, source: "Art. 56 E.T." },
-  "trabajo.aportesPensionObligatorios": { label: "Aportes obligatorios a pensión (No gravados)", casilla: 33, source: "Art. 55 E.T." },
-  "trabajo.aportesVoluntariosRais": { label: "Aportes voluntarios RAIS (No gravados)", casilla: 33, source: "Art. 55 E.T." },
+  "trabajo.cesantiasPagadas": { label: "Cesantías pagadas directamente al empleado", casilla: 32, source: "Art. 206 num. 4" },
+  "trabajo.cesantiasFondo": { label: "Cesantías consignadas al fondo", casilla: 32, source: "Art. 206 num. 4" },
+  "trabajo.aportesSaludObligatorios": { label: "Aportes obligatorios a salud", casilla: 33, source: "Art. 56 E.T." },
+  "trabajo.aportesPensionObligatorios": { label: "Aportes obligatorios a pensión", casilla: 33, source: "Art. 55 E.T." },
+  "trabajo.aportesVoluntariosRais": { label: "Aportes voluntarios RAIS", casilla: 33, source: "Art. 55 E.T." },
   "trabajo.aportesAfcFvpAvc": { label: "Aportes AFC / FVP / AVC (Rentas Exentas)", casilla: 35, source: "Art. 126-1 / 126-4" },
   "trabajo.interesesVivienda": { label: "Intereses crédito de vivienda / leasing", casilla: 38, source: "Art. 119 E.T." },
   "trabajo.gmf": { label: "Gravamen a los Movimientos Financieros (4×1.000)", casilla: 38, source: "Art. 115 E.T." },
@@ -41,7 +42,7 @@ function getDeclarationCurrentValue(d: any, path: string): number {
 
 export function ExtractionPreviewModal({
   doc,
-  amounts,
+  amounts: initialAmounts,
   notes,
   onClose,
 }: {
@@ -54,7 +55,10 @@ export function ExtractionPreviewModal({
   const applyAmounts = useAppStore((s) => s.applyAmounts);
   const updateDoc = useAppStore((s) => s.updateDoc);
 
-  const keys = Object.keys(amounts).filter((k) => typeof amounts[k] === "number" && amounts[k] > 0);
+  const [amountsState, setAmountsState] = useState<Record<string, number>>(() => ({ ...initialAmounts }));
+  const [selectedFieldToAdd, setSelectedFieldToAdd] = useState<string>("trabajo.salarios");
+
+  const keys = Object.keys(amountsState);
   const [selected, setSelected] = useState<Record<string, boolean>>(() => {
     const init: Record<string, boolean> = {};
     for (const k of keys) init[k] = true;
@@ -70,11 +74,34 @@ export function ExtractionPreviewModal({
     setSelected(next);
   }
 
+  function handleAddField() {
+    if (!selectedFieldToAdd) return;
+    setAmountsState((prev) => ({ ...prev, [selectedFieldToAdd]: prev[selectedFieldToAdd] || 0 }));
+    setSelected((prev) => ({ ...prev, [selectedFieldToAdd]: true }));
+  }
+
+  function handleAmountChange(key: string, val: number) {
+    setAmountsState((prev) => ({ ...prev, [key]: val }));
+  }
+
+  function handleRemoveField(key: string) {
+    setAmountsState((prev) => {
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+    setSelected((prev) => {
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  }
+
   function handleConfirm() {
     const toApply: Record<string, number> = {};
     for (const k of keys) {
       if (selected[k]) {
-        const newVal = amounts[k] ?? 0;
+        const newVal = amountsState[k] ?? 0;
         if (mode === "sum") {
           const currentVal = getDeclarationCurrentValue(d, k);
           toApply[k] = currentVal + newVal;
@@ -87,13 +114,13 @@ export function ExtractionPreviewModal({
     applyAmounts(toApply);
     updateDoc(doc.id, {
       applied: true,
-      extracted: amounts,
+      extracted: amountsState,
       notes: notes || doc.notes,
     });
     setAppliedSuccess(true);
     setTimeout(() => {
       onClose();
-    }, 1200);
+    }, 1000);
   }
 
   const selectedCount = keys.filter((k) => selected[k]).length;
@@ -109,10 +136,10 @@ export function ExtractionPreviewModal({
             </span>
             <div>
               <h2 className="font-display text-lg font-bold text-ink">
-                Validar Extracción con IA
+                Validar y Aplicar Cifras del Soporte
               </h2>
               <p className="text-xs text-muted">
-                {doc.name} · Revise los montos antes de aplicarlos a la declaración
+                {doc.name} · Revise y confirme los montos antes de aplicarlos a la declaración
               </p>
             </div>
           </div>
@@ -131,7 +158,7 @@ export function ExtractionPreviewModal({
           {notes && (
             <div className="rounded-xl border border-line bg-forest-mist/30 p-3.5 text-xs leading-relaxed text-forest-deep">
               <p className="font-semibold uppercase tracking-wider text-[10px] text-forest">
-                Dictamen de la IA sobre el soporte:
+                Resumen del documento analizado:
               </p>
               <p className="mt-1">{notes}</p>
             </div>
@@ -144,7 +171,7 @@ export function ExtractionPreviewModal({
               onClick={toggleAll}
               className="flex items-center gap-2 text-xs font-medium text-forest hover:underline"
             >
-              {keys.every((k) => selected[k]) ? (
+              {keys.length > 0 && keys.every((k) => selected[k]) ? (
                 <>
                   <CheckSquare className="size-4" />
                   Deseleccionar todos
@@ -170,10 +197,10 @@ export function ExtractionPreviewModal({
             </div>
           </div>
 
-          {/* Tabla de montos extraídos */}
+          {/* Tabla de montos */}
           {keys.length === 0 ? (
-            <div className="rounded-xl border border-line bg-surface p-8 text-center text-muted text-xs">
-              No se detectaron montos monetarios automáticos en el texto del soporte.
+            <div className="rounded-xl border border-line bg-surface p-6 text-center text-muted text-xs space-y-3">
+              <p>No se detectaron montos automáticos. Puede agregar los conceptos del soporte a continuación:</p>
             </div>
           ) : (
             <div className="overflow-hidden rounded-xl border border-line bg-surface">
@@ -183,21 +210,21 @@ export function ExtractionPreviewModal({
                     <th className="w-10 px-3 py-2 text-center">Sel.</th>
                     <th className="px-3 py-2">Concepto / Norma</th>
                     <th className="px-3 py-2 text-right">Valor Actual</th>
-                    <th className="px-3 py-2 text-right">Detectado en Soporte</th>
+                    <th className="px-3 py-2 text-right">Monto del Soporte</th>
+                    <th className="w-8 px-2 py-2"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-line">
                   {keys.map((k) => {
                     const info = FIELD_LABELS[k] ?? { label: k };
-                    const extractedVal = amounts[k] ?? 0;
+                    const extractedVal = amountsState[k] ?? 0;
                     const currentVal = getDeclarationCurrentValue(d, k);
                     const isChecked = Boolean(selected[k]);
 
                     return (
                       <tr
                         key={k}
-                        onClick={() => setSelected((prev) => ({ ...prev, [k]: !prev[k] }))}
-                        className={`cursor-pointer transition-colors ${
+                        className={`transition-colors ${
                           isChecked ? "bg-forest-mist/15" : "hover:bg-bg-raised"
                         }`}
                       >
@@ -205,8 +232,8 @@ export function ExtractionPreviewModal({
                           <input
                             type="checkbox"
                             checked={isChecked}
-                            onChange={() => {}}
-                            className="size-4 rounded border-line text-forest focus:ring-forest"
+                            onChange={() => setSelected((prev) => ({ ...prev, [k]: !prev[k] }))}
+                            className="size-4 rounded border-line text-forest focus:ring-forest cursor-pointer"
                           />
                         </td>
                         <td className="px-3 py-2.5">
@@ -225,8 +252,23 @@ export function ExtractionPreviewModal({
                         <td className="px-3 py-2.5 text-right font-mono tabular-nums text-muted">
                           {formatCOP(currentVal)}
                         </td>
-                        <td className="px-3 py-2.5 text-right font-mono font-semibold tabular-nums text-forest-deep">
-                          {formatCOP(extractedVal)}
+                        <td className="px-3 py-2.5 text-right">
+                          <input
+                            type="number"
+                            value={extractedVal || ""}
+                            onChange={(e) => handleAmountChange(k, Number(e.target.value) || 0)}
+                            className="w-32 rounded-md border border-line bg-surface px-2.5 py-1 text-right font-mono font-semibold tabular-nums text-forest-deep focus:border-forest focus:outline-none"
+                          />
+                        </td>
+                        <td className="px-2 py-2.5 text-center">
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveField(k)}
+                            className="text-muted hover:text-stamp p-1"
+                            title="Quitar concepto"
+                          >
+                            <Trash2 className="size-3.5" />
+                          </button>
                         </td>
                       </tr>
                     );
@@ -235,6 +277,26 @@ export function ExtractionPreviewModal({
               </table>
             </div>
           )}
+
+          {/* Agregar concepto adicional manualmente */}
+          <div className="flex items-center gap-2 pt-2">
+            <select
+              value={selectedFieldToAdd}
+              onChange={(e) => setSelectedFieldToAdd(e.target.value)}
+              className="h-9 flex-1 rounded-md border border-line bg-surface px-3 text-xs text-ink focus:border-forest focus:outline-none"
+            >
+              {Object.entries(FIELD_LABELS).map(([k, info]) => (
+                <option key={k} value={k}>
+                  {info.casilla ? `[C${info.casilla}] ` : ""}
+                  {info.label}
+                </option>
+              ))}
+            </select>
+            <Button size="sm" variant="outline" onClick={handleAddField} className="gap-1.5 text-xs">
+              <Plus className="size-3.5" />
+              Añadir al Soporte
+            </Button>
+          </div>
         </div>
 
         {/* Pie de acción */}
@@ -247,7 +309,7 @@ export function ExtractionPreviewModal({
             size="sm"
             onClick={handleConfirm}
             disabled={selectedCount === 0 || appliedSuccess}
-            className="gap-1.5"
+            className="gap-1.5 bg-forest hover:bg-forest-deep text-white"
           >
             {appliedSuccess ? (
               <>

@@ -23,6 +23,7 @@ import {
 import { useAppStore, useComputed } from "@/lib/store";
 import { extractUniversalDocServerFn } from "@/lib/docs/universal-extractor";
 import { parseFormato220Text, parseCertificadoBancarioText } from "@/lib/docs/pdf-extractor";
+import { parseDocumentInBrowser } from "@/lib/docs/client-pdf-parser";
 import { formatCOP, formatNumber } from "@/lib/tax/format";
 import { Button } from "@/components/ui/button";
 import { Card, CardHint, CardTitle } from "@/components/ui/card";
@@ -450,27 +451,46 @@ function SubirPanel() {
 
         try {
           const arrayBuffer = await file.arrayBuffer();
-          const bytes = new Uint8Array(arrayBuffer);
-          let binary = "";
-          for (let i = 0; i < bytes.byteLength; i++) {
-            binary += String.fromCharCode(bytes[i]);
-          }
-          const base64 = btoa(binary);
-          const res = await extractUniversalDocServerFn({
-            data: {
-              base64,
-              fileName: file.name,
-              mimeType: file.type || "application/octet-stream",
-              kind,
-            },
-          });
+          // 1. Procesamiento directo en el cliente (idéntico a Exógena)
+          const clientRes = await parseDocumentInBrowser(arrayBuffer, file.name, kind);
 
-          if (res.ok) {
-            text = res.text.slice(0, MAX_NORMA_CHARS);
-            extractedAmounts = res.amounts || {};
-            notes = res.notes || (text ? text.slice(0, 400) : `${res.fileType.toUpperCase()} procesado exitosamente.`);
+          if (clientRes.ok && Object.keys(clientRes.amounts).length > 0) {
+            text = clientRes.text.slice(0, MAX_NORMA_CHARS);
+            extractedAmounts = clientRes.amounts;
+            notes = clientRes.notes;
           } else {
-            notes = `Archivo registrado. ${res.error || ""}`;
+            // 2. Fallback a servidor para OCR de imágenes y Word
+            try {
+              const blob = new Blob([arrayBuffer]);
+              const reader = new FileReader();
+              const base64 = await new Promise<string>((resolve, reject) => {
+                reader.onload = () => {
+                  const resStr = reader.result as string;
+                  resolve(resStr.split(",")[1] || "");
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+              });
+
+              const serverRes = await extractUniversalDocServerFn({
+                data: {
+                  base64,
+                  fileName: file.name,
+                  mimeType: file.type || "application/octet-stream",
+                  kind,
+                },
+              });
+
+              if (serverRes.ok) {
+                text = serverRes.text.slice(0, MAX_NORMA_CHARS);
+                extractedAmounts = serverRes.amounts || {};
+                notes = serverRes.notes || (text ? text.slice(0, 400) : "Archivo procesado.");
+              } else {
+                notes = clientRes.notes || `Archivo registrado. ${serverRes.error || ""}`;
+              }
+            } catch {
+              notes = clientRes.notes || (clientRes.text ? clientRes.text.slice(0, 400) : "Archivo registrado.");
+            }
           }
         } catch (e: any) {
           notes = "Archivo registrado.";
@@ -483,7 +503,7 @@ function SubirPanel() {
           mime: file.type || "application/octet-stream",
           size: file.size,
           addedAt: new Date().toISOString(),
-          notes,
+          notes: text ? text : notes,
           extracted: Object.keys(extractedAmounts).length > 0 ? extractedAmounts : undefined,
         };
         addDoc(doc);
@@ -500,9 +520,7 @@ function SubirPanel() {
           });
         }
 
-        if (Object.keys(extractedAmounts).length > 0) {
-          setPreviewData({ doc, amounts: extractedAmounts, notes });
-        }
+        setPreviewData({ doc, amounts: extractedAmounts, notes });
       }
     } finally {
       setBusy(false);
