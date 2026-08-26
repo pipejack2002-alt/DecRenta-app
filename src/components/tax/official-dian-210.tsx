@@ -22,6 +22,7 @@ import {
   generateFormulario210Xml,
 } from "@/lib/tax/export-dian";
 import { formatCOP, formatNumber } from "@/lib/tax/format";
+import { INSTRUCTIVO_DIAN_210 } from "@/lib/tax/instructivo-dian";
 
 interface OfficialDian210Props {
   compact?: boolean;
@@ -939,46 +940,62 @@ export function OfficialDian210({
         </div>
       </div>
 
-      {/* Popover Explicativo de Casilla */}
+      {/* Popover Explicativo de Casilla con Instructivo Oficial DIAN */}
       {selectedCasilla && (
         <div
           data-print-hide
-          className="rounded-2xl border border-forest/30 bg-forest-mist/40 p-4 text-xs shadow-sm transition-all"
+          className="rounded-2xl border border-forest/30 bg-forest-mist/50 p-4 text-xs shadow-sm transition-all space-y-3"
         >
           {(() => {
             const meta = CASILLAS_OFICIALES_210.find((x) => x.num === selectedCasilla);
             const val = c.casillas[selectedCasilla] ?? 0;
+            const instructivo = INSTRUCTIVO_DIAN_210[selectedCasilla];
+
             return (
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5">
-                  <span className="inline-flex size-8 items-center justify-center rounded-lg bg-[#2D6187] text-sm font-bold text-white font-mono">
-                    {selectedCasilla}
-                  </span>
-                  <div>
-                    <h4 className="font-semibold text-ink">{meta?.label || `Casilla ${selectedCasilla}`}</h4>
-                    <p className="text-muted">
-                      {meta?.section} · <span className="font-mono text-forest-deep">{meta?.legal}</span>
-                      {meta?.formula && ` · Fórmula: ${meta.formula}`}
-                    </p>
+              <>
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-forest/20 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <span className="inline-flex size-9 items-center justify-center rounded-lg bg-[#2D6187] text-sm font-bold text-white font-mono shadow-sm">
+                      {selectedCasilla}
+                    </span>
+                    <div>
+                      <h4 className="text-sm font-bold text-ink">{meta?.label || `Casilla ${selectedCasilla}`}</h4>
+                      <p className="text-muted">
+                        <span className="font-semibold text-ink-soft">{meta?.section}</span> ·{" "}
+                        <span className="font-mono text-forest-deep font-semibold">{meta?.legal}</span>
+                        {meta?.formula && ` · Fórmula: ${meta.formula}`}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <span className="text-[10px] uppercase tracking-wider text-muted">Valor liquidado</span>
+                      <p className="font-mono text-lg font-bold text-forest-deep">
+                        {selectedCasilla === 140 ? (val ? "Marcado (X)" : "No") : formatCOP(val)}
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedCasilla(null)}
+                      className="h-8 px-2 text-muted hover:text-ink"
+                    >
+                      ✕
+                    </Button>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="text-right">
-                    <span className="text-[10px] uppercase tracking-wider text-muted">Valor liquidado</span>
-                    <p className="font-mono text-base font-bold text-forest-deep">
-                      {selectedCasilla === 140 ? (val ? "Marcado (X)" : "No") : formatCOP(val)}
+
+                {instructivo && (
+                  <div className="bg-white/80 rounded-xl p-3 border border-forest/10 space-y-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-forest">
+                      📖 Instructivo Oficial DIAN (MUISCA):
+                    </span>
+                    <p className="text-ink text-xs leading-relaxed">
+                      {instructivo}
                     </p>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSelectedCasilla(null)}
-                    className="h-8 px-2 text-muted hover:text-ink"
-                  >
-                    ✕
-                  </Button>
-                </div>
-              </div>
+                )}
+              </>
             );
           })()}
         </div>
