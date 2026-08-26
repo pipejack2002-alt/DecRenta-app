@@ -579,14 +579,14 @@ export async function downloadStyledFormulario210Xlsx(
     black:        "FF000000",
   };
 
-  const bdr = (style: any, argb = CLR.black) => ({ style, color: { argb } });
+  const bdr = (style: any, argb = CLR.black): any => ({ style, color: { argb } });
   const T = bdr("thin", CLR.black);
   const M = bdr("medium", CLR.black);
   const TK = bdr("thick", CLR.black);
-  const BDR_BOX = { top: T, left: T, bottom: T, right: T };
+  const BDR_BOX: any = { top: T, left: T, bottom: T, right: T };
 
-  const fill = (argb: string) => ({ type: "pattern", pattern: "solid", fgColor: { argb } });
-  const font = (sz: number, bold = false, argb = CLR.black, name = "Arial", italic = false) => ({
+  const fill = (argb: string): any => ({ type: "pattern", pattern: "solid", fgColor: { argb } });
+  const font = (sz: number, bold = false, argb = CLR.black, name = "Arial", italic = false): any => ({
     name,
     size: sz,
     bold,
@@ -594,7 +594,7 @@ export async function downloadStyledFormulario210Xlsx(
     color: { argb },
   });
 
-  const aln = (h: any = "left", v: any = "middle", wrap = true) => ({
+  const aln = (h: any = "left", v: any = "middle", wrap = true): any => ({
     horizontal: h,
     vertical: v,
     wrapText: wrap,
