@@ -259,62 +259,122 @@ export function ExogenaImportModal({
                 <p className="text-[11px] font-bold uppercase tracking-wider text-muted mb-2">
                   Resumen de Conceptos Extraídos:
                 </p>
-                <div className="grid gap-3 sm:grid-cols-3">
-                  {fileData.resumen.ingresosTrabajo > 0 && (
-                    <div className="rounded-xl border border-line bg-surface p-3 shadow-sm">
-                      <span className="text-[11px] text-muted block">Salarios y Pagos Laborales:</span>
-                      <span className="text-sm font-bold text-ink">{formatCOP(fileData.resumen.ingresosTrabajo)}</span>
-                    </div>
-                  )}
-                  {fileData.resumen.saludObligatoria > 0 && (
-                    <div className="rounded-xl border border-line bg-surface p-3 shadow-sm">
-                      <span className="text-[11px] text-muted block">Aportes a Salud Obligatoria:</span>
-                      <span className="text-sm font-bold text-ink">{formatCOP(fileData.resumen.saludObligatoria)}</span>
-                    </div>
-                  )}
-                  {fileData.resumen.pensionObligatoria > 0 && (
-                    <div className="rounded-xl border border-line bg-surface p-3 shadow-sm">
-                      <span className="text-[11px] text-muted block">Aportes a Pensión Obligatoria:</span>
-                      <span className="text-sm font-bold text-ink">{formatCOP(fileData.resumen.pensionObligatoria)}</span>
-                    </div>
-                  )}
-                  {fileData.resumen.retencionesFuente > 0 && (
-                    <div className="rounded-xl border border-line bg-surface p-3 shadow-sm">
-                      <span className="text-[11px] text-muted block">Retenciones en la Fuente:</span>
-                      <span className="text-sm font-bold text-emerald-700 font-mono">{formatCOP(fileData.resumen.retencionesFuente)}</span>
-                    </div>
-                  )}
-                  {fileData.resumen.patrimonioBruto > 0 && (
-                    <div className="rounded-xl border border-line bg-surface p-3 shadow-sm">
-                      <span className="text-[11px] text-muted block">Saldos Bancarios / CDTs:</span>
-                      <span className="text-sm font-bold text-ink">{formatCOP(fileData.resumen.patrimonioBruto)}</span>
-                    </div>
-                  )}
-                  {fileData.resumen.deudas > 0 && (
-                    <div className="rounded-xl border border-line bg-surface p-3 shadow-sm">
-                      <span className="text-[11px] text-muted block">Deudas y Créditos a 31 dic:</span>
-                      <span className="text-sm font-bold text-red-700">{formatCOP(fileData.resumen.deudas)}</span>
-                    </div>
-                  )}
-                  {fileData.resumen.ingresosCapital > 0 && (
-                    <div className="rounded-xl border border-line bg-surface p-3 shadow-sm">
-                      <span className="text-[11px] text-muted block">Rendimientos e Intereses:</span>
-                      <span className="text-sm font-bold text-ink">{formatCOP(fileData.resumen.ingresosCapital)}</span>
-                    </div>
-                  )}
-                  {fileData.resumen.interesesVivienda > 0 && (
-                    <div className="rounded-xl border border-line bg-surface p-3 shadow-sm">
-                      <span className="text-[11px] text-muted block">Intereses de Crédito Vivienda:</span>
-                      <span className="text-sm font-bold text-ink">{formatCOP(fileData.resumen.interesesVivienda)}</span>
-                    </div>
-                  )}
-                  {fileData.resumen.gmf > 0 && (
-                    <div className="rounded-xl border border-line bg-surface p-3 shadow-sm">
-                      <span className="text-[11px] text-muted block">GMF (4x1000) Pagado:</span>
-                      <span className="text-sm font-bold text-ink">{formatCOP(fileData.resumen.gmf)}</span>
-                    </div>
-                  )}
-                </div>
+                {Object.values(fileData.resumen).every((v) => v === 0) ? (
+                  <div className="rounded-xl border border-line bg-amber-50/50 p-4 text-xs text-ink space-y-1">
+                    <p className="font-semibold text-amber-900 flex items-center gap-1.5">
+                      <Sparkles className="size-3.5 text-amber-600" />
+                      Consulta sin retenciones de empresas reportadas
+                    </p>
+                    <p className="text-muted leading-relaxed">
+                      El reporte oficial de la DIAN no contiene salarios, honorarios ni retenciones con empresas informantes en esta fecha de corte. Esto confirma que la obligación formal de declarar se originó por <strong>movimientos bancarios, compras o consignaciones</strong>.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    {fileData.resumen.ingresosTrabajo > 0 && (
+                      <div className="rounded-xl border border-line bg-surface p-3 shadow-sm">
+                        <span className="text-[11px] text-muted block">Salarios y Pagos Laborales:</span>
+                        <span className="text-sm font-bold text-ink">{formatCOP(fileData.resumen.ingresosTrabajo)}</span>
+                      </div>
+                    )}
+                    {fileData.resumen.ingresosHonorarios > 0 && (
+                      <div className="rounded-xl border border-line bg-surface p-3 shadow-sm">
+                        <span className="text-[11px] text-muted block">Honorarios y Servicios:</span>
+                        <span className="text-sm font-bold text-ink">{formatCOP(fileData.resumen.ingresosHonorarios)}</span>
+                      </div>
+                    )}
+                    {fileData.resumen.ingresosCapital > 0 && (
+                      <div className="rounded-xl border border-line bg-surface p-3 shadow-sm">
+                        <span className="text-[11px] text-muted block">Rendimientos e Intereses:</span>
+                        <span className="text-sm font-bold text-ink">{formatCOP(fileData.resumen.ingresosCapital)}</span>
+                      </div>
+                    )}
+                    {fileData.resumen.ingresosNoLaborales > 0 && (
+                      <div className="rounded-xl border border-line bg-surface p-3 shadow-sm">
+                        <span className="text-[11px] text-muted block">Ventas y Comercio (No Laboral):</span>
+                        <span className="text-sm font-bold text-ink">{formatCOP(fileData.resumen.ingresosNoLaborales)}</span>
+                      </div>
+                    )}
+                    {fileData.resumen.pensiones > 0 && (
+                      <div className="rounded-xl border border-line bg-surface p-3 shadow-sm">
+                        <span className="text-[11px] text-muted block">Pensiones de Vejez/Invalidez:</span>
+                        <span className="text-sm font-bold text-ink">{formatCOP(fileData.resumen.pensiones)}</span>
+                      </div>
+                    )}
+                    {fileData.resumen.dividendos > 0 && (
+                      <div className="rounded-xl border border-line bg-surface p-3 shadow-sm">
+                        <span className="text-[11px] text-muted block">Dividendos y Participaciones:</span>
+                        <span className="text-sm font-bold text-ink">{formatCOP(fileData.resumen.dividendos)}</span>
+                      </div>
+                    )}
+                    {fileData.resumen.gananciasOcasionales > 0 && (
+                      <div className="rounded-xl border border-line bg-surface p-3 shadow-sm">
+                        <span className="text-[11px] text-muted block">Ganancias Ocasionales:</span>
+                        <span className="text-sm font-bold text-ink">{formatCOP(fileData.resumen.gananciasOcasionales)}</span>
+                      </div>
+                    )}
+                    {fileData.resumen.saludObligatoria > 0 && (
+                      <div className="rounded-xl border border-line bg-surface p-3 shadow-sm">
+                        <span className="text-[11px] text-muted block">Aportes a Salud Obligatoria:</span>
+                        <span className="text-sm font-bold text-ink">{formatCOP(fileData.resumen.saludObligatoria)}</span>
+                      </div>
+                    )}
+                    {fileData.resumen.pensionObligatoria > 0 && (
+                      <div className="rounded-xl border border-line bg-surface p-3 shadow-sm">
+                        <span className="text-[11px] text-muted block">Aportes a Pensión Obligatoria:</span>
+                        <span className="text-sm font-bold text-ink">{formatCOP(fileData.resumen.pensionObligatoria)}</span>
+                      </div>
+                    )}
+                    {fileData.resumen.retencionesFuente > 0 && (
+                      <div className="rounded-xl border border-line bg-surface p-3 shadow-sm">
+                        <span className="text-[11px] text-muted block">Retenciones en la Fuente:</span>
+                        <span className="text-sm font-bold text-emerald-700 font-mono">{formatCOP(fileData.resumen.retencionesFuente)}</span>
+                      </div>
+                    )}
+                    {fileData.resumen.patrimonioBruto > 0 && (
+                      <div className="rounded-xl border border-line bg-surface p-3 shadow-sm">
+                        <span className="text-[11px] text-muted block">Saldos Bancarios / CDTs / Bienes:</span>
+                        <span className="text-sm font-bold text-ink">{formatCOP(fileData.resumen.patrimonioBruto)}</span>
+                      </div>
+                    )}
+                    {fileData.resumen.deudas > 0 && (
+                      <div className="rounded-xl border border-line bg-surface p-3 shadow-sm">
+                        <span className="text-[11px] text-muted block">Deudas y Créditos a 31 dic:</span>
+                        <span className="text-sm font-bold text-red-700">{formatCOP(fileData.resumen.deudas)}</span>
+                      </div>
+                    )}
+                    {fileData.resumen.interesesVivienda > 0 && (
+                      <div className="rounded-xl border border-line bg-surface p-3 shadow-sm">
+                        <span className="text-[11px] text-muted block">Intereses Crédito Vivienda:</span>
+                        <span className="text-sm font-bold text-ink">{formatCOP(fileData.resumen.interesesVivienda)}</span>
+                      </div>
+                    )}
+                    {fileData.resumen.medicinaPrepagada > 0 && (
+                      <div className="rounded-xl border border-line bg-surface p-3 shadow-sm">
+                        <span className="text-[11px] text-muted block">Medicina Prepagada:</span>
+                        <span className="text-sm font-bold text-ink">{formatCOP(fileData.resumen.medicinaPrepagada)}</span>
+                      </div>
+                    )}
+                    {fileData.resumen.facturaElectronica > 0 && (
+                      <div className="rounded-xl border border-line bg-surface p-3 shadow-sm">
+                        <span className="text-[11px] text-muted block">Compras Factura Electrónica (1%):</span>
+                        <span className="text-sm font-bold text-ink">{formatCOP(fileData.resumen.facturaElectronica)}</span>
+                      </div>
+                    )}
+                    {fileData.resumen.gmf > 0 && (
+                      <div className="rounded-xl border border-line bg-surface p-3 shadow-sm">
+                        <span className="text-[11px] text-muted block">GMF (4x1000) Pagado:</span>
+                        <span className="text-sm font-bold text-ink">{formatCOP(fileData.resumen.gmf)}</span>
+                      </div>
+                    )}
+                    {fileData.resumen.consignacionesBancarias > 0 && (
+                      <div className="rounded-xl border border-line bg-surface p-3 shadow-sm">
+                        <span className="text-[11px] text-muted block">Consignaciones Bancarias (Topes):</span>
+                        <span className="text-sm font-bold text-ink">{formatCOP(fileData.resumen.consignacionesBancarias)}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Tabla Detallada de Terceros Reportantes */}
