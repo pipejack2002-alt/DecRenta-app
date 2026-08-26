@@ -714,22 +714,223 @@ function DeclaracionPage() {
           </aside>
         ) : (
           <aside className="space-y-3 lg:sticky lg:top-24 h-fit">
-            <Card>
-              <div className="flex items-center justify-between">
-                <p className="text-[11px] uppercase tracking-[0.16em] text-muted">Cifras vivas</p>
-                <Badge tone="ok">En tiempo real</Badge>
+            <Card className="space-y-4">
+              {/* Encabezado con estado del resultado */}
+              <div className="flex items-center justify-between border-b border-line pb-2.5">
+                <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted">Cifras vivas</p>
+                {c.casillas[136] > 0 ? (
+                  <Badge tone="warn" className="text-[10px]">Saldo a pagar</Badge>
+                ) : c.casillas[137] > 0 ? (
+                  <Badge tone="forest" className="text-[10px]">Saldo a favor</Badge>
+                ) : (
+                  <Badge tone="ok" className="text-[10px]">En tiempo real</Badge>
+                )}
               </div>
-              <ul className="mt-3 space-y-2">
-                {live.map((r) => (
-                  <li key={r.n} className="flex items-baseline justify-between gap-2 text-sm">
-                    <span className="text-muted">
-                      <span className="font-mono text-[10px] text-faint">{r.n}</span> {r.l}
+
+              {/* Indicador Principal de Liquidación */}
+              <div
+                className={cn(
+                  "rounded-xl p-3 border space-y-0.5",
+                  c.casillas[136] > 0
+                    ? "border-amber-200 bg-amber-50/70"
+                    : c.casillas[137] > 0
+                    ? "border-emerald-200 bg-emerald-50/70"
+                    : "border-line bg-muted-mist/40",
+                )}
+              >
+                <span className="text-[11px] font-medium text-muted block">
+                  {c.casillas[136] > 0
+                    ? "136. Total Saldo a Pagar"
+                    : c.casillas[137] > 0
+                    ? "137. Total Saldo a Favor"
+                    : "126. Impuesto Neto de Renta"}
+                </span>
+                <span
+                  className={cn(
+                    "text-xl font-bold tracking-tight font-display block",
+                    c.casillas[136] > 0
+                      ? "text-amber-800"
+                      : c.casillas[137] > 0
+                      ? "text-emerald-700 font-mono"
+                      : "text-ink",
+                  )}
+                >
+                  {formatCOP(c.casillas[136] || c.casillas[137] || c.casillas[126] || 0)}
+                </span>
+              </div>
+
+              {/* Sección 1: Patrimonio */}
+              <div className="space-y-1.5 text-xs">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted/80 block">Patrimonio</span>
+                <div className="flex justify-between py-0.5">
+                  <span className="text-muted">
+                    <span className="font-mono text-[10px] text-faint">29</span> Patrimonio bruto
+                  </span>
+                  <span className="font-medium tabular-nums text-ink">{formatCOP(c.casillas[29] ?? 0)}</span>
+                </div>
+                {Boolean(c.casillas[30]) && (
+                  <div className="flex justify-between py-0.5 text-red-700">
+                    <span>
+                      <span className="font-mono text-[10px] opacity-70">30</span> Deudas
                     </span>
-                    <span className="tabular-nums font-medium">{formatCOP(r.v)}</span>
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-4 pt-3 border-t border-line space-y-2">
+                    <span className="font-medium tabular-nums">−{formatCOP(c.casillas[30] ?? 0)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between py-0.5 font-semibold text-ink border-t border-line/50 pt-1">
+                  <span>
+                    <span className="font-mono text-[10px] text-faint">31</span> Patrimonio líquido
+                  </span>
+                  <span className="tabular-nums">{formatCOP(c.casillas[31] ?? 0)}</span>
+                </div>
+              </div>
+
+              {/* Sección 2: Cédulas e Ingresos Activos */}
+              <div className="space-y-1.5 text-xs border-t border-line pt-2.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted/80 block">Cédula General e Ingresos</span>
+
+                {Boolean(c.casillas[32]) && (
+                  <div className="flex justify-between py-0.5">
+                    <span className="text-muted">
+                      <span className="font-mono text-[10px] text-faint">32</span> Ingresos trabajo
+                    </span>
+                    <span className="font-medium tabular-nums text-ink">{formatCOP(c.casillas[32])}</span>
+                  </div>
+                )}
+                {Boolean(c.casillas[33]) && (
+                  <div className="flex justify-between py-0.5 text-forest">
+                    <span>
+                      <span className="font-mono text-[10px] opacity-70">33</span> Salud y pensión (INCRNGO)
+                    </span>
+                    <span className="font-medium tabular-nums">−{formatCOP(c.casillas[33])}</span>
+                  </div>
+                )}
+                {Boolean(c.casillas[41]) && (
+                  <div className="flex justify-between py-0.5 text-forest">
+                    <span>
+                      <span className="font-mono text-[10px] opacity-70">41</span> Exentas y deducciones
+                    </span>
+                    <span className="font-medium tabular-nums">−{formatCOP(c.casillas[41])}</span>
+                  </div>
+                )}
+                {Boolean(c.casillas[42]) && (
+                  <div className="flex justify-between py-0.5">
+                    <span className="text-muted">
+                      <span className="font-mono text-[10px] text-faint">42</span> Renta líquida trabajo
+                    </span>
+                    <span className="font-medium tabular-nums text-ink">{formatCOP(c.casillas[42])}</span>
+                  </div>
+                )}
+
+                {Boolean(c.casillas[43]) && (
+                  <div className="flex justify-between py-0.5">
+                    <span className="text-muted">
+                      <span className="font-mono text-[10px] text-faint">43</span> Ingresos honorarios
+                    </span>
+                    <span className="font-medium tabular-nums text-ink">{formatCOP(c.casillas[43])}</span>
+                  </div>
+                )}
+                {Boolean(c.casillas[58]) && (
+                  <div className="flex justify-between py-0.5">
+                    <span className="text-muted">
+                      <span className="font-mono text-[10px] text-faint">58</span> Ingresos capital
+                    </span>
+                    <span className="font-medium tabular-nums text-ink">{formatCOP(c.casillas[58])}</span>
+                  </div>
+                )}
+                {Boolean(c.casillas[74]) && (
+                  <div className="flex justify-between py-0.5">
+                    <span className="text-muted">
+                      <span className="font-mono text-[10px] text-faint">74</span> Ingresos no laborales
+                    </span>
+                    <span className="font-medium tabular-nums text-ink">{formatCOP(c.casillas[74])}</span>
+                  </div>
+                )}
+                {Boolean(c.casillas[99]) && (
+                  <div className="flex justify-between py-0.5">
+                    <span className="text-muted">
+                      <span className="font-mono text-[10px] text-faint">99</span> Pensiones
+                    </span>
+                    <span className="font-medium tabular-nums text-ink">{formatCOP(c.casillas[99])}</span>
+                  </div>
+                )}
+                {Boolean((c.casillas[104] || 0) + (c.casillas[107] || 0)) && (
+                  <div className="flex justify-between py-0.5">
+                    <span className="text-muted">
+                      <span className="font-mono text-[10px] text-faint">107</span> Dividendos
+                    </span>
+                    <span className="font-medium tabular-nums text-ink">{formatCOP((c.casillas[104] || 0) + (c.casillas[107] || 0))}</span>
+                  </div>
+                )}
+                {Boolean(c.casillas[112]) && (
+                  <div className="flex justify-between py-0.5">
+                    <span className="text-muted">
+                      <span className="font-mono text-[10px] text-faint">112</span> Ganancia ocasional
+                    </span>
+                    <span className="font-medium tabular-nums text-ink">{formatCOP(c.casillas[112])}</span>
+                  </div>
+                )}
+
+                <div className="flex justify-between py-0.5 font-semibold text-ink border-t border-line/50 pt-1">
+                  <span>
+                    <span className="font-mono text-[10px] text-faint">97</span> Renta gravable general
+                  </span>
+                  <span className="tabular-nums">{formatCOP(c.casillas[97] ?? 0)}</span>
+                </div>
+              </div>
+
+              {/* Sección 3: Liquidación e Impuesto */}
+              <div className="space-y-1.5 text-xs border-t border-line pt-2.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted/80 block">Liquidación Privada</span>
+                <div className="flex justify-between py-0.5">
+                  <span className="text-muted">
+                    <span className="font-mono text-[10px] text-faint">126</span> Impuesto neto renta
+                  </span>
+                  <span className="font-medium tabular-nums text-ink">{formatCOP(c.casillas[126] ?? 0)}</span>
+                </div>
+                {Boolean(c.casillas[127]) && (
+                  <div className="flex justify-between py-0.5">
+                    <span className="text-muted">
+                      <span className="font-mono text-[10px] text-faint">127</span> Impuesto ganancia ocasional
+                    </span>
+                    <span className="font-medium tabular-nums text-ink">{formatCOP(c.casillas[127])}</span>
+                  </div>
+                )}
+                {Boolean(c.casillas[132]) && (
+                  <div className="flex justify-between py-0.5 text-emerald-700">
+                    <span>
+                      <span className="font-mono text-[10px] opacity-70">132</span> Retenciones a favor
+                    </span>
+                    <span className="font-medium tabular-nums">−{formatCOP(c.casillas[132])}</span>
+                  </div>
+                )}
+                {Boolean(c.casillas[130]) && (
+                  <div className="flex justify-between py-0.5 text-emerald-700">
+                    <span>
+                      <span className="font-mono text-[10px] opacity-70">130</span> Anticipo año anterior
+                    </span>
+                    <span className="font-medium tabular-nums">−{formatCOP(c.casillas[130])}</span>
+                  </div>
+                )}
+                {Boolean(c.casillas[131]) && (
+                  <div className="flex justify-between py-0.5 text-emerald-700">
+                    <span>
+                      <span className="font-mono text-[10px] opacity-70">131</span> Saldo a favor anterior
+                    </span>
+                    <span className="font-medium tabular-nums">−{formatCOP(c.casillas[131])}</span>
+                  </div>
+                )}
+                {Boolean(c.casillas[133]) && (
+                  <div className="flex justify-between py-0.5">
+                    <span className="text-muted">
+                      <span className="font-mono text-[10px] text-faint">133</span> Anticipo año siguiente
+                    </span>
+                    <span className="font-medium tabular-nums text-ink">{formatCOP(c.casillas[133])}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Botones de Acción */}
+              <div className="pt-2 border-t border-line space-y-2">
                 <Button
                   type="button"
                   variant="outline"

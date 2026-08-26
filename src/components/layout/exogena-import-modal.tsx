@@ -76,14 +76,22 @@ export function ExogenaImportModal({
           }
         }
         if (fileData.nombre) {
-          const parts = fileData.nombre.split(" ").filter(Boolean);
-          if (parts.length >= 3) {
+          const parts = fileData.nombre.trim().split(/\s+/);
+          if (parts.length >= 4) {
             draft.identity.primerApellido = parts[0];
             draft.identity.segundoApellido = parts[1];
-            draft.identity.primerNombre = parts.slice(2).join(" ");
+            draft.identity.primerNombre = parts[2];
+            draft.identity.otrosNombres = parts.slice(3).join(" ");
+          } else if (parts.length === 3) {
+            draft.identity.primerApellido = parts[0];
+            draft.identity.segundoApellido = parts[1];
+            draft.identity.primerNombre = parts[2];
+            draft.identity.otrosNombres = "";
           } else if (parts.length === 2) {
             draft.identity.primerApellido = parts[0];
             draft.identity.primerNombre = parts[1];
+            draft.identity.segundoApellido = "";
+            draft.identity.otrosNombres = "";
           } else {
             draft.identity.primerNombre = fileData.nombre;
           }
@@ -96,26 +104,8 @@ export function ExogenaImportModal({
       // 2. Aplicar montos clasificados a las cédulas correspondientes
       applyPathAmounts(draft, fileData.amountsToApply);
 
-      // Respaldo directo por resumen consolidado
+      // Topes de obligación consolidados
       const res = fileData.resumen;
-      if (res.ingresosTrabajo > 0) draft.trabajo.salarios = Math.max(draft.trabajo.salarios, res.ingresosTrabajo);
-      if (res.saludObligatoria > 0) draft.trabajo.aportesSaludObligatorios = Math.max(draft.trabajo.aportesSaludObligatorios, res.saludObligatoria);
-      if (res.pensionObligatoria > 0) draft.trabajo.aportesPensionObligatorios = Math.max(draft.trabajo.aportesPensionObligatorios, res.pensionObligatoria);
-      if (res.cesantias > 0) draft.trabajo.cesantiasPagadas = Math.max(draft.trabajo.cesantiasPagadas, res.cesantias);
-      if (res.ingresosHonorarios > 0) draft.honorarios.ingresos = Math.max(draft.honorarios.ingresos, res.ingresosHonorarios);
-      if (res.ingresosCapital > 0) draft.capital.intereses = Math.max(draft.capital.intereses, res.ingresosCapital);
-      if (res.ingresosNoLaborales > 0) draft.noLaborales.ingresos = Math.max(draft.noLaborales.ingresos, res.ingresosNoLaborales);
-      if (res.pensiones > 0) draft.pensiones.ingresos = Math.max(draft.pensiones.ingresos, res.pensiones);
-      if (res.dividendos > 0) draft.dividendos.subcedula1 = Math.max(draft.dividendos.subcedula1, res.dividendos);
-      if (res.gananciasOcasionales > 0) draft.gananciasOcasionales.enajenacionActivos = Math.max(draft.gananciasOcasionales.enajenacionActivos, res.gananciasOcasionales);
-      if (res.retencionesFuente > 0) draft.extra.retenciones = Math.max(draft.extra.retenciones, res.retencionesFuente);
-      if (res.patrimonioBruto > 0) draft.patrimonio.cuentas = Math.max(draft.patrimonio.cuentas, res.patrimonioBruto);
-      if (res.deudas > 0) draft.patrimonio.obligacionesFinancieras = Math.max(draft.patrimonio.obligacionesFinancieras, res.deudas);
-      if (res.interesesVivienda > 0) draft.trabajo.interesesVivienda = Math.max(draft.trabajo.interesesVivienda, res.interesesVivienda);
-      if (res.medicinaPrepagada > 0) draft.trabajo.medicinaPrepagada = Math.max(draft.trabajo.medicinaPrepagada, res.medicinaPrepagada);
-      if (res.facturaElectronica > 0) draft.trabajo.comprasFacturaElectronica = Math.max(draft.trabajo.comprasFacturaElectronica, res.facturaElectronica);
-
-      // 3. Topes de obligación
       const totalIng = res.ingresosTrabajo + res.ingresosHonorarios + res.ingresosCapital + res.ingresosNoLaborales + res.pensiones + res.dividendos + res.gananciasOcasionales;
       if (totalIng > 0) draft.topes.ingresosBrutos = Math.max(draft.topes.ingresosBrutos, totalIng);
       if (res.patrimonioBruto > 0) draft.topes.patrimonioBruto = Math.max(draft.topes.patrimonioBruto, res.patrimonioBruto);
