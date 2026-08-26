@@ -142,6 +142,7 @@ export const CIIU_COMMON = DEFAULT_CIIU_COMMON;
 
 export const NAV = [
   { to: "/", label: "Panel Principal", hint: "Resumen y estado de la declaración" },
+  { to: "/clientes", label: "Gestor de Clientes", hint: "Portafolio y declaraciones guardadas" },
   { to: "/topes", label: "1. Obligados y Topes", hint: "Diagnóstico de topes Arts. 592 a 594-3" },
   { to: "/declaracion", label: "2. Diligenciamiento 210", hint: "Captura de patrimonio, cédulas y rentas" },
   { to: "/cedulas", label: "3. Depuración Cedular", hint: "Salud, pensión, exenciones y límite del 40 %" },

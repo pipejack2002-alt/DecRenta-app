@@ -14,6 +14,7 @@ import { Route as AsistenteRouteImport } from './routes/asistente'
 import { Route as BibliotecaRouteImport } from './routes/biblioteca'
 import { Route as CalendarioRouteImport } from './routes/calendario'
 import { Route as CedulasRouteImport } from './routes/cedulas'
+import { Route as ClientesRouteImport } from './routes/clientes'
 import { Route as DeclaracionRouteImport } from './routes/declaracion'
 import { Route as DocumentosRouteImport } from './routes/documentos'
 import { Route as FormularioRouteImport } from './routes/formulario'
@@ -44,6 +45,11 @@ const CalendarioRoute = CalendarioRouteImport.update({
 const CedulasRoute = CedulasRouteImport.update({
   id: '/cedulas',
   path: '/cedulas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientesRoute = ClientesRouteImport.update({
+  id: '/clientes',
+  path: '/clientes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DeclaracionRoute = DeclaracionRouteImport.update({
@@ -83,6 +89,7 @@ export interface FileRoutesByFullPath {
   '/biblioteca': typeof BibliotecaRouteWithChildren
   '/calendario': typeof CalendarioRoute
   '/cedulas': typeof CedulasRoute
+  '/clientes': typeof ClientesRoute
   '/declaracion': typeof DeclaracionRoute
   '/documentos': typeof DocumentosRoute
   '/formulario': typeof FormularioRoute
@@ -96,6 +103,7 @@ export interface FileRoutesByTo {
   '/biblioteca': typeof BibliotecaRouteWithChildren
   '/calendario': typeof CalendarioRoute
   '/cedulas': typeof CedulasRoute
+  '/clientes': typeof ClientesRoute
   '/declaracion': typeof DeclaracionRoute
   '/documentos': typeof DocumentosRoute
   '/formulario': typeof FormularioRoute
@@ -110,6 +118,7 @@ export interface FileRoutesById {
   '/biblioteca': typeof BibliotecaRouteWithChildren
   '/calendario': typeof CalendarioRoute
   '/cedulas': typeof CedulasRoute
+  '/clientes': typeof ClientesRoute
   '/declaracion': typeof DeclaracionRoute
   '/documentos': typeof DocumentosRoute
   '/formulario': typeof FormularioRoute
@@ -125,6 +134,7 @@ export interface FileRouteTypes {
     | '/biblioteca'
     | '/calendario'
     | '/cedulas'
+    | '/clientes'
     | '/declaracion'
     | '/documentos'
     | '/formulario'
@@ -138,6 +148,7 @@ export interface FileRouteTypes {
     | '/biblioteca'
     | '/calendario'
     | '/cedulas'
+    | '/clientes'
     | '/declaracion'
     | '/documentos'
     | '/formulario'
@@ -151,6 +162,7 @@ export interface FileRouteTypes {
     | '/biblioteca'
     | '/calendario'
     | '/cedulas'
+    | '/clientes'
     | '/declaracion'
     | '/documentos'
     | '/formulario'
@@ -165,6 +177,7 @@ export interface RootRouteChildren {
   BibliotecaRoute: typeof BibliotecaRouteWithChildren
   CalendarioRoute: typeof CalendarioRoute
   CedulasRoute: typeof CedulasRoute
+  ClientesRoute: typeof ClientesRoute
   DeclaracionRoute: typeof DeclaracionRoute
   DocumentosRoute: typeof DocumentosRoute
   FormularioRoute: typeof FormularioRoute
@@ -207,6 +220,13 @@ declare module '@tanstack/react-router' {
       path: '/cedulas'
       fullPath: '/cedulas'
       preLoaderRoute: typeof CedulasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clientes': {
+      id: '/clientes'
+      path: '/clientes'
+      fullPath: '/clientes'
+      preLoaderRoute: typeof ClientesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/declaracion': {
@@ -272,6 +292,7 @@ const rootRouteChildren: RootRouteChildren = {
   BibliotecaRoute: BibliotecaRouteWithChildren,
   CalendarioRoute: CalendarioRoute,
   CedulasRoute: CedulasRoute,
+  ClientesRoute: ClientesRoute,
   DeclaracionRoute: DeclaracionRoute,
   DocumentosRoute: DocumentosRoute,
   FormularioRoute: FormularioRoute,
