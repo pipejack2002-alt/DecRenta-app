@@ -13,6 +13,10 @@ import { CASILLA_LABELS } from "@/lib/tax/engine";
 import { formatCOP, formatUvt } from "@/lib/tax/format";
 import { uvtFromPesos } from "@/lib/tax/uvt";
 
+import { useState } from "react";
+import { LiquidacionExplicacionModal, type ExplicacionTopic } from "@/components/layout/liquidacion-explicacion-modal";
+import { Info } from "lucide-react";
+
 export const Route = createFileRoute("/liquidacion")({ component: LiquidacionPage });
 
 const BLOCKS: { title: string; ids: number[] }[] = [
@@ -27,6 +31,7 @@ const BLOCKS: { title: string; ids: number[] }[] = [
 ];
 
 function LiquidacionPage() {
+  const [topic, setTopic] = useState<ExplicacionTopic | null>(null);
   const c = useComputed();
   const d = useAppStore((s) => s.declaration);
   const ov = d.uvtOverrides;
@@ -41,56 +46,122 @@ function LiquidacionPage() {
       </header>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-line shadow-sm">
+        {/* Tarjeta 1: Renta Líquida Gravable */}
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => setTopic("renta-gravable")}
+          onKeyDown={(e) => e.key === "Enter" && setTopic("renta-gravable")}
+          className="cursor-pointer group text-left rounded-2xl border border-line bg-surface p-4 shadow-sm hover:border-forest/50 hover:shadow-md hover:-translate-y-0.5 transition-all focus:outline-none focus:ring-2 focus:ring-forest/30"
+          title="Haz clic para ver la fórmula y explicación técnica de la Casilla 97"
+        >
           <div className="flex items-center justify-between">
-            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted">Renta Líquida Gravable</p>
-            <span className="font-mono text-[10px] font-semibold bg-surface px-1.5 py-0.5 rounded border border-line text-muted">Casilla 97</span>
+            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted group-hover:text-forest transition-colors">
+              Renta Líquida Gravable
+            </p>
+            <span className="font-mono text-[10px] font-bold bg-surface px-1.5 py-0.5 rounded border border-line text-muted group-hover:border-forest/40 group-hover:text-forest transition-colors">
+              Casilla 97
+            </span>
           </div>
           <p className="mt-2 font-display text-3xl font-bold tabular-nums text-ink">{formatCOP(c.rentaLiquidaGravable)}</p>
-          <p className="mt-1 text-xs text-muted">
-            {formatUvt(uvtFromPesos(c.rentaLiquidaGravable, c.year, ov))} · Base Cédula General
-          </p>
-        </Card>
+          <div className="mt-1.5 flex items-center justify-between text-xs text-muted">
+            <span>{formatUvt(uvtFromPesos(c.rentaLiquidaGravable, c.year, ov))} · Base Cédula General</span>
+            <span className="text-[10px] font-semibold text-forest flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+              <Info className="size-3" /> Ver fórmula
+            </span>
+          </div>
+        </div>
 
-        <Card className="border-line shadow-sm">
+        {/* Tarjeta 2: Impuesto Neto de Renta */}
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => setTopic("impuesto-neto")}
+          onKeyDown={(e) => e.key === "Enter" && setTopic("impuesto-neto")}
+          className="cursor-pointer group text-left rounded-2xl border border-line bg-surface p-4 shadow-sm hover:border-forest/50 hover:shadow-md hover:-translate-y-0.5 transition-all focus:outline-none focus:ring-2 focus:ring-forest/30"
+          title="Haz clic para ver cómo opera la tabla del Art. 241 E.T. y la tarifa del 0%"
+        >
           <div className="flex items-center justify-between">
-            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted">Impuesto Neto de Renta</p>
-            <span className="font-mono text-[10px] font-semibold bg-surface px-1.5 py-0.5 rounded border border-line text-muted">Casilla 126</span>
+            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted group-hover:text-forest transition-colors">
+              Impuesto Neto de Renta
+            </p>
+            <span className="font-mono text-[10px] font-bold bg-surface px-1.5 py-0.5 rounded border border-line text-muted group-hover:border-forest/40 group-hover:text-forest transition-colors">
+              Casilla 126
+            </span>
           </div>
           <p className="mt-2 font-display text-3xl font-bold tabular-nums text-ink">{formatCOP(c.impuestoNeto)}</p>
-          <p className="mt-1 text-xs text-muted">
-            Art. 241 E.T. · Tarifa 0 % (&lt; 1.090 UVT)
-          </p>
-        </Card>
+          <div className="mt-1.5 flex items-center justify-between text-xs text-muted">
+            <span>Art. 241 E.T. · Tarifa 0 % (&lt; 1.090 UVT)</span>
+            <span className="text-[10px] font-semibold text-forest flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+              <Info className="size-3" /> Ver tabla
+            </span>
+          </div>
+        </div>
 
-        <Card className="border-line shadow-sm">
+        {/* Tarjeta 3: Anticipo Año Siguiente */}
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => setTopic("anticipo")}
+          onKeyDown={(e) => e.key === "Enter" && setTopic("anticipo")}
+          className="cursor-pointer group text-left rounded-2xl border border-line bg-surface p-4 shadow-sm hover:border-forest/50 hover:shadow-md hover:-translate-y-0.5 transition-all focus:outline-none focus:ring-2 focus:ring-forest/30"
+          title="Haz clic para ver el procedimiento de cálculo del Anticipo (Art. 807 E.T.)"
+        >
           <div className="flex items-center justify-between">
-            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted">Anticipo Año Siguiente</p>
-            <span className="font-mono text-[10px] font-semibold bg-surface px-1.5 py-0.5 rounded border border-line text-muted">Casilla 133</span>
+            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted group-hover:text-forest transition-colors">
+              Anticipo Año Siguiente
+            </p>
+            <span className="font-mono text-[10px] font-bold bg-surface px-1.5 py-0.5 rounded border border-line text-muted group-hover:border-forest/40 group-hover:text-forest transition-colors">
+              Casilla 133
+            </span>
           </div>
           <p className="mt-2 font-display text-3xl font-bold tabular-nums text-ink">{formatCOP(c.casillas[133] ?? 0)}</p>
-          <p className="mt-1 text-xs text-muted">
-            Art. 807 E.T. · Anticipo AG {c.filingYear}
-          </p>
-        </Card>
+          <div className="mt-1.5 flex items-center justify-between text-xs text-muted">
+            <span>Art. 807 E.T. · Anticipo AG {c.filingYear}</span>
+            <span className="text-[10px] font-semibold text-forest flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+              <Info className="size-3" /> Ver cálculo
+            </span>
+          </div>
+        </div>
 
-        <Card className={`border-line shadow-sm ${c.saldoPagar > 0 ? "bg-amber-50/40" : c.saldoFavor > 0 ? "bg-emerald-50/40" : ""}`}>
+        {/* Tarjeta 4: Total Saldo a Pagar / a Favor */}
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => setTopic("saldo-pagar")}
+          onKeyDown={(e) => e.key === "Enter" && setTopic("saldo-pagar")}
+          className={`cursor-pointer group text-left rounded-2xl border border-line p-4 shadow-sm hover:border-forest/50 hover:shadow-md hover:-translate-y-0.5 transition-all focus:outline-none focus:ring-2 focus:ring-forest/30 ${
+            c.saldoPagar > 0 ? "bg-amber-50/40" : c.saldoFavor > 0 ? "bg-emerald-50/40" : "bg-surface"
+          }`}
+          title="Haz clic para ver la fórmula de cierre de saldos a pagar / a favor"
+        >
           <div className="flex items-center justify-between">
-            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted">
+            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted group-hover:text-forest transition-colors">
               {c.saldoPagar > 0 ? "Total Saldo a Pagar" : c.saldoFavor > 0 ? "Total Saldo a Favor" : "Total Saldo a Pagar"}
             </p>
-            <span className="font-mono text-[10px] font-semibold bg-surface px-1.5 py-0.5 rounded border border-line text-muted">
+            <span className="font-mono text-[10px] font-bold bg-surface px-1.5 py-0.5 rounded border border-line text-muted group-hover:border-forest/40 group-hover:text-forest transition-colors">
               {c.saldoPagar > 0 ? "Casilla 136" : c.saldoFavor > 0 ? "Casilla 137" : "Casilla 136"}
             </span>
           </div>
           <p className={`mt-2 font-display text-3xl font-bold tabular-nums ${c.saldoPagar > 0 ? "text-amber-800" : c.saldoFavor > 0 ? "text-emerald-700" : "text-ink"}`}>
             {formatCOP(c.saldoPagar || c.saldoFavor)}
           </p>
-          <p className="mt-1 text-xs text-muted">
-            {c.saldoPagar > 0 ? "Impuesto + Anticipo − Retenciones" : c.saldoFavor > 0 ? "Retenciones superiores al impuesto" : "Sin impuesto a cargo"}
-          </p>
-        </Card>
+          <div className="mt-1.5 flex items-center justify-between text-xs text-muted">
+            <span>{c.saldoPagar > 0 ? "Impuesto + Anticipo − Retenciones" : c.saldoFavor > 0 ? "Retenciones superiores al impuesto" : "Sin impuesto a cargo"}</span>
+            <span className="text-[10px] font-semibold text-forest flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+              <Info className="size-3" /> Ver cierre
+            </span>
+          </div>
+        </div>
       </div>
+
+      {/* Modal Interactivo de Explicación Técnica y Fórmulas */}
+      <LiquidacionExplicacionModal
+        topic={topic}
+        onClose={() => setTopic(null)}
+        computed={c}
+        year={d.year}
+      />
 
       {/* Analítica visual con Recharts */}
       <TaxCharts computed={c} declaration={d} />
