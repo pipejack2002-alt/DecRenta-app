@@ -15,6 +15,7 @@ import { useAppStore, useComputed } from "@/lib/store";
 import {
   CASILLAS_OFICIALES_210,
   downloadFile,
+  downloadStyledFormulario210Xlsx,
   downloadXlsxFile,
   generateFormulario210Csv,
   generateFormulario210Workbook,
@@ -66,10 +67,14 @@ export function OfficialDian210({
   }
 
   // Export handlers
-  function handleExportXlsx() {
-    const wb = generateFormulario210Workbook(d, c);
+  async function handleExportXlsx() {
     const filename = `Formulario_210_AG${d.year}_${id.nit || "DIAN"}.xlsx`;
-    downloadXlsxFile(filename, wb);
+    try {
+      await downloadStyledFormulario210Xlsx(filename, d, c);
+    } catch {
+      const wb = generateFormulario210Workbook(d, c);
+      downloadXlsxFile(filename, wb);
+    }
   }
 
   function handleExportXml() {

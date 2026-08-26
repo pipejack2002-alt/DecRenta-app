@@ -527,3 +527,708 @@ export function downloadFile(filename: string, content: string, mimeType: string
   URL.revokeObjectURL(url);
 }
 
+/**
+ * Genera y descarga el Formulario 210 en Excel (.xlsx) con el diseño visual exacto 1:1 de la aplicación web,
+ * usando ExcelJS con estilos, colores, pestañas verticales y celdas combinadas.
+ */
+export async function downloadStyledFormulario210Xlsx(
+  filename: string,
+  d: Declaration,
+  c: ComputedDeclaration
+): Promise<void> {
+  if (typeof window === "undefined") return;
+
+  const ExcelJSModule = await import("exceljs");
+  const ExcelJS = ExcelJSModule.default || ExcelJSModule;
+
+  const wb = new ExcelJS.Workbook();
+  wb.creator = "TributoApp — Formulario 210 DIAN";
+  wb.created = new Date();
+
+  const ws = wb.addWorksheet("Formulario 210 DIAN", {
+    properties: { defaultRowHeight: 16 },
+    pageSetup: {
+      paperSize: 9,
+      orientation: "landscape",
+      fitToPage: true,
+      fitToWidth: 1,
+      fitToHeight: 0,
+      margins: { left: 0.2, right: 0.2, top: 0.3, bottom: 0.3, header: 0, footer: 0 },
+    },
+  });
+
+  const CLR = {
+    blue210:      "FF2D6187",
+    blueHdr:      "FFDBE7F0",
+    blueSoft:     "FFEEF4F8",
+    blueAlt:      "FFF9FBFD",
+    blueMuted:    "FFF0F5F9",
+    blueLimit:    "FFE9F0F6",
+    blueLight:    "FFF4F7F9",
+    blueTotal:    "FFEAF1F7",
+    tabGray:      "FFE5E7EB",
+    disabledGray: "FFF4F4F4",
+    borderGray:   "FFD1D5DB",
+    redPayBg:     "FFFBEAE8",
+    redPayText:   "FF7F1D1D",
+    greenFavBg:   "FFEAF4EE",
+    greenFavText: "FF00573F",
+    numBlue:      "FF2D6187",
+    numMuted:     "FF6B7280",
+    white:        "FFFFFFFF",
+    black:        "FF000000",
+  };
+
+  const bdr = (style: any, argb = CLR.black) => ({ style, color: { argb } });
+  const T = bdr("thin", CLR.black);
+  const M = bdr("medium", CLR.black);
+  const TK = bdr("thick", CLR.black);
+  const BDR_BOX = { top: T, left: T, bottom: T, right: T };
+
+  const fill = (argb: string) => ({ type: "pattern", pattern: "solid", fgColor: { argb } });
+  const font = (sz: number, bold = false, argb = CLR.black, name = "Arial", italic = false) => ({
+    name,
+    size: sz,
+    bold,
+    italic,
+    color: { argb },
+  });
+
+  const aln = (h: any = "left", v: any = "middle", wrap = true) => ({
+    horizontal: h,
+    vertical: v,
+    wrapText: wrap,
+  });
+
+  const numVal = (num: number): number => {
+    const v = c.casillas[num];
+    return typeof v === "number" ? Math.round(v) : 0;
+  };
+
+  const fmt = (v: any) => {
+    if (v === null || v === undefined || v === "") return "—";
+    if (typeof v === "number") {
+      if (v === 0) return "0";
+      return v.toLocaleString("es-CO");
+    }
+    return String(v);
+  };
+
+  function renderCasilla(addr: string, casNum: number | null, val: any, opts: any = {}) {
+    const cell = ws.getCell(addr);
+    const valStr = fmt(val);
+    const numStr = casNum !== null && casNum !== undefined ? String(casNum) : "";
+
+    cell.value = {
+      richText: [
+        numStr ? { font: font(5.5, true, opts.numColor ?? CLR.numMuted), text: `${numStr} ` } : { font: font(5.5), text: "" },
+        { font: font(5.5), text: "\n" },
+        {
+          font: font(
+            opts.sz ?? 8,
+            opts.bold ?? false,
+            opts.textColor ?? CLR.black,
+            "Arial",
+            opts.italic ?? false
+          ),
+          text: valStr,
+        },
+      ],
+    };
+    cell.fill = fill(opts.bg ?? CLR.white);
+    cell.border = opts.border ?? BDR_BOX;
+    cell.alignment = aln(opts.h ?? "right", opts.v ?? "middle", true);
+    return cell;
+  }
+
+  function renderTab(mergeRange: string, text: string, bg = CLR.tabGray, textColor = CLR.black, sz = 7) {
+    ws.mergeCells(mergeRange);
+    const startCell = mergeRange.split(":")[0];
+    const cell = ws.getCell(startCell);
+    cell.value = text;
+    cell.font = font(sz, true, textColor);
+    cell.fill = fill(bg);
+    cell.border = BDR_BOX;
+    cell.alignment = { vertical: "middle", horizontal: "center", textRotation: 90, wrapText: true };
+    return cell;
+  }
+
+  ws.columns = [
+    { key: "A", width: 3.5 },
+    { key: "B", width: 32 },
+    { key: "C", width: 15 },
+    { key: "D", width: 16 },
+    { key: "E", width: 15 },
+    { key: "F", width: 15 },
+    { key: "G", width: 3.5 },
+    { key: "H", width: 32 },
+    { key: "I", width: 15 },
+    { key: "J", width: 15 },
+  ];
+
+  let R = 1;
+  const id = d.identity;
+
+  // 1. ENCABEZADO
+  ws.mergeCells(`A${R}:C${R+2}`);
+  ws.mergeCells(`D${R}:H${R+2}`);
+  ws.mergeCells(`I${R}:J${R+2}`);
+
+  const cDian = ws.getCell(`A${R}`);
+  cDian.value = {
+    richText: [
+      { font: font(20, true, CLR.black, "Arial Black"), text: "DIAN\n" },
+      { font: font(7, true, CLR.black), text: "1. Año: " },
+      { font: font(10, true, CLR.black, "Courier New"), text: `${d.year}\n` },
+      { font: font(6, false, CLR.numMuted), text: "Espacio reservado para la DIAN" },
+    ],
+  };
+  cDian.fill = fill(CLR.white);
+  cDian.border = { top: TK, left: TK, bottom: TK, right: M };
+  cDian.alignment = aln("left", "middle", true);
+
+  const cTitulo = ws.getCell(`D${R}`);
+  cTitulo.value = {
+    richText: [
+      {
+        font: font(8.5, true, CLR.black),
+        text: "DECLARACIÓN DE RENTA Y COMPLEMENTARIO PERSONAS NATURALES Y ASIMILADAS RESIDENTES\nY SUCESIONES ILÍQUIDAS DE CAUSANTES RESIDENTES\n\n",
+      },
+      { font: font(7.5, true, CLR.black), text: "4. Número de formulario: " },
+      { font: font(8, true, CLR.black, "Courier New"), text: `210${d.year}000${id.nit ? id.nit.slice(-5) : "41029"}` },
+    ],
+  };
+  cTitulo.fill = fill(CLR.white);
+  cTitulo.border = { top: TK, left: M, bottom: TK, right: M };
+  cTitulo.alignment = aln("center", "middle", true);
+
+  const c210 = ws.getCell(`I${R}`);
+  c210.value = "210";
+  c210.font = font(36, true, CLR.white, "Arial Black");
+  c210.fill = fill(CLR.blue210);
+  c210.border = { top: TK, left: M, bottom: TK, right: TK };
+  c210.alignment = aln("center", "middle", false);
+
+  ws.getRow(R).height = 16;
+  ws.getRow(R + 1).height = 16;
+  ws.getRow(R + 2).height = 16;
+  R += 3;
+
+  // 2. DATOS DECLARANTE
+  ws.getRow(R).height = 24;
+  renderTab(`A${R}:A${R+1}`, "Datos del declarante", CLR.tabGray, CLR.black, 6.5);
+
+  ws.mergeCells(`B${R}:C${R}`);
+  const cNIT = ws.getCell(`B${R}`);
+  cNIT.value = { richText: [{ font: font(6, false, CLR.numMuted), text: "5. Número de Identificación Tributaria (NIT)\n" }, { font: font(9, true, CLR.black, "Courier New"), text: id.nit || "—" }] };
+  cNIT.border = BDR_BOX;
+  cNIT.alignment = aln("left", "top", true);
+
+  const cDV = ws.getCell(`D${R}`);
+  cDV.value = { richText: [{ font: font(6, false, CLR.numMuted), text: "6.DV\n" }, { font: font(9, true, CLR.black, "Courier New"), text: id.dv || "0" }] };
+  cDV.border = BDR_BOX;
+  cDV.alignment = aln("center", "top", true);
+
+  const cAp1 = ws.getCell(`E${R}`);
+  cAp1.value = { richText: [{ font: font(6, false, CLR.numMuted), text: "7. Primer apellido\n" }, { font: font(8.5, true, CLR.black), text: id.primerApellido || "—" }] };
+  cAp1.border = BDR_BOX;
+  cAp1.alignment = aln("left", "top", true);
+
+  const cAp2 = ws.getCell(`F${R}`);
+  cAp2.value = { richText: [{ font: font(6, false, CLR.numMuted), text: "8. Segundo apellido\n" }, { font: font(8.5, true, CLR.black), text: id.segundoApellido || "—" }] };
+  cAp2.border = BDR_BOX;
+  cAp2.alignment = aln("left", "top", true);
+
+  ws.mergeCells(`G${R}:H${R}`);
+  const cN1 = ws.getCell(`G${R}`);
+  cN1.value = { richText: [{ font: font(6, false, CLR.numMuted), text: "9. Primer nombre\n" }, { font: font(8.5, true, CLR.black), text: id.primerNombre || "—" }] };
+  cN1.border = BDR_BOX;
+  cN1.alignment = aln("left", "top", true);
+
+  const cN2 = ws.getCell(`I${R}`);
+  cN2.value = { richText: [{ font: font(6, false, CLR.numMuted), text: "10. Otros nombres\n" }, { font: font(8.5, true, CLR.black), text: id.otrosNombres || "—" }] };
+  cN2.border = BDR_BOX;
+  cN2.alignment = aln("left", "top", true);
+
+  const cSecc = ws.getCell(`J${R}`);
+  cSecc.value = { richText: [{ font: font(6, false, CLR.numMuted), text: "12.Cód.Secc\n" }, { font: font(9, true, CLR.black, "Courier New"), text: id.dirSeccional || "32" }] };
+  cSecc.border = { top: T, left: T, bottom: T, right: TK };
+  cSecc.alignment = aln("center", "top", true);
+  R++;
+
+  // Fila 2 Declarante
+  ws.getRow(R).height = 20;
+  ws.mergeCells(`B${R}:C${R}`);
+  const cCIIU = ws.getCell(`B${R}`);
+  cCIIU.value = { richText: [{ font: font(6, false, CLR.numMuted), text: "24. Actividad económica principal\n" }, { font: font(9, true, CLR.black, "Courier New"), text: id.actividadCiiu || "0010" }] };
+  cCIIU.fill = fill(CLR.blueLight);
+  cCIIU.border = BDR_BOX;
+  cCIIU.alignment = aln("left", "top", true);
+
+  const c25 = ws.getCell(`D${R}`);
+  c25.value = { richText: [{ font: font(6, false, CLR.numMuted), text: "25. Cód\n" }, { font: font(8.5, true, CLR.black), text: id.esCorreccion ? "1" : "—" }] };
+  c25.fill = fill(CLR.blueLight);
+  c25.border = BDR_BOX;
+  c25.alignment = aln("center", "top", true);
+
+  ws.mergeCells(`E${R}:F${R}`);
+  const c26 = ws.getCell(`E${R}`);
+  c26.value = { richText: [{ font: font(6, false, CLR.numMuted), text: "26. No. Formulario anterior\n" }, { font: font(8, false, CLR.black), text: id.formAnterior || "—" }] };
+  c26.fill = fill(CLR.blueLight);
+  c26.border = BDR_BOX;
+  c26.alignment = aln("left", "top", true);
+
+  const c27 = ws.getCell(`G${R}`);
+  c27.value = { richText: [{ font: font(6, false, CLR.numMuted), text: "27. Fracción sig.\n" }, { font: font(8.5, true, CLR.black), text: "NO" }] };
+  c27.fill = fill(CLR.blueLight);
+  c27.border = BDR_BOX;
+  c27.alignment = aln("center", "top", true);
+
+  ws.mergeCells(`H${R}:I${R}`);
+  const c28L = ws.getCell(`H${R}`);
+  c28L.value = "28. Uno por ciento (1%) de compras con factura electrónica";
+  c28L.font = font(6.5, false, CLR.black);
+  c28L.fill = fill(CLR.white);
+  c28L.border = BDR_BOX;
+  c28L.alignment = aln("left", "middle", true);
+
+  renderCasilla(`J${R}`, 28, numVal(28), { border: { top: T, left: T, bottom: T, right: TK } });
+  R++;
+
+  // 3. PATRIMONIO
+  ws.getRow(R).height = 20;
+  ws.mergeCells(`A${R}:B${R}`);
+  const pB = ws.getCell(`A${R}`);
+  pB.value = "PATRIMONIO";
+  pB.font = font(8, true, CLR.black);
+  pB.fill = fill(CLR.blueHdr);
+  pB.border = { top: M, left: TK, bottom: M, right: T };
+  pB.alignment = aln("center", "middle", false);
+
+  ws.mergeCells(`C${R}:D${R}`);
+  const p29 = ws.getCell(`C${R}`);
+  p29.value = { richText: [{ font: font(7, false, CLR.black), text: "Total patrimonio bruto   " }, { font: font(6, true, CLR.numBlue), text: "29\n" }, { font: font(8.5, true, CLR.black), text: fmt(numVal(29)) }] };
+  p29.fill = fill(CLR.white);
+  p29.border = { top: M, left: T, bottom: M, right: T };
+  p29.alignment = aln("right", "middle", true);
+
+  ws.mergeCells(`E${R}:F${R}`);
+  const p30 = ws.getCell(`E${R}`);
+  p30.value = { richText: [{ font: font(7, false, CLR.black), text: "Deudas   " }, { font: font(6, true, CLR.numBlue), text: "30\n" }, { font: font(8.5, true, CLR.black), text: fmt(numVal(30)) }] };
+  p30.fill = fill(CLR.white);
+  p30.border = { top: M, left: T, bottom: M, right: T };
+  p30.alignment = aln("right", "middle", true);
+
+  ws.mergeCells(`G${R}:J${R}`);
+  const p31 = ws.getCell(`G${R}`);
+  p31.value = { richText: [{ font: font(7.5, true, CLR.black), text: "Total patrimonio líquido   " }, { font: font(6.5, true, CLR.numBlue), text: "31\n" }, { font: font(9.5, true, CLR.black), text: fmt(numVal(31)) }] };
+  p31.fill = fill(CLR.blueTotal);
+  p31.border = { top: M, left: T, bottom: M, right: TK };
+  p31.alignment = aln("right", "middle", true);
+  R++;
+
+  // 4. CÉDULA GENERAL
+  ws.getRow(R).height = 26;
+  const startCG = R;
+
+  const cgC = ws.getCell(`B${R}`);
+  cgC.value = "Conceptos/rentas";
+  cgC.font = font(7.5, true, CLR.black);
+  cgC.fill = fill(CLR.blueHdr);
+  cgC.border = BDR_BOX;
+  cgC.alignment = aln("left", "middle", false);
+
+  ws.mergeCells(`C${R}:D${R}`);
+  const cgT = ws.getCell(`C${R}`);
+  cgT.value = "Rentas de trabajo";
+  cgT.font = font(7.5, true, CLR.black);
+  cgT.fill = fill(CLR.blueHdr);
+  cgT.border = BDR_BOX;
+  cgT.alignment = aln("center", "middle", true);
+
+  ws.mergeCells(`E${R}:F${R}`);
+  const cgH = ws.getCell(`E${R}`);
+  cgH.value = "Rentas de trabajo que no provengan de una relación laboral";
+  cgH.font = font(6.5, true, CLR.black);
+  cgH.fill = fill(CLR.blueHdr);
+  cgH.border = BDR_BOX;
+  cgH.alignment = aln("center", "middle", true);
+
+  ws.mergeCells(`G${R}:H${R}`);
+  const cgCap = ws.getCell(`G${R}`);
+  cgCap.value = "Rentas de capital";
+  cgCap.font = font(7.5, true, CLR.black);
+  cgCap.fill = fill(CLR.blueHdr);
+  cgCap.border = BDR_BOX;
+  cgCap.alignment = aln("center", "middle", true);
+
+  ws.mergeCells(`I${R}:J${R}`);
+  const cgNL = ws.getCell(`I${R}`);
+  cgNL.value = "Rentas no laborales";
+  cgNL.font = font(7.5, true, CLR.black);
+  cgNL.fill = fill(CLR.blueHdr);
+  cgNL.border = { top: T, left: T, bottom: T, right: TK };
+  cgNL.alignment = aln("center", "middle", true);
+  R++;
+
+  const CEDULA_ROWS = [
+    ["Ingresos brutos", 32, numVal(32), 43, numVal(43), 58, numVal(58), 74, numVal(74), CLR.blueAlt, false, false],
+    ["Devoluciones, rebajas y descuentos", null, null, null, null, null, null, 75, numVal(75), CLR.disabledGray, false, false],
+    ["Ingresos no constitutivos de renta", 33, numVal(33), 44, numVal(44), 59, numVal(59), 76, numVal(76), CLR.blueAlt, false, false],
+    ["Costos y deducciones procedentes", null, null, 45, numVal(45), 60, numVal(60), 77, numVal(77), CLR.blueAlt, false, false],
+    ["Renta líquida", 34, numVal(34), 46, numVal(46), 61, numVal(61), 78, numVal(78), CLR.blueSoft, true, false],
+    ["Rentas líquidas pasivas - ECE", null, null, null, null, 62, numVal(62), 79, numVal(79), CLR.blueAlt, false, false],
+    ["  • Aportes voluntarios AFC, FVP y AVC", 35, numVal(35), 47, numVal(47), 63, numVal(63), 80, numVal(80), CLR.blueAlt, false, true],
+    ["  • Otras rentas exentas", 36, numVal(36), 48, numVal(48), 64, numVal(64), 81, numVal(81), CLR.blueAlt, false, true],
+    ["Total rentas exentas", 37, numVal(37), 49, numVal(49), 65, numVal(65), 82, numVal(82), CLR.blueMuted, true, false],
+    ["  • Intereses de vivienda", 38, numVal(38), 50, numVal(50), 66, numVal(66), 83, numVal(83), CLR.blueAlt, false, true],
+    ["  • Otras deducciones imputables", 39, numVal(39), 51, numVal(51), 67, numVal(67), 84, numVal(84), CLR.blueAlt, false, true],
+    ["Total deducciones imputables", 40, numVal(40), 52, numVal(52), 68, numVal(68), 85, numVal(85), CLR.blueMuted, true, false],
+    ["Rentas exentas y/o deduc. imputables (Limitadas)", 41, numVal(41), 53, numVal(53), 69, numVal(69), 86, numVal(86), CLR.blueLimit, true, false],
+    ["Renta líquida ordinaria del ejercicio", null, null, 54, numVal(54), 70, numVal(70), 87, numVal(87), CLR.blueAlt, false, false],
+    ["Pérdida líquida del ejercicio", null, null, 55, numVal(55), 71, numVal(71), 88, numVal(88), CLR.blueAlt, false, false],
+    ["Compensaciones por pérdidas", null, null, 56, numVal(56), 72, numVal(72), 89, numVal(89), CLR.blueAlt, false, false],
+    ["Renta líquida ordinaria", 42, numVal(42), 57, numVal(57), 73, numVal(73), 90, numVal(90), CLR.blueHdr, true, false],
+  ];
+
+  for (const row of CEDULA_ROWS) {
+    ws.getRow(R).height = 18;
+    const [label, cT, vT, cH, vH, cC, vC, cN, vN, rowBg, isBold, isItalic] = row;
+
+    const cLabel = ws.getCell(`B${R}`);
+    cLabel.value = label;
+    cLabel.font = font(isBold ? 7.5 : 7, isBold as boolean, CLR.black, "Arial", isItalic as boolean);
+    cLabel.fill = fill(rowBg as string);
+    cLabel.border = BDR_BOX;
+    cLabel.alignment = aln("left", "middle", true);
+
+    ws.mergeCells(`C${R}:D${R}`);
+    if (cT !== null) {
+      renderCasilla(`C${R}`, cT as number, vT, { bg: rowBg, bold: isBold });
+    } else {
+      const disCell = ws.getCell(`C${R}`);
+      disCell.fill = fill(CLR.disabledGray);
+      disCell.border = BDR_BOX;
+    }
+
+    ws.mergeCells(`E${R}:F${R}`);
+    if (cH !== null) {
+      renderCasilla(`E${R}`, cH as number, vH, { bg: rowBg, bold: isBold });
+    } else {
+      const disCell = ws.getCell(`E${R}`);
+      disCell.fill = fill(CLR.disabledGray);
+      disCell.border = BDR_BOX;
+    }
+
+    ws.mergeCells(`G${R}:H${R}`);
+    if (cC !== null) {
+      renderCasilla(`G${R}`, cC as number, vC, { bg: rowBg, bold: isBold });
+    } else {
+      const disCell = ws.getCell(`G${R}`);
+      disCell.fill = fill(CLR.disabledGray);
+      disCell.border = BDR_BOX;
+    }
+
+    ws.mergeCells(`I${R}:J${R}`);
+    if (cN !== null) {
+      renderCasilla(`I${R}`, cN as number, vN, { bg: rowBg, bold: isBold, border: { top: T, left: T, bottom: T, right: TK } });
+    } else {
+      const disCell = ws.getCell(`I${R}`);
+      disCell.fill = fill(CLR.disabledGray);
+      disCell.border = { top: T, left: T, bottom: T, right: TK };
+    }
+    R++;
+  }
+
+  renderTab(`A${startCG}:A${R-1}`, "Cédula general", CLR.tabGray, CLR.black, 7.5);
+
+  // 5. DEPURACIÓN
+  ws.getRow(R).height = 20;
+  ws.mergeCells(`A${R}:B${R}`);
+  const d91 = ws.getCell(`A${R}`);
+  d91.value = { richText: [{ font: font(6.5, false, CLR.black), text: "Ren. líquida céd. gen.  " }, { font: font(6, true, CLR.numBlue), text: "91\n" }, { font: font(8.5, false, CLR.black), text: fmt(numVal(91)) }] };
+  d91.fill = fill(CLR.blueSoft);
+  d91.border = { top: M, left: TK, bottom: T, right: T };
+  d91.alignment = aln("right", "middle", true);
+
+  ws.mergeCells(`C${R}:D${R}`);
+  const d92 = ws.getCell(`C${R}`);
+  d92.value = { richText: [{ font: font(6.5, false, CLR.black), text: "Ren. ex. y ded. imp. li.  " }, { font: font(6, true, CLR.numBlue), text: "92\n" }, { font: font(8.5, false, CLR.black), text: fmt(numVal(92)) }] };
+  d92.fill = fill(CLR.blueSoft);
+  d92.border = { top: M, left: T, bottom: T, right: T };
+  d92.alignment = aln("right", "middle", true);
+
+  ws.mergeCells(`E${R}:G${R}`);
+  const d93 = ws.getCell(`E${R}`);
+  d93.value = { richText: [{ font: font(6.5, true, CLR.black), text: "R. líq. ord. cédula gen.  " }, { font: font(6, true, CLR.numBlue), text: "93\n" }, { font: font(9, true, CLR.black), text: fmt(numVal(93)) }] };
+  d93.fill = fill(CLR.blueSoft);
+  d93.border = { top: M, left: T, bottom: T, right: T };
+  d93.alignment = aln("right", "middle", true);
+
+  ws.mergeCells(`H${R}:J${R}`);
+  const d94 = ws.getCell(`H${R}`);
+  d94.value = { richText: [{ font: font(6.5, false, CLR.black), text: "Comp. pérdidas año 2018 y ant.  " }, { font: font(6, true, CLR.numBlue), text: "94\n" }, { font: font(8.5, false, CLR.black), text: fmt(numVal(94)) }] };
+  d94.fill = fill(CLR.blueSoft);
+  d94.border = { top: M, left: T, bottom: T, right: TK };
+  d94.alignment = aln("right", "middle", true);
+  R++;
+
+  ws.getRow(R).height = 20;
+  ws.mergeCells(`A${R}:B${R}`);
+  const d95 = ws.getCell(`A${R}`);
+  d95.value = { richText: [{ font: font(6.5, false, CLR.black), text: "Comp. exc. ren. presuntiva  " }, { font: font(6, true, CLR.numBlue), text: "95\n" }, { font: font(8.5, false, CLR.black), text: fmt(numVal(95)) }] };
+  d95.fill = fill(CLR.blueSoft);
+  d95.border = { top: T, left: TK, bottom: M, right: T };
+  d95.alignment = aln("right", "middle", true);
+
+  ws.mergeCells(`C${R}:D${R}`);
+  const d96 = ws.getCell(`C${R}`);
+  d96.value = { richText: [{ font: font(6.5, false, CLR.black), text: "Rentas gravables  " }, { font: font(6, true, CLR.numBlue), text: "96\n" }, { font: font(8.5, false, CLR.black), text: fmt(numVal(96)) }] };
+  d96.fill = fill(CLR.blueSoft);
+  d96.border = { top: T, left: T, bottom: M, right: T };
+  d96.alignment = aln("right", "middle", true);
+
+  ws.mergeCells(`E${R}:G${R}`);
+  const d97 = ws.getCell(`E${R}`);
+  d97.value = { richText: [{ font: font(7, true, CLR.black), text: "R. líq. grav. cédula gen.  " }, { font: font(6.5, true, CLR.numBlue), text: "97\n" }, { font: font(10, true, CLR.black), text: fmt(c.rentaLiquidaGravable ?? numVal(97)) }] };
+  d97.fill = fill(CLR.blueHdr);
+  d97.border = { top: T, left: T, bottom: M, right: T };
+  d97.alignment = aln("right", "middle", true);
+
+  ws.mergeCells(`H${R}:J${R}`);
+  const d98 = ws.getCell(`H${R}`);
+  d98.value = { richText: [{ font: font(6.5, false, CLR.black), text: "Renta presuntiva  " }, { font: font(6, true, CLR.numBlue), text: "98\n" }, { font: font(8.5, false, CLR.black), text: fmt(numVal(98)) }] };
+  d98.fill = fill(CLR.blueSoft);
+  d98.border = { top: T, left: T, bottom: M, right: TK };
+  d98.alignment = aln("right", "middle", true);
+  R++;
+
+  // 6. DIVISIÓN INFERIOR
+  const LEFT_SECTIONS = [
+    { label: "Ingresos brutos por rentas de pensiones del país y del exterior", cas: 99, val: numVal(99), bg: CLR.white, bold: false },
+    { label: "Ingresos no constitutivos de renta", cas: 100, val: numVal(100), bg: CLR.white, bold: false },
+    { label: "Renta líquida", cas: 101, val: numVal(101), bg: CLR.blueLight, bold: false },
+    { label: "Rentas exentas de pensiones", cas: 102, val: numVal(102), bg: CLR.white, bold: false },
+    { label: "Renta líquida gravable cédula de pensiones", cas: 103, val: numVal(103), bg: CLR.blueHdr, bold: true },
+
+    { label: "Dividendos y participaciones año 2016 y anteriores, y otros", cas: 104, val: numVal(104), bg: CLR.white, bold: false },
+    { label: "Ingresos no constitutivos de renta", cas: 105, val: numVal(105), bg: CLR.white, bold: false },
+    { label: "Renta líquida ordinaria año 2016 y anteriores", cas: 106, val: numVal(106), bg: CLR.blueLight, bold: false },
+    { label: "1a. Subcédula años 2017 y siguientes numeral 3 art. 49 del E.T.", cas: 107, val: numVal(107), bg: CLR.white, bold: false },
+    { label: "2a. Subcédula años 2017 y siguientes parágrafo 2 art. 49 del E.T.", cas: 108, val: numVal(108), bg: CLR.white, bold: false },
+    { label: "Dividendos y participaciones recibidas del exterior", cas: 109, val: numVal(109), bg: CLR.white, bold: false },
+    { label: "Rentas exentas de la casilla 109", cas: 110, val: numVal(110), bg: CLR.white, bold: false },
+    { label: "Renta líquida gravable (Cédula general o Renta presuntiva, pensiones y div)", cas: 111, val: numVal(111), bg: CLR.blueHdr, bold: true },
+
+    { label: "Ingresos por ganancias ocasionales del país y del exterior", cas: 112, val: numVal(112), bg: CLR.white, bold: false },
+    { label: "Costos por ganancias ocasionales", cas: 113, val: numVal(113), bg: CLR.white, bold: false },
+    { label: "Ganancias ocasionales no gravadas y exentas", cas: 114, val: numVal(114), bg: CLR.white, bold: false },
+    { label: "Ganancias ocasionales gravables", cas: 115, val: numVal(115), bg: CLR.blueHdr, bold: true },
+  ];
+
+  const RIGHT_SECTIONS = [
+    { type: "row", label: "Cédula general, de pensiones y de dividendos y participaciones", cas: 116, val: numVal(116), bg: CLR.white, bold: false },
+    { type: "row", label: "Renta presuntiva, de pensiones y de dividendos y participaciones", cas: 117, val: numVal(117), bg: CLR.white, bold: false },
+    { type: "row", label: "Por dividendos y participaciones año 2017 y siguientes, 2a subcédula (Art. 240)", cas: 118, val: numVal(118), bg: CLR.white, bold: false },
+    { type: "row", label: "Por dividendos y participaciones año 2016", cas: 119, val: numVal(119), bg: CLR.white, bold: false },
+    { type: "row", label: "Por dividendos y participaciones recibidas del exterior", cas: 120, val: numVal(120), bg: CLR.white, bold: false },
+    { type: "row", label: "Total impuesto sobre las rentas líquidas gravables", cas: 121, val: numVal(121), bg: CLR.blueSoft, bold: true },
+    { type: "descGrid1", c1: 122, l1: "Imp. pagados exterior", v1: numVal(122), c2: 123, l2: "Donaciones", v2: numVal(123) },
+    { type: "descGrid2", c1: 124, l1: "Dividendos, partic. y otros", v1: numVal(124), c2: 125, l2: "Total desctos trib.", v2: numVal(125) },
+    { type: "row", label: "Impuesto neto de renta", cas: 126, val: c.impuestoNeto ?? numVal(126), bg: CLR.blueLight, bold: true },
+    { type: "row", label: "Impuesto de ganancias ocasionales", cas: 127, val: numVal(127), bg: CLR.white, bold: false },
+    { type: "row", label: "Descuento por impuestos pagados en el exterior por ganancias ocasionales", cas: 128, val: numVal(128), bg: CLR.white, bold: false },
+    { type: "row", label: "Total impuesto a cargo", cas: 129, val: c.impuestoCargo ?? numVal(129), bg: CLR.blueHdr, bold: true },
+    { type: "row", label: "Anticipo renta liquidado año gravable anterior", cas: 130, val: numVal(130), bg: CLR.white, bold: false },
+    { type: "row", label: "Saldo a favor del año gravable anterior sin solicitud de devolución/compensación", cas: 131, val: numVal(131), bg: CLR.white, bold: false },
+    { type: "row", label: "Retenciones año gravable a declarar", cas: 132, val: numVal(132), bg: CLR.white, bold: false },
+    { type: "row", label: "Anticipo renta para el año gravable siguiente", cas: 133, val: numVal(133), bg: CLR.white, bold: false },
+    { type: "blank" },
+  ];
+
+  const startLower = R;
+
+  for (let i = 0; i < 17; i++) {
+    ws.getRow(R).height = 17.5;
+    const l = LEFT_SECTIONS[i];
+    const r = RIGHT_SECTIONS[i];
+
+    if (l) {
+      ws.mergeCells(`B${R}:D${R}`);
+      const cLbl = ws.getCell(`B${R}`);
+      cLbl.value = l.label;
+      cLbl.font = font(l.bold ? 7.5 : 7, l.bold, CLR.black);
+      cLbl.fill = fill(l.bg);
+      cLbl.border = BDR_BOX;
+      cLbl.alignment = aln("left", "middle", true);
+
+      ws.mergeCells(`E${R}:F${R}`);
+      renderCasilla(`E${R}`, l.cas, l.val, { bg: l.bg, bold: l.bold });
+    }
+
+    if (r) {
+      if (r.type === "row") {
+        const rLbl = ws.getCell(`H${R}`);
+        rLbl.value = r.label;
+        rLbl.font = font(r.bold ? 7.5 : 7, r.bold, CLR.black);
+        rLbl.fill = fill(r.bg as string);
+        rLbl.border = BDR_BOX;
+        rLbl.alignment = aln("left", "middle", true);
+
+        ws.mergeCells(`I${R}:J${R}`);
+        renderCasilla(`I${R}`, r.cas as number, r.val, {
+          bg: r.bg,
+          bold: r.bold,
+          border: { top: T, left: T, bottom: T, right: TK },
+        });
+      } else if (r.type === "descGrid1" || r.type === "descGrid2") {
+        const d1 = ws.getCell(`H${R}`);
+        d1.value = { richText: [{ font: font(6.5, false, CLR.black), text: `${r.l1}  ` }, { font: font(5.5, true, CLR.numBlue), text: `${r.c1}\n` }, { font: font(8, r.type === "descGrid2", CLR.black), text: fmt(r.v1) }] };
+        d1.fill = fill(CLR.blueAlt);
+        d1.border = BDR_BOX;
+        d1.alignment = aln("right", "middle", true);
+
+        ws.mergeCells(`I${R}:J${R}`);
+        const d2 = ws.getCell(`I${R}`);
+        d2.value = { richText: [{ font: font(6.5, r.type === "descGrid2", CLR.black), text: `${r.l2}  ` }, { font: font(5.5, true, CLR.numBlue), text: `${r.c2}\n` }, { font: font(8, r.type === "descGrid2", CLR.black), text: fmt(r.v2) }] };
+        d2.fill = fill(r.type === "descGrid2" ? CLR.blueSoft : CLR.blueAlt);
+        d2.border = { top: T, left: T, bottom: T, right: TK };
+        d2.alignment = aln("right", "middle", true);
+      } else {
+        const blkH = ws.getCell(`H${R}`);
+        blkH.fill = fill(CLR.white);
+        blkH.border = BDR_BOX;
+        ws.mergeCells(`I${R}:J${R}`);
+        const blkI = ws.getCell(`I${R}`);
+        blkI.fill = fill(CLR.white);
+        blkI.border = { top: T, left: T, bottom: T, right: TK };
+      }
+    }
+    R++;
+  }
+
+  renderTab(`A${startLower}:A${startLower+4}`, "Cédula de pensiones", CLR.tabGray, CLR.black, 7);
+  renderTab(`A${startLower+5}:A${startLower+12}`, "Cédula de dividendos y/o participaciones", CLR.tabGray, CLR.black, 6.5);
+  renderTab(`A${startLower+13}:A${startLower+16}`, "Ganancias ocasionales", CLR.tabGray, CLR.black, 6.5);
+  renderTab(`G${startLower}:G${startLower+16}`, "Liquidación privada", CLR.tabGray, CLR.black, 7.5);
+
+  // 7. TOTALES DE SALDO
+  ws.getRow(R).height = 22;
+  ws.mergeCells(`A${R}:C${R}`);
+  const s134 = ws.getCell(`A${R}`);
+  s134.value = { richText: [{ font: font(6.5, false, CLR.black), text: "Saldo a pagar por impuesto  " }, { font: font(6, true, CLR.numBlue), text: "134\n" }, { font: font(9, false, CLR.black), text: fmt(numVal(134)) }] };
+  s134.fill = fill(CLR.blueLight);
+  s134.border = { top: M, left: TK, bottom: T, right: T };
+  s134.alignment = aln("right", "middle", true);
+
+  ws.mergeCells(`D${R}:E${R}`);
+  const s135 = ws.getCell(`D${R}`);
+  s135.value = { richText: [{ font: font(6.5, false, CLR.black), text: "Sanciones  " }, { font: font(6, true, CLR.numBlue), text: "135\n" }, { font: font(9, false, CLR.black), text: fmt(numVal(135)) }] };
+  s135.fill = fill(CLR.blueLight);
+  s135.border = { top: M, left: T, bottom: T, right: T };
+  s135.alignment = aln("right", "middle", true);
+
+  ws.mergeCells(`F${R}:G${R}`);
+  const s136 = ws.getCell(`F${R}`);
+  s136.value = { richText: [{ font: font(7, true, CLR.redPayText), text: "Total saldo a pagar  " }, { font: font(6.5, true, CLR.redPayText), text: "136\n" }, { font: font(10, true, CLR.redPayText), text: fmt(c.saldoPagar ?? numVal(136)) }] };
+  s136.fill = fill(CLR.redPayBg);
+  s136.border = { top: M, left: T, bottom: T, right: T };
+  s136.alignment = aln("right", "middle", true);
+
+  ws.mergeCells(`H${R}:J${R}`);
+  const s137 = ws.getCell(`H${R}`);
+  s137.value = { richText: [{ font: font(7, true, CLR.greenFavText), text: "Total saldo a favor  " }, { font: font(6.5, true, CLR.greenFavText), text: "137\n" }, { font: font(10, true, CLR.greenFavText), text: fmt(c.saldoFavor ?? numVal(137)) }] };
+  s137.fill = fill(CLR.greenFavBg);
+  s137.border = { top: M, left: T, bottom: T, right: TK };
+  s137.alignment = aln("right", "middle", true);
+  R++;
+
+  // Fila Datos Informativos
+  ws.getRow(R).height = 20;
+  ws.mergeCells(`A${R}:C${R}`);
+  const s138 = ws.getCell(`A${R}`);
+  s138.value = { richText: [{ font: font(6.5, false, CLR.black), text: "Número de dependientes económicos  " }, { font: font(6, true, CLR.numBlue), text: "138\n" }, { font: font(8.5, true, CLR.black), text: fmt(numVal(138)) }] };
+  s138.fill = fill(CLR.white);
+  s138.border = { top: T, left: TK, bottom: M, right: T };
+  s138.alignment = aln("right", "middle", true);
+
+  ws.mergeCells(`D${R}:E${R}`);
+  const s139 = ws.getCell(`D${R}`);
+  s139.value = { richText: [{ font: font(6.5, false, CLR.black), text: "Adición dependientes a cas. 92  " }, { font: font(6, true, CLR.numBlue), text: "139\n" }, { font: font(8.5, false, CLR.black), text: fmt(numVal(139)) }] };
+  s139.fill = fill(CLR.white);
+  s139.border = { top: T, left: T, bottom: M, right: T };
+  s139.alignment = aln("right", "middle", true);
+
+  ws.mergeCells(`F${R}:G${R}`);
+  const s140 = ws.getCell(`F${R}`);
+  s140.value = { richText: [{ font: font(6, false, CLR.black), text: "Superó tope art. 336-1 marque X  " }, { font: font(6, true, CLR.numBlue), text: "140\n" }, { font: font(8.5, true, CLR.black), text: c.casillas[140] ? "X" : "NO" }] };
+  s140.fill = fill(CLR.white);
+  s140.border = { top: T, left: T, bottom: M, right: T };
+  s140.alignment = aln("center", "middle", true);
+
+  ws.mergeCells(`H${R}:J${R}`);
+  const s141 = ws.getCell(`H${R}`);
+  s141.value = { richText: [{ font: font(6.5, false, CLR.black), text: "Aporte voluntario  " }, { font: font(6, true, CLR.numBlue), text: "141\n" }, { font: font(8.5, false, CLR.black), text: fmt(numVal(141)) }] };
+  s141.fill = fill(CLR.white);
+  s141.border = { top: T, left: T, bottom: M, right: TK };
+  s141.alignment = aln("right", "middle", true);
+  R++;
+
+  // 8. FIRMAS
+  const fullName = [id.primerApellido, id.segundoApellido, id.primerNombre, id.otrosNombres].filter(Boolean).join(" ") || "CONTRIBUYENTE PERSONA NATURAL";
+
+  ws.getRow(R).height = 24;
+  ws.mergeCells(`A${R}:E${R}`);
+  const fDecl = ws.getCell(`A${R}`);
+  fDecl.value = { richText: [{ font: font(6.5, false, CLR.numMuted), text: "981. Cód. Representación: 0\n" }, { font: font(7.5, true, CLR.black), text: `Firma del declarante o quien lo representa: ${fullName}` }] };
+  fDecl.fill = fill(CLR.white);
+  fDecl.border = { top: M, left: TK, bottom: T, right: T };
+  fDecl.alignment = aln("left", "middle", true);
+
+  ws.mergeCells(`F${R}:J${R}`);
+  const fSello = ws.getCell(`F${R}`);
+  fSello.value = { richText: [{ font: font(7, true, CLR.black), text: "997. Espacio exclusivo para el sello de la entidad recaudadora\n" }, { font: font(6, false, CLR.numMuted), text: "(Fecha de presentación y certificación electrónica MUISCA)" }] };
+  fSello.fill = fill(CLR.white);
+  fSello.border = { top: M, left: T, bottom: T, right: TK };
+  fSello.alignment = aln("center", "middle", true);
+  R++;
+
+  ws.getRow(R).height = 22;
+  ws.mergeCells(`A${R}:E${R}`);
+  const fCont = ws.getCell(`A${R}`);
+  fCont.value = { richText: [{ font: font(6.5, false, CLR.numMuted), text: "982. Cód. Contador: 0    994. Con salvedades: NO\n" }, { font: font(7, false, CLR.black), text: "983. No. Tarjeta profesional: __________-T  (Firma no requerida por topes legales)" }] };
+  fCont.fill = fill(CLR.white);
+  fCont.border = { top: T, left: TK, bottom: TK, right: T };
+  fCont.alignment = aln("left", "middle", true);
+
+  ws.mergeCells(`F${R}:H${R}`);
+  const fPago = ws.getCell(`F${R}`);
+  fPago.value = { richText: [{ font: font(8, true, CLR.black), text: "980. Pago total $  " }, { font: font(10.5, true, CLR.black, "Courier New"), text: fmt(c.saldoPagar > 0 ? numVal(136) : 0) }] };
+  fPago.fill = fill(CLR.blueTotal);
+  fPago.border = { top: T, left: T, bottom: TK, right: T };
+  fPago.alignment = aln("right", "middle", true);
+
+  ws.mergeCells(`I${R}:J${R}`);
+  const fAdh = ws.getCell(`I${R}`);
+  fAdh.value = "996. Espacio número interno DIAN / Adhesivo";
+  fAdh.font = font(6, false, CLR.numMuted);
+  fAdh.fill = fill(CLR.white);
+  fAdh.border = { top: T, left: T, bottom: TK, right: TK };
+  fAdh.alignment = aln("center", "middle", true);
+
+  // Descargar archivo Excel desde buffer
+  const buffer = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename.endsWith(".xlsx") ? filename : `${filename}.xlsx`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+
