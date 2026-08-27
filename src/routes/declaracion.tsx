@@ -749,790 +749,1171 @@ function DeclaracionPage() {
           )}
 
           {sec === "hon" && (
-            <Card className="space-y-4">
-              <CardTitle>Honorarios y servicios personales (Cédula General)</CardTitle>
-              <CardHint>
-                Parágrafo 5 art. 206 y art. 336 E.T.: el profesional independiente puede optar por restar costos y deducciones procedentes (Art. 107) O tomar la renta exenta del 25 % laboral, no ambas simultáneamente sobre el mismo ingreso.
-              </CardHint>
+            <Card className="space-y-5">
+              <div>
+                <CardTitle>Honorarios y servicios personales (Cédula General)</CardTitle>
+                <CardHint>
+                  Parágrafo 5 del Art. 206 y Art. 336 del Estatuto Tributario: el trabajador independiente que percibe honorarios o compensaciones por servicios personales puede optar por restar costos y deducciones procedentes (Art. 107 E.T.) soportados con factura electrónica, O acogerse a la renta exenta del 25 % laboral.
+                </CardHint>
+              </div>
+
               <ToggleField
                 label="Resta costos y deducciones procedentes en honorarios"
-                hint="Si está activo, se habilitan costos (Casilla 45) y se inhabilita el 25 % de renta exenta laboral sobre esta subcédula."
+                hint="Si está activo, se habilitan los costos y deducciones (Casilla 45) y se inhabilita el 25 % de renta exenta laboral sobre esta subcédula. Si está inactivo, toma la renta exenta laboral del 25 % (Casilla 48)."
                 checked={d.honorarios.usarCostos}
                 onChange={(v: boolean) => patch((x) => (x.honorarios.usarCostos = v))}
               />
-              <div className={fieldGrid}>
-                <MoneyField
-                  label="Ingresos brutos por honorarios y servicios (Casilla 43)"
-                  casilla={43}
-                  year={y}
-                  value={d.honorarios.ingresos}
-                  onChange={(n) => patch((x) => (x.honorarios.ingresos = n))}
-                  hint="Ingresos por asesorías, consultorías, servicios calificados y profesiones liberales independientes."
-                  source="Formato 1001 / Formato 2276 Pagos por honorarios"
-                />
-                <MoneyField
-                  label="Otros ingresos no constitutivos de renta (Casilla 44)"
-                  casilla={44}
-                  year={y}
-                  value={d.honorarios.incrngo}
-                  onChange={(n) => patch((x) => (x.honorarios.incrngo = n))}
-                  hint="Componentes no constitutivos de renta aplicables a honorarios."
-                />
-                <MoneyField
-                  label="Aportes obligatorios a pensión del independiente"
-                  year={y}
-                  value={d.honorarios.aportesPension}
-                  onChange={(n) => patch((x) => (x.honorarios.aportesPension = n))}
-                  source="Art. 55 E.T."
-                  hint="Aportes obligatorios a pensión pagados por el independiente sobre su IBC."
-                />
-                <MoneyField
-                  label="Aportes obligatorios a salud (EPS) del independiente"
-                  year={y}
-                  value={d.honorarios.aportesSalud}
-                  onChange={(n) => patch((x) => (x.honorarios.aportesSalud = n))}
-                  source="Art. 56 E.T."
-                  hint="Aportes obligatorios a salud pagados por el independiente sobre su IBC."
-                />
-                <MoneyField
-                  label="Cotización voluntaria a pensión obligatoria (RAIS)"
-                  year={y}
-                  value={d.honorarios.aportesRais}
-                  onChange={(n) => patch((x) => (x.honorarios.aportesRais = n))}
-                  hint="Aportes voluntarios del independiente al RAIS (Tope 25% y 2.500 UVT globales)."
-                />
-                <MoneyField
-                  label="Costos y deducciones procedentes (Casilla 45)"
-                  casilla={45}
-                  year={y}
-                  value={d.honorarios.costos}
-                  onChange={(n) => patch((x) => (x.honorarios.costos = n))}
-                  hint="Gastos con relación de causalidad y necesidad (Art. 107 E.T.). Requiere factura electrónica."
-                />
-                <MoneyField
-                  label="Aportes voluntarios a FVP y cuentas AFC / AVC (Casilla 47)"
-                  casilla={47}
-                  year={y}
-                  value={d.honorarios.aportesAfc}
-                  onChange={(n) => patch((x) => (x.honorarios.aportesAfc = n))}
-                  hint="Fondos de pensiones voluntarias y cuentas AFC (Arts. 126-1 y 126-4 E.T.). Límite 30% y 3.800 UVT."
-                />
-                <MoneyField
-                  label="Rentas exentas por Convenios CAN (Decisión 578)"
-                  year={y}
-                  value={d.honorarios.rentasCan}
-                  onChange={(n) => patch((x) => (x.honorarios.rentasCan = n))}
-                  hint="Honorarios obtenidos en países de la Comunidad Andina (Fuera del 40%)."
-                />
-                <MoneyField
-                  label="Otras rentas exentas de honorarios (Casilla 49)"
-                  year={y}
-                  value={d.honorarios.otrasExentas}
-                  onChange={(n) => patch((x) => (x.honorarios.otrasExentas = n))}
-                />
-                <MoneyField
-                  label="Intereses de crédito hipotecario de vivienda (Casilla 50)"
-                  casilla={50}
-                  year={y}
-                  value={d.honorarios.interesesVivienda}
-                  onChange={(n) => patch((x) => (x.honorarios.interesesVivienda = n))}
-                  hint="Intereses de vivienda (Art. 119 E.T. - Tope 1.200 UVT globales)."
-                />
-                <MoneyField
-                  label="Gravamen a los Movimientos Financieros - 4x1000 (Deducción 50%)"
-                  year={y}
-                  value={d.honorarios.gmf}
-                  onChange={(n) => patch((x) => (x.honorarios.gmf = n))}
-                  source="Art. 115 E.T."
-                  hint="50% del 4x1000 pagado en cuentas bancarias de la actividad profesional."
-                />
-                <MoneyField
-                  label="Intereses de créditos educativos ICETEX (Casilla 51)"
-                  year={y}
-                  value={d.honorarios.icetex}
-                  onChange={(n) => patch((x) => (x.honorarios.icetex = n))}
-                  hint="Intereses ICETEX (Art. 119 E.T. - Tope 100 UVT globales)."
-                />
-                <MoneyField
-                  label="Medicina prepagada y seguros de salud"
-                  year={y}
-                  value={d.honorarios.medicinaPrepagada}
-                  onChange={(n) => patch((x) => (x.honorarios.medicinaPrepagada = n))}
-                  hint="Planes adicionales de salud (Art. 387 E.T. - Máx. 16 UVT mensuales)."
-                />
-                <MoneyField
-                  label="Aportes a fondos de cesantías del independiente"
-                  year={y}
-                  value={d.honorarios.aportesCesantiasIndependiente}
-                  onChange={(n) => patch((x) => (x.honorarios.aportesCesantiasIndependiente = n))}
-                  hint="Ahorro en fondos de cesantías para independientes (Art. 126-1 E.T. - Tope 2.500 UVT y 1/12 del ingreso)."
-                />
-                <MoneyField
-                  label="Deducción anual FNCE / Movilidad eléctrica"
-                  year={y}
-                  value={d.honorarios.fnceAnual}
-                  onChange={(n) => patch((x) => (x.honorarios.fnceAnual = n))}
-                  hint="Inversiones en energías limpias y vehículos eléctricos (Ley 1715/2014)."
-                />
-                <MoneyField
-                  label="Otras deducciones imputables de honorarios (Casilla 52)"
-                  year={y}
-                  value={d.honorarios.otrasDeducciones}
-                  onChange={(n) => patch((x) => (x.honorarios.otrasDeducciones = n))}
-                />
-                <MoneyField
-                  label="Compensación de pérdidas de honorarios (Casilla 56)"
-                  casilla={56}
-                  year={y}
-                  value={d.honorarios.compensacionPerdidas}
-                  onChange={(n) => patch((x) => (x.honorarios.compensacionPerdidas = n))}
-                  hint="Pérdidas fiscales generadas en años anteriores compensables según Art. 147 E.T."
-                />
-                <div className="sm:col-span-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="w-full justify-start text-xs text-forest"
-                    onClick={() => openCompensaciones("honorarios")}
-                  >
-                    <History className="mr-1.5 size-3.5" />
-                    Gestionar historial de pérdidas de honorarios (Art. 147 E.T.)
-                  </Button>
+
+              {/* 1. Ingresos Brutos */}
+              <div className="space-y-3 pt-2 border-t border-line">
+                <h3 className="font-display text-base font-semibold text-ink">1. Ingresos Brutos de Honorarios · Casilla 43</h3>
+                <div className={fieldGrid}>
+                  <MoneyField
+                    label="Ingresos brutos por honorarios y compensación de servicios personales (Casilla 43)"
+                    casilla={43}
+                    year={y}
+                    value={d.honorarios.ingresos}
+                    onChange={(n) => patch((x) => (x.honorarios.ingresos = n))}
+                    hint="Honorarios, comisiones, consultorías, asesorías técnicas y servicios personales calificados independientes (país y exterior)."
+                    source="Formato 1001 / Formato 2276 / Facturas electrónicas emitidas"
+                  />
                 </div>
               </div>
-              {c.casillas[140] ? (
-                <p className="rounded-md bg-warn-mist px-3 py-2 text-sm text-warn">
-                  Casilla 140 marcada: los costos superan el 60 % de los ingresos. Deben estar soportados con factura electrónica.
-                </p>
-              ) : null}
+
+              {/* 2. Ingresos No Constitutivos de Renta */}
+              <div className="space-y-3 pt-2 border-t border-line">
+                <h3 className="font-display text-base font-semibold text-ink">2. Ingresos No Constitutivos de Renta (INCRNGO) · Casilla 44</h3>
+                <div className={fieldGrid}>
+                  <MoneyField
+                    label="Aportes obligatorios a pensión del independiente"
+                    year={y}
+                    value={d.honorarios.aportesPension}
+                    onChange={(n) => patch((x) => (x.honorarios.aportesPension = n))}
+                    hint="Aportes obligatorios al fondo de pensión pagados por el independiente a través de la PILA sobre su IBC (16%)."
+                    source="Art. 55 E.T. / Planilla Integrada de Liquidación de Aportes (PILA)"
+                  />
+                  <MoneyField
+                    label="Aportes obligatorios a salud (EPS) del independiente"
+                    year={y}
+                    value={d.honorarios.aportesSalud}
+                    onChange={(n) => patch((x) => (x.honorarios.aportesSalud = n))}
+                    hint="Aportes obligatorios a la EPS pagados por el independiente a través de la PILA sobre su IBC (12.5%)."
+                    source="Art. 56 E.T. / Planilla Integrada de Liquidación de Aportes (PILA)"
+                  />
+                  <MoneyField
+                    label="Cotización voluntaria a pensión obligatoria (RAIS)"
+                    year={y}
+                    value={d.honorarios.aportesRais}
+                    onChange={(n) => patch((x) => (x.honorarios.aportesRais = n))}
+                    hint="Aportes voluntarios del afiliado al régimen de ahorro individual (Art. 135 Ley 100/1993 - Tope 25% del ingreso y 2.500 UVT)."
+                    source="Certificado de aportes al fondo de pensiones RAIS"
+                  />
+                  <MoneyField
+                    label="Otros ingresos no constitutivos de renta de honorarios"
+                    casilla={44}
+                    year={y}
+                    value={d.honorarios.incrngo}
+                    onChange={(n) => patch((x) => (x.honorarios.incrngo = n))}
+                    hint="Otros componentes no gravados aplicables a honorarios según la normativa tributaria."
+                  />
+                </div>
+              </div>
+
+              {/* 3. Costos y Deducciones Procedentes */}
+              <div className="space-y-3 pt-2 border-t border-line">
+                <h3 className="font-display text-base font-semibold text-ink">3. Costos y Deducciones Procedentes · Casilla 45</h3>
+                <div className={fieldGrid}>
+                  <MoneyField
+                    label="Costos y deducciones procedentes en honorarios"
+                    casilla={45}
+                    year={y}
+                    disabled={!d.honorarios.usarCostos}
+                    value={d.honorarios.costos}
+                    onChange={(n) => patch((x) => (x.honorarios.costos = n))}
+                    hint="Costos y gastos procedentes imputables a la actividad con relación de causalidad y necesidad (Art. 107 E.T.). Requiere factura electrónica."
+                    source="Facturas electrónicas recibidas con documento equivalente / Nómina electrónica"
+                  />
+                </div>
+                {c.casillas[140] ? (
+                  <p className="rounded-md bg-warn-mist px-3 py-2 text-xs text-warn font-medium">
+                    ⚠️ Casilla 140 marcada: Los costos superan el 60 % de los ingresos brutos. Deben estar plenamente soportados con factura electrónica de validación previa.
+                  </p>
+                ) : null}
+              </div>
+
+              {/* 4. Rentas Exentas */}
+              <div className="space-y-3 pt-2 border-t border-line">
+                <h3 className="font-display text-base font-semibold text-ink">4. Rentas Exentas de Honorarios · Casillas 47 a 49</h3>
+                <div className={fieldGrid}>
+                  <MoneyField
+                    label="Aportes voluntarios a fondos de pensiones (FVP) y cuentas AFC / AVC (Casilla 47)"
+                    casilla={47}
+                    year={y}
+                    value={d.honorarios.aportesAfc}
+                    onChange={(n) => patch((x) => (x.honorarios.aportesAfc = n))}
+                    hint="Ahorro voluntario a pensiones (FVP) y cuentas AFC/AVC (Arts. 126-1 y 126-4 E.T. - Límite individual 30 % del ingreso y 3.800 UVT)."
+                    source="Certificados tributarios de entidades financieras / FVP"
+                  />
+                  <MoneyField
+                    label="Rentas exentas por Convenios CAN (Decisión 578)"
+                    year={y}
+                    value={d.honorarios.rentasCan}
+                    onChange={(n) => patch((x) => (x.honorarios.rentasCan = n))}
+                    hint="Honorarios percibidos en países de la Comunidad Andina de Naciones (Ecuador, Perú, Bolivia). Quedan exentos y fuera del límite del 40 %."
+                    source="Certificado de residencia y retención en país miembro CAN"
+                  />
+                  <MoneyField
+                    label="Otras rentas exentas de honorarios (Casilla 49)"
+                    casilla={49}
+                    year={y}
+                    value={d.honorarios.otrasExentas}
+                    onChange={(n) => patch((x) => (x.honorarios.otrasExentas = n))}
+                    hint="Derechos de autor, patentes o exenciones especiales del Art. 207-2 E.T."
+                  />
+                </div>
+              </div>
+
+              {/* 5. Deducciones Imputables */}
+              <div className="space-y-3 pt-2 border-t border-line">
+                <h3 className="font-display text-base font-semibold text-ink">5. Deducciones Imputables de Honorarios · Casillas 50 a 54</h3>
+                <div className={fieldGrid}>
+                  <MoneyField
+                    label="Intereses de crédito de vivienda hipotecario o leasing (Casilla 50)"
+                    casilla={50}
+                    year={y}
+                    value={d.honorarios.interesesVivienda}
+                    onChange={(n) => patch((x) => (x.honorarios.interesesVivienda = n))}
+                    hint="Intereses efectivamente pagados en el año para adquisición de vivienda del contribuyente (Art. 119 E.T. - Límite anual 1.200 UVT)."
+                    source="Certificado bancario de crédito hipotecario / Leasing habitacional"
+                  />
+                  <MoneyField
+                    label="Gravamen a los Movimientos Financieros - 4x1000 (Deducción 50%)"
+                    year={y}
+                    value={d.honorarios.gmf}
+                    onChange={(n) => patch((x) => (x.honorarios.gmf = n))}
+                    hint="Deducción del 50 % del GMF efectivamente certificado por entidades financieras en cuentas vinculadas a la actividad (Art. 115 E.T.)."
+                    source="Art. 115 E.T. / Certificado bancario anual de GMF"
+                  />
+                  <MoneyField
+                    label="Intereses de créditos educativos ICETEX (Casilla 51)"
+                    casilla={51}
+                    year={y}
+                    value={d.honorarios.icetex}
+                    onChange={(n) => patch((x) => (x.honorarios.icetex = n))}
+                    hint="Intereses pagados al ICETEX para estudios superiores del contribuyente (Art. 119 E.T. - Límite anual 100 UVT)."
+                    source="Certificado anual del ICETEX"
+                  />
+                  <MoneyField
+                    label="Medicina prepagada y seguros privados de salud"
+                    year={y}
+                    value={d.honorarios.medicinaPrepagada}
+                    onChange={(n) => patch((x) => (x.honorarios.medicinaPrepagada = n))}
+                    hint="Pagos por planes adicionales de salud del contribuyente, cónyuge e hijos (Art. 387 E.T. - Límite máx. 16 UVT mensuales)."
+                    source="Certificado anual de la entidad de medicina prepagada"
+                  />
+                  <MoneyField
+                    label="Aportes a fondos de cesantías del independiente"
+                    year={y}
+                    value={d.honorarios.aportesCesantiasIndependiente}
+                    onChange={(n) => patch((x) => (x.honorarios.aportesCesantiasIndependiente = n))}
+                    hint="Aportes voluntarios a fondos de cesantías realizados por el independiente (Art. 126-1 E.T. - Límite 2.500 UVT y 1/12 del ingreso)."
+                    source="Certificado del fondo de cesantías"
+                  />
+                  <MoneyField
+                    label="Deducción especial por inversiones en FNCE y movilidad eléctrica"
+                    year={y}
+                    value={d.honorarios.fnceAnual}
+                    onChange={(n) => patch((x) => (x.honorarios.fnceAnual = n))}
+                    hint="Deducción del 50 % de la inversión en proyectos de Fuentes No Convencionales de Energía (Ley 1715 de 2014 y Ley 2099 de 2021)."
+                    source="Certificado UPME / Factura de adquisición"
+                  />
+                  <MoneyField
+                    label="Otras deducciones imputables de honorarios (Casilla 52)"
+                    casilla={52}
+                    year={y}
+                    value={d.honorarios.otrasDeducciones}
+                    onChange={(n) => patch((x) => (x.honorarios.otrasDeducciones = n))}
+                    hint="Otras deducciones taxativamente autorizadas por la ley tributaria."
+                  />
+                </div>
+              </div>
+
+              {/* 6. Compensaciones */}
+              <div className="space-y-3 pt-2 border-t border-line">
+                <h3 className="font-display text-base font-semibold text-ink">6. Compensación de Pérdidas de Honorarios · Casilla 56</h3>
+                <div className={fieldGrid}>
+                  <MoneyField
+                    label="Compensación de pérdidas fiscales de honorarios (Casilla 56)"
+                    casilla={56}
+                    year={y}
+                    value={d.honorarios.compensacionPerdidas}
+                    onChange={(n) => patch((x) => (x.honorarios.compensacionPerdidas = n))}
+                    hint="Pérdidas fiscales acumuladas de años gravables anteriores en la subcédula de honorarios (Art. 147 E.T. reajustadas fiscalmente)."
+                    source="Declaraciones de renta de años anteriores"
+                  />
+                  <div className="sm:col-span-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="w-full justify-start text-xs text-forest"
+                      onClick={() => openCompensaciones("honorarios")}
+                    >
+                      <History className="mr-1.5 size-3.5" />
+                      Gestionar historial y reajuste de pérdidas de honorarios (Art. 147 E.T.)
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </Card>
           )}
 
           {sec === "cap" && (
-            <Card className="space-y-4">
-              <CardTitle>Rentas de capital (Cédula General)</CardTitle>
-              <CardHint>Art. 335 E.T.: intereses bancarios, rendimientos financieros, arrendamientos, regalías y explotación de intangibles.</CardHint>
-              <div className={fieldGrid}>
-                <MoneyField
-                  label="Intereses y rendimientos financieros (Casilla 58)"
-                  casilla={58}
-                  year={y}
-                  value={d.capital.intereses}
-                  onChange={(n) => patch((x) => (x.capital.intereses = n))}
-                  hint="Intereses de cuentas de ahorro, CDT, fondos de inversión y rendimientos financieros (ej. Nu, Bancolombia)."
-                  source="Certificados tributarios bancarios / Formato 1007"
-                />
-                <MoneyField
-                  label="Ingresos por arrendamientos de bienes muebles e inmuebles"
-                  year={y}
-                  value={d.capital.arrendamientos}
-                  onChange={(n) => patch((x) => (x.capital.arrendamientos = n))}
-                  hint="Cánones de arrendamiento de apartamentos, locales, oficinas, bodegas, vehículos o maquinaria."
-                />
-                <MoneyField
-                  label="Ingresos por regalías y derechos de autor"
-                  year={y}
-                  value={d.capital.regalias}
-                  onChange={(n) => patch((x) => (x.capital.regalias = n))}
-                  hint="Pagos por propiedad intelectual, marcas, patentes o derechos de explotación."
-                />
-                <MoneyField
-                  label="Otros rendimientos financieros y fiducias"
-                  year={y}
-                  value={d.capital.rendimientosFinancieros}
-                  onChange={(n) => patch((x) => (x.capital.rendimientosFinancieros = n))}
-                />
-                <MoneyField
-                  label="Explotación de bienes intangibles"
-                  year={y}
-                  value={d.capital.explotacionIntangibles}
-                  onChange={(n) => patch((x) => (x.capital.explotacionIntangibles = n))}
-                  hint="Licenciamiento de software, franquicias y derechos comerciales."
-                />
-                <MoneyField
-                  label="Rentas de capital obtenidas en el exterior"
-                  year={y}
-                  value={d.capital.ingresosExterior}
-                  onChange={(n) => patch((x) => (x.capital.ingresosExterior = n))}
-                  hint="Intereses, dividendos o alquileres percibidos fuera de Colombia (renta mundial)."
-                />
-                <MoneyField
-                  label="Componente inflacionario no gravado (Casilla 59)"
-                  casilla={59}
-                  year={y}
-                  value={d.capital.componenteInflacionario}
-                  onChange={(n) => patch((x) => (x.capital.componenteInflacionario = n))}
-                  source="Arts. 38 a 41 E.T."
-                  hint="Porcentaje no constitutivo de renta de los rendimientos financieros fijado anualmente por decreto."
-                />
-                <MoneyField
-                  label="Aportes obligatorios a pensión y salud del rentista"
-                  year={y}
-                  value={d.capital.aportesPension}
-                  onChange={(n) => patch((x) => (x.capital.aportesPension = n))}
-                  hint="Seguridad social obligatoria pagada sobre el IBC de las rentas de capital (Arts. 55 y 56 E.T.)."
-                />
-                <MoneyField
-                  label="Cotización voluntaria a pensión obligatoria (RAIS)"
-                  year={y}
-                  value={d.capital.aportesRais}
-                  onChange={(n) => patch((x) => (x.capital.aportesRais = n))}
-                />
-                <MoneyField
-                  label="Otros ingresos no constitutivos de renta de capital"
-                  year={y}
-                  value={d.capital.incrngo}
-                  onChange={(n) => patch((x) => (x.capital.incrngo = n))}
-                />
-                <MoneyField
-                  label="Costos y gastos procedentes de capital (Casilla 60)"
-                  casilla={60}
-                  year={y}
-                  value={d.capital.costos}
-                  onChange={(n) => patch((x) => (x.capital.costos = n))}
-                  hint="Gastos de mantenimiento, comisiones inmobiliarias, administración e impuestos de bienes arrendados (Art. 107 E.T.)."
-                />
-                <MoneyField
-                  label="Rentas pasivas ECE - Sociedades en el exterior (Casilla 62)"
-                  casilla={62}
-                  year={y}
-                  value={d.capital.ecePasiva}
-                  onChange={(n) => patch((x) => (x.capital.ecePasiva = n))}
-                  hint="Rentas pasivas de Entidades Controladas del Exterior (Régimen ECE - Arts. 882 a 893 E.T.)."
-                />
-                <MoneyField
-                  label="Aportes voluntarios a FVP y cuentas AFC / AVC (Casilla 64)"
-                  year={y}
-                  value={d.capital.aportesAfc}
-                  onChange={(n) => patch((x) => (x.capital.aportesAfc = n))}
-                />
-                <MoneyField
-                  label="Rentas exentas por Convenios CAN (Decisión 578)"
-                  year={y}
-                  value={d.capital.rentasCan}
-                  onChange={(n) => patch((x) => (x.capital.rentasCan = n))}
-                />
-                <MoneyField
-                  label="Otras rentas exentas de capital (Casilla 66)"
-                  year={y}
-                  value={d.capital.otrasExentas}
-                  onChange={(n) => patch((x) => (x.capital.otrasExentas = n))}
-                />
-                <MoneyField
-                  label="Intereses de crédito de vivienda (Casilla 67)"
-                  year={y}
-                  value={d.capital.interesesVivienda}
-                  onChange={(n) => patch((x) => (x.capital.interesesVivienda = n))}
-                />
-                <MoneyField
-                  label="Gravamen a los Movimientos Financieros - 4x1000 (Deducción 50%)"
-                  year={y}
-                  value={d.capital.gmf}
-                  onChange={(n) => patch((x) => (x.capital.gmf = n))}
-                />
-                <MoneyField
-                  label="Intereses en créditos educativos ICETEX (Casilla 68)"
-                  year={y}
-                  value={d.capital.icetex}
-                  onChange={(n) => patch((x) => (x.capital.icetex = n))}
-                />
-                <MoneyField
-                  label="Aportes a cesantías del independiente (Casilla 69)"
-                  year={y}
-                  value={d.capital.aportesCesantiasIndependiente}
-                  onChange={(n) => patch((x) => (x.capital.aportesCesantiasIndependiente = n))}
-                />
-                <MoneyField
-                  label="Deducción anual FNCE / Movilidad eléctrica"
-                  year={y}
-                  value={d.capital.fnceAnual}
-                  onChange={(n) => patch((x) => (x.capital.fnceAnual = n))}
-                />
-                <MoneyField
-                  label="Otras deducciones imputables de capital (Casilla 70)"
-                  year={y}
-                  value={d.capital.otrasDeducciones}
-                  onChange={(n) => patch((x) => (x.capital.otrasDeducciones = n))}
-                />
-                <MoneyField
-                  label="Compensación de pérdidas de capital (Casilla 72)"
-                  casilla={72}
-                  year={y}
-                  value={d.capital.compensacionPerdidas}
-                  onChange={(n) => patch((x) => (x.capital.compensacionPerdidas = n))}
-                />
-                <div className="sm:col-span-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="w-full justify-start text-xs text-forest"
-                    onClick={() => openCompensaciones("capital")}
-                  >
-                    <History className="mr-1.5 size-3.5" />
-                    Gestionar historial de pérdidas de capital (Art. 147 E.T.)
-                  </Button>
+            <Card className="space-y-5">
+              <div>
+                <CardTitle>Rentas de capital (Cédula General)</CardTitle>
+                <CardHint>
+                  Art. 335 del Estatuto Tributario: comprende intereses bancarios, rendimientos financieros, dividendos en fondos de inversión, arrendamientos de bienes muebles e inmuebles, regalías y explotación de activos intangibles.
+                </CardHint>
+              </div>
+
+              {/* 1. Ingresos Brutos */}
+              <div className="space-y-3 pt-2 border-t border-line">
+                <h3 className="font-display text-base font-semibold text-ink">1. Ingresos Brutos de Capital · Casilla 58</h3>
+                <div className={fieldGrid}>
+                  <MoneyField
+                    label="Intereses y rendimientos financieros (Casilla 58)"
+                    casilla={58}
+                    year={y}
+                    value={d.capital.intereses}
+                    onChange={(n) => patch((x) => (x.capital.intereses = n))}
+                    hint="Intereses de cuentas de ahorro, CDT, fondos de inversión, cesantías y rendimientos financieros (ej. Nu, Bancolombia, Colfondos)."
+                    source="Certificados tributarios bancarios / Formato 1007 / Formato 5063"
+                  />
+                  <MoneyField
+                    label="Ingresos por arrendamientos de bienes muebles e inmuebles"
+                    year={y}
+                    value={d.capital.arrendamientos}
+                    onChange={(n) => patch((x) => (x.capital.arrendamientos = n))}
+                    hint="Cánones de arrendamiento de apartamentos, locales, bodegas, oficinas, maquinaria, vehículos o predios rurales."
+                    source="Contratos de arrendamiento / Formato 1007"
+                  />
+                  <MoneyField
+                    label="Ingresos por regalías y derechos de explotación"
+                    year={y}
+                    value={d.capital.regalias}
+                    onChange={(n) => patch((x) => (x.capital.regalias = n))}
+                    hint="Pagos por propiedad intelectual, marcas registradas, patentes o derechos de explotación económica."
+                    source="Certificados de retención / Contratos de cesión de derechos"
+                  />
+                  <MoneyField
+                    label="Otros rendimientos financieros y fiducias mercantiles"
+                    year={y}
+                    value={d.capital.rendimientosFinancieros}
+                    onChange={(n) => patch((x) => (x.capital.rendimientosFinancieros = n))}
+                    hint="Utilidades en carteras colectivas, fondos de inversión inmobiliaria y patrimonios autónomos."
+                    source="Certificados fiduciarios / Formato 1014"
+                  />
+                  <MoneyField
+                    label="Explotación de bienes intangibles"
+                    year={y}
+                    value={d.capital.explotacionIntangibles}
+                    onChange={(n) => patch((x) => (x.capital.explotacionIntangibles = n))}
+                    hint="Licenciamiento de software, franquicias y derechos comerciales."
+                  />
+                  <MoneyField
+                    label="Rentas de capital obtenidas en el exterior"
+                    year={y}
+                    value={d.capital.ingresosExterior}
+                    onChange={(n) => patch((x) => (x.capital.ingresosExterior = n))}
+                    hint="Intereses, rendimientos o alquileres percibidos fuera de Colombia (Renta de fuente extranjera)."
+                    source="Extractos bancarios del exterior / Cuentas internacionales"
+                  />
+                </div>
+              </div>
+
+              {/* 2. Ingresos No Constitutivos de Renta */}
+              <div className="space-y-3 pt-2 border-t border-line">
+                <h3 className="font-display text-base font-semibold text-ink">2. Ingresos No Constitutivos de Renta (INCRNGO) · Casilla 59</h3>
+                <div className={fieldGrid}>
+                  <MoneyField
+                    label="Componente inflacionario no gravado de rendimientos financieros (Casilla 59)"
+                    casilla={59}
+                    year={y}
+                    value={d.capital.componenteInflacionario}
+                    onChange={(n) => patch((x) => (x.capital.componenteInflacionario = n))}
+                    hint="Porcentaje no constitutivo de renta ni ganancia ocasional de los rendimientos financieros fijado anualmente por decreto (Arts. 38 a 41 E.T.)."
+                    source="Decreto reglamentario anual / Certificados tributarios bancarios"
+                  />
+                  <MoneyField
+                    label="Aportes obligatorios a pensión del rentista de capital"
+                    year={y}
+                    value={d.capital.aportesPension}
+                    onChange={(n) => patch((x) => (x.capital.aportesPension = n))}
+                    hint="Seguridad social en pensiones pagada por el rentista de capital sobre su IBC a través de la PILA (Art. 55 E.T.)."
+                    source="Art. 55 E.T. / Planilla PILA"
+                  />
+                  <MoneyField
+                    label="Cotización voluntaria a pensión obligatoria (RAIS)"
+                    year={y}
+                    value={d.capital.aportesRais}
+                    onChange={(n) => patch((x) => (x.capital.aportesRais = n))}
+                    hint="Aportes voluntarios del rentista de capital al régimen de ahorro individual (Art. 135 Ley 100/1993)."
+                  />
+                  <MoneyField
+                    label="Otros ingresos no constitutivos de renta de capital"
+                    year={y}
+                    value={d.capital.incrngo}
+                    onChange={(n) => patch((x) => (x.capital.incrngo = n))}
+                    hint="Otros conceptos no constitutivos de renta aplicables a capital."
+                  />
+                </div>
+              </div>
+
+              {/* 3. Costos y Gastos Procedentes */}
+              <div className="space-y-3 pt-2 border-t border-line">
+                <h3 className="font-display text-base font-semibold text-ink">3. Costos y Gastos Procedentes · Casilla 60</h3>
+                <div className={fieldGrid}>
+                  <MoneyField
+                    label="Costos y gastos procedentes de capital (Casilla 60)"
+                    casilla={60}
+                    year={y}
+                    value={d.capital.costos}
+                    onChange={(n) => patch((x) => (x.capital.costos = n))}
+                    hint="Gastos de reparación, mantenimiento, administración inmobiliaria, impuesto predial y servicios de inmuebles arrendados (Art. 107 E.T.)."
+                    source="Facturas electrónicas / Cuentas de cobro de administración / Recibos prediales"
+                  />
+                  <MoneyField
+                    label="Rentas pasivas ECE - Sociedades controladas del exterior (Casilla 62)"
+                    casilla={62}
+                    year={y}
+                    value={d.capital.ecePasiva}
+                    onChange={(n) => patch((x) => (x.capital.ecePasiva = n))}
+                    hint="Rentas pasivas atribuidas de Entidades Controladas del Exterior (Régimen ECE - Arts. 882 a 893 E.T.)."
+                    source="Estados financieros de sociedades en el exterior"
+                  />
+                </div>
+              </div>
+
+              {/* 4. Rentas Exentas */}
+              <div className="space-y-3 pt-2 border-t border-line">
+                <h3 className="font-display text-base font-semibold text-ink">4. Rentas Exentas de Capital · Casillas 64 a 66</h3>
+                <div className={fieldGrid}>
+                  <MoneyField
+                    label="Aportes voluntarios a fondos de pensiones (FVP) y cuentas AFC / AVC (Casilla 64)"
+                    casilla={64}
+                    year={y}
+                    value={d.capital.aportesAfc}
+                    onChange={(n) => patch((x) => (x.capital.aportesAfc = n))}
+                    hint="Aportes voluntarios a pensiones y cuentas de ahorro para el fomento de la construcción (Arts. 126-1 y 126-4 E.T.)."
+                    source="Certificados tributarios bancarios / FVP"
+                  />
+                  <MoneyField
+                    label="Rentas exentas por Convenios CAN (Decisión 578)"
+                    year={y}
+                    value={d.capital.rentasCan}
+                    onChange={(n) => patch((x) => (x.capital.rentasCan = n))}
+                    hint="Rentas de capital obtenidas en Ecuador, Perú o Bolivia exentas de tributación en Colombia."
+                    source="Certificado tributario del país miembro CAN"
+                  />
+                  <MoneyField
+                    label="Otras rentas exentas de capital (Casilla 66)"
+                    casilla={66}
+                    year={y}
+                    value={d.capital.otrasExentas}
+                    onChange={(n) => patch((x) => (x.capital.otrasExentas = n))}
+                    hint="Otras exenciones expresamente contempladas en la ley para rentas de capital."
+                  />
+                </div>
+              </div>
+
+              {/* 5. Deducciones Imputables */}
+              <div className="space-y-3 pt-2 border-t border-line">
+                <h3 className="font-display text-base font-semibold text-ink">5. Deducciones Imputables de Capital · Casillas 67 a 70</h3>
+                <div className={fieldGrid}>
+                  <MoneyField
+                    label="Intereses de crédito hipotecario o leasing de vivienda (Casilla 67)"
+                    casilla={67}
+                    year={y}
+                    value={d.capital.interesesVivienda}
+                    onChange={(n) => patch((x) => (x.capital.interesesVivienda = n))}
+                    hint="Intereses de crédito de vivienda del contribuyente (Art. 119 E.T. - Límite anual 1.200 UVT)."
+                    source="Certificado bancario de crédito de vivienda"
+                  />
+                  <MoneyField
+                    label="Gravamen a los Movimientos Financieros - 4x1000 (Deducción 50%)"
+                    year={y}
+                    value={d.capital.gmf}
+                    onChange={(n) => patch((x) => (x.capital.gmf = n))}
+                    hint="Deducción del 50 % del 4x1000 cobrado en cuentas corrientes y de ahorros de capital (Art. 115 E.T.)."
+                    source="Art. 115 E.T. / Certificados bancarios anuales de GMF"
+                  />
+                  <MoneyField
+                    label="Intereses en créditos educativos ICETEX (Casilla 68)"
+                    casilla={68}
+                    year={y}
+                    value={d.capital.icetex}
+                    onChange={(n) => patch((x) => (x.capital.icetex = n))}
+                    hint="Intereses pagados al ICETEX para educación del contribuyente (Art. 119 E.T. - Tope 100 UVT)."
+                    source="Certificado anual ICETEX"
+                  />
+                  <MoneyField
+                    label="Aportes a cesantías del independiente (Casilla 69)"
+                    casilla={69}
+                    year={y}
+                    value={d.capital.aportesCesantiasIndependiente}
+                    onChange={(n) => patch((x) => (x.capital.aportesCesantiasIndependiente = n))}
+                    hint="Ahorro en fondos de cesantías para independientes (Art. 126-1 E.T. - Límite 2.500 UVT y 1/12 del ingreso)."
+                    source="Certificado del fondo de cesantías"
+                  />
+                  <MoneyField
+                    label="Deducción especial FNCE / Movilidad eléctrica"
+                    year={y}
+                    value={d.capital.fnceAnual}
+                    onChange={(n) => patch((x) => (x.capital.fnceAnual = n))}
+                    hint="Inversiones en energías limpias y movilidad sostenible (Ley 1715 de 2014)."
+                  />
+                  <MoneyField
+                    label="Otras deducciones imputables de capital (Casilla 70)"
+                    casilla={70}
+                    year={y}
+                    value={d.capital.otrasDeducciones}
+                    onChange={(n) => patch((x) => (x.capital.otrasDeducciones = n))}
+                    hint="Otras deducciones fiscales legalmente imputables a las rentas de capital."
+                  />
+                </div>
+              </div>
+
+              {/* 6. Compensaciones */}
+              <div className="space-y-3 pt-2 border-t border-line">
+                <h3 className="font-display text-base font-semibold text-ink">6. Compensación de Pérdidas de Capital · Casilla 72</h3>
+                <div className={fieldGrid}>
+                  <MoneyField
+                    label="Compensación de pérdidas fiscales de capital (Casilla 72)"
+                    casilla={72}
+                    year={y}
+                    value={d.capital.compensacionPerdidas}
+                    onChange={(n) => patch((x) => (x.capital.compensacionPerdidas = n))}
+                    hint="Pérdidas fiscales arrastradas de años gravables anteriores en la subcédula de capital (Art. 147 E.T.)."
+                    source="Declaraciones de renta de períodos anteriores"
+                  />
+                  <div className="sm:col-span-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="w-full justify-start text-xs text-forest"
+                      onClick={() => openCompensaciones("capital")}
+                    >
+                      <History className="mr-1.5 size-3.5" />
+                      Gestionar historial y reajuste de pérdidas de capital (Art. 147 E.T.)
+                    </Button>
+                  </div>
                 </div>
               </div>
             </Card>
           )}
 
           {sec === "nl" && (
-            <Card className="space-y-4">
-              <CardTitle>Rentas no laborales (Cédula General)</CardTitle>
-              <CardHint>Comercio, servicios empresariales, agricultura, notarios, curadores, ventas de activos poseídos menos de 2 años y lo no clasificado en otra cédula.</CardHint>
-              <div className={fieldGrid}>
-                <MoneyField
-                  label="Ingresos brutos por comercio, servicios y actividades no laborales (Casilla 74)"
-                  casilla={74}
-                  year={y}
-                  value={d.noLaborales.ingresos}
-                  onChange={(n) => patch((x) => (x.noLaborales.ingresos = n))}
-                  hint="Total de ingresos brutos por ventas, comercio, prestación de servicios empresariales y actividades mercantiles."
-                />
-                <MoneyField
-                  label="Venta de activos fijos poseídos menos de 2 años"
-                  year={y}
-                  value={d.noLaborales.ventas}
-                  onChange={(n) => patch((x) => (x.noLaborales.ventas = n))}
-                  hint="Si el activo se poseyó por 2 años o más, califica como Ganancia Ocasional."
-                />
-                <MoneyField
-                  label="Devoluciones, rebajas y descuentos en ventas (Casilla 75)"
-                  casilla={75}
-                  year={y}
-                  value={d.noLaborales.devoluciones}
-                  onChange={(n) => patch((x) => (x.noLaborales.devoluciones = n))}
-                  hint="Anulaciones, devoluciones y descuentos comerciales pie de factura concedidos a clientes."
-                />
-                <MoneyField
-                  label="Apoyos educativos no gravados (Art. 46 E.T.)"
-                  year={y}
-                  value={d.noLaborales.apoyosEducativos}
-                  onChange={(n) => patch((x) => (x.noLaborales.apoyosEducativos = n))}
-                />
-                <MoneyField
-                  label="Indemnizaciones por seguro de daño emergente (Art. 45 E.T.)"
-                  year={y}
-                  value={d.noLaborales.indemnizacionesSeguroDano}
-                  onChange={(n) => patch((x) => (x.noLaborales.indemnizacionesSeguroDano = n))}
-                  source="Art. 45 E.T."
-                  hint="Ingreso no constitutivo de renta que cubre la pérdida material de un bien asegurado."
-                />
-                <MoneyField
-                  label="Aportes obligatorios a pensión y salud no laborales"
-                  year={y}
-                  value={d.noLaborales.aportesPension}
-                  onChange={(n) => patch((x) => (x.noLaborales.aportesPension = n))}
-                />
-                <MoneyField
-                  label="Otros ingresos no constitutivos de renta (INCRNGO)"
-                  year={y}
-                  value={d.noLaborales.incrngo}
-                  onChange={(n) => patch((x) => (x.noLaborales.incrngo = n))}
-                />
-                <MoneyField
-                  label="Costos y deducciones procedentes (Casilla 77)"
-                  casilla={77}
-                  year={y}
-                  value={d.noLaborales.costos}
-                  onChange={(n) => patch((x) => (x.noLaborales.costos = n))}
-                  hint="Costo de ventas de mercancías, nómina, arriendos y gastos operativos soportados con factura electrónica."
-                />
-                <MoneyField
-                  label="Rentas pasivas ECE - Sociedades en el exterior (Casilla 79)"
-                  casilla={79}
-                  year={y}
-                  value={d.noLaborales.ecePasiva}
-                  onChange={(n) => patch((x) => (x.noLaborales.ecePasiva = n))}
-                />
-                <MoneyField
-                  label="Aportes voluntarios a FVP y cuentas AFC / AVC (Casilla 81)"
-                  year={y}
-                  value={d.noLaborales.aportesAfc}
-                  onChange={(n) => patch((x) => (x.noLaborales.aportesAfc = n))}
-                />
-                <MoneyField
-                  label="Rentas exentas por Convenios CAN (Decisión 578)"
-                  year={y}
-                  value={d.noLaborales.rentasCan}
-                  onChange={(n) => patch((x) => (x.noLaborales.rentasCan = n))}
-                />
-                <MoneyField
-                  label="Otras rentas exentas no laborales (Casilla 83)"
-                  year={y}
-                  value={d.noLaborales.otrasExentas}
-                  onChange={(n) => patch((x) => (x.noLaborales.otrasExentas = n))}
-                />
-                <MoneyField
-                  label="Intereses de crédito hipotecario de vivienda (Casilla 84)"
-                  year={y}
-                  value={d.noLaborales.interesesVivienda}
-                  onChange={(n) => patch((x) => (x.noLaborales.interesesVivienda = n))}
-                />
-                <MoneyField
-                  label="Gravamen a los Movimientos Financieros - 4x1000 (Deducción 50%)"
-                  year={y}
-                  value={d.noLaborales.gmf}
-                  onChange={(n) => patch((x) => (x.noLaborales.gmf = n))}
-                />
-                <MoneyField
-                  label="Intereses en créditos educativos ICETEX (Casilla 85)"
-                  year={y}
-                  value={d.noLaborales.icetex}
-                  onChange={(n) => patch((x) => (x.noLaborales.icetex = n))}
-                />
-                <MoneyField
-                  label="Aportes a cesantías del independiente (Casilla 86)"
-                  year={y}
-                  value={d.noLaborales.aportesCesantiasIndependiente}
-                  onChange={(n) => patch((x) => (x.noLaborales.aportesCesantiasIndependiente = n))}
-                />
-                <MoneyField
-                  label="Deducción anual FNCE / Movilidad eléctrica"
-                  year={y}
-                  value={d.noLaborales.fnceAnual}
-                  onChange={(n) => patch((x) => (x.noLaborales.fnceAnual = n))}
-                />
-                <MoneyField
-                  label="Otras deducciones imputables no laborales (Casilla 87)"
-                  year={y}
-                  value={d.noLaborales.otrasDeducciones}
-                  onChange={(n) => patch((x) => (x.noLaborales.otrasDeducciones = n))}
-                />
-                <MoneyField
-                  label="Compensación de pérdidas no laborales (Casilla 89)"
-                  casilla={89}
-                  year={y}
-                  value={d.noLaborales.compensacionPerdidas}
-                  onChange={(n) => patch((x) => (x.noLaborales.compensacionPerdidas = n))}
-                />
-                <div className="sm:col-span-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="w-full justify-start text-xs text-forest"
-                    onClick={() => openCompensaciones("noLaborales")}
-                  >
-                    <History className="mr-1.5 size-3.5" />
-                    Gestionar historial de pérdidas no laborales (Art. 147 E.T.)
-                  </Button>
+            <Card className="space-y-5">
+              <div>
+                <CardTitle>Rentas no laborales (Cédula General)</CardTitle>
+                <CardHint>
+                  Art. 335 del Estatuto Tributario: comprende ingresos por actividades comerciales, industriales, agrícolas, de servicios empresariales, transporte, hotelería, notarías, curadurías y venta de activos fijos poseídos por menos de 2 años.
+                </CardHint>
+              </div>
+
+              {/* 1. Ingresos Brutos */}
+              <div className="space-y-3 pt-2 border-t border-line">
+                <h3 className="font-display text-base font-semibold text-ink">1. Ingresos Brutos No Laborales · Casilla 74</h3>
+                <div className={fieldGrid}>
+                  <MoneyField
+                    label="Ingresos brutos por comercio, servicios y actividades no laborales (Casilla 74)"
+                    casilla={74}
+                    year={y}
+                    value={d.noLaborales.ingresos}
+                    onChange={(n) => patch((x) => (x.noLaborales.ingresos = n))}
+                    hint="Ventas comerciales de bienes, manufactura, servicios empresariales, comisiones mercantiles y actividades no clasificadas en otra cédula."
+                    source="Libro fiscal / Facturación electrónica emitida / Formato 1007"
+                  />
+                  <MoneyField
+                    label="Venta de activos fijos poseídos por menos de 2 años"
+                    year={y}
+                    value={d.noLaborales.ventas}
+                    onChange={(n) => patch((x) => (x.noLaborales.ventas = n))}
+                    hint="Enajenación de vehículos, maquinaria o inmuebles poseídos por menos de 2 años (constituyen renta ordinaria no laboral, no ganancia ocasional)."
+                    source="Escrituras públicas / Contratos de compraventa / Facturas"
+                  />
+                  <MoneyField
+                    label="Otros ingresos no laborales (Recompensas, apoyos, notarías y curadurías)"
+                    year={y}
+                    value={d.noLaborales.demas}
+                    onChange={(n) => patch((x) => (x.noLaborales.demas = n))}
+                    hint="Ingresos brutos de notarios por derechos notariales, curadores urbanos, recompensas estatales y demás ingresos mercantiles."
+                    source="Art. 335 E.T. / Certificados tributarios de notarías o entidades pagadoras"
+                  />
+                </div>
+              </div>
+
+              {/* 2. Devoluciones, Rebajas y Descuentos */}
+              <div className="space-y-3 pt-2 border-t border-line">
+                <h3 className="font-display text-base font-semibold text-ink">2. Devoluciones, Rebajas y Descuentos · Casilla 75</h3>
+                <div className={fieldGrid}>
+                  <MoneyField
+                    label="Devoluciones, rebajas y descuentos en ventas (Casilla 75)"
+                    casilla={75}
+                    year={y}
+                    value={d.noLaborales.devoluciones}
+                    onChange={(n) => patch((x) => (x.noLaborales.devoluciones = n))}
+                    hint="Anulaciones, notas crédito, devoluciones de mercancías y descuentos comerciales concedidos a clientes (Art. 26 E.T.)."
+                    source="Notas crédito electrónicas / Registros contables de devoluciones"
+                  />
+                </div>
+              </div>
+
+              {/* 3. Ingresos No Constitutivos de Renta */}
+              <div className="space-y-3 pt-2 border-t border-line">
+                <h3 className="font-display text-base font-semibold text-ink">3. Ingresos No Constitutivos de Renta (INCRNGO) · Casilla 76</h3>
+                <div className={fieldGrid}>
+                  <MoneyField
+                    label="Apoyos económicos educativos no gravados (Art. 46 E.T.)"
+                    year={y}
+                    value={d.noLaborales.apoyosEducativos}
+                    onChange={(n) => patch((x) => (x.noLaborales.apoyosEducativos = n))}
+                    hint="Becas y subsidios para programas educativos otorgados por entidades públicas o privadas."
+                    source="Certificado de la entidad otorgante del apoyo educativo"
+                  />
+                  <MoneyField
+                    label="Indemnizaciones por seguro de daño emergente (Art. 45 E.T.)"
+                    year={y}
+                    value={d.noLaborales.indemnizacionesSeguroDano}
+                    onChange={(n) => patch((x) => (x.noLaborales.indemnizacionesSeguroDano = n))}
+                    hint="Indemnizaciones recibidas de aseguradoras que cubren la reposición del daño emergente de bienes de la actividad comercial."
+                    source="Art. 45 E.T. / Liquidación de siniestro de la aseguradora"
+                  />
+                  <MoneyField
+                    label="Aportes obligatorios a pensión y salud no laborales"
+                    year={y}
+                    value={d.noLaborales.aportesPension}
+                    onChange={(n) => patch((x) => (x.noLaborales.aportesPension = n))}
+                    hint="Seguridad social pagada por el comerciante o independiente sobre el IBC de sus actividades no laborales (Arts. 55 y 56 E.T.)."
+                    source="Planilla Integrada de Liquidación de Aportes (PILA)"
+                  />
+                  <MoneyField
+                    label="Cotización voluntaria a pensión obligatoria (RAIS)"
+                    year={y}
+                    value={d.noLaborales.aportesRais}
+                    onChange={(n) => patch((x) => (x.noLaborales.aportesRais = n))}
+                    hint="Aportes voluntarios del afiliado al régimen de ahorro individual (Art. 135 Ley 100/1993)."
+                  />
+                  <MoneyField
+                    label="Otros ingresos no constitutivos de renta (Casilla 76)"
+                    casilla={76}
+                    year={y}
+                    value={d.noLaborales.incrngo}
+                    onChange={(n) => patch((x) => (x.noLaborales.incrngo = n))}
+                    hint="Otros ingresos no gravados de la subcédula no laboral expresamente consagrados en la ley."
+                  />
+                </div>
+              </div>
+
+              {/* 4. Costos y Deducciones Procedentes */}
+              <div className="space-y-3 pt-2 border-t border-line">
+                <h3 className="font-display text-base font-semibold text-ink">4. Costos y Deducciones Procedentes · Casilla 77</h3>
+                <div className={fieldGrid}>
+                  <MoneyField
+                    label="Costos y deducciones procedentes no laborales (Casilla 77)"
+                    casilla={77}
+                    year={y}
+                    value={d.noLaborales.costos}
+                    onChange={(n) => patch((x) => (x.noLaborales.costos = n))}
+                    hint="Costo de ventas de mercancías, materias primas, nómina operativa, arriendos y gastos del negocio soportados con factura electrónica (Art. 107 E.T.)."
+                    source="Facturas electrónicas recibidas / Documentos soporte en adquisiciones a no obligados"
+                  />
+                  <MoneyField
+                    label="Rentas pasivas ECE - Sociedades en el exterior (Casilla 79)"
+                    casilla={79}
+                    year={y}
+                    value={d.noLaborales.ecePasiva}
+                    onChange={(n) => patch((x) => (x.noLaborales.ecePasiva = n))}
+                    hint="Rentas pasivas imputadas de sociedades controladas en el exterior (Régimen ECE - Arts. 882 a 893 E.T.)."
+                    source="Estados financieros de sociedades en el exterior"
+                  />
+                </div>
+                {c.casillas[140] ? (
+                  <p className="rounded-md bg-warn-mist px-3 py-2 text-xs text-warn font-medium">
+                    ⚠️ Casilla 140 marcada: Los costos y deducciones superan el 60 % de los ingresos brutos. Deben contar con soporte de factura electrónica y bancarización.
+                  </p>
+                ) : null}
+              </div>
+
+              {/* 5. Rentas Exentas */}
+              <div className="space-y-3 pt-2 border-t border-line">
+                <h3 className="font-display text-base font-semibold text-ink">5. Rentas Exentas No Laborales · Casillas 81 a 83</h3>
+                <div className={fieldGrid}>
+                  <MoneyField
+                    label="Aportes voluntarios a fondos de pensiones (FVP) y cuentas AFC / AVC (Casilla 81)"
+                    casilla={81}
+                    year={y}
+                    value={d.noLaborales.aportesAfc}
+                    onChange={(n) => patch((x) => (x.noLaborales.aportesAfc = n))}
+                    hint="Ahorro voluntario a pensiones (FVP) y cuentas AFC/AVC (Arts. 126-1 y 126-4 E.T. - Límite 30% del ingreso y 3.800 UVT)."
+                    source="Certificados tributarios de entidades financieras / FVP"
+                  />
+                  <MoneyField
+                    label="Rentas exentas por Convenios CAN (Decisión 578)"
+                    year={y}
+                    value={d.noLaborales.rentasCan}
+                    onChange={(n) => patch((x) => (x.noLaborales.rentasCan = n))}
+                    hint="Utilidades comerciales obtenidas en países de la Comunidad Andina (Ecuador, Perú, Bolivia)."
+                    source="Certificados tributarios de origen CAN"
+                  />
+                  <MoneyField
+                    label="Otras rentas exentas no laborales (Casilla 83)"
+                    casilla={83}
+                    year={y}
+                    value={d.noLaborales.otrasExentas}
+                    onChange={(n) => patch((x) => (x.noLaborales.otrasExentas = n))}
+                    hint="Otras exenciones tributarias legalmente aplicables a las actividades no laborales."
+                  />
+                </div>
+              </div>
+
+              {/* 6. Deducciones Imputables */}
+              <div className="space-y-3 pt-2 border-t border-line">
+                <h3 className="font-display text-base font-semibold text-ink">6. Deducciones Imputables No Laborales · Casillas 84 a 87</h3>
+                <div className={fieldGrid}>
+                  <MoneyField
+                    label="Intereses de crédito hipotecario o leasing de vivienda (Casilla 84)"
+                    casilla={84}
+                    year={y}
+                    value={d.noLaborales.interesesVivienda}
+                    onChange={(n) => patch((x) => (x.noLaborales.interesesVivienda = n))}
+                    hint="Intereses de crédito de vivienda efectivamente pagados en el año (Art. 119 E.T. - Límite anual 1.200 UVT)."
+                    source="Certificado bancario de crédito de vivienda"
+                  />
+                  <MoneyField
+                    label="Gravamen a los Movimientos Financieros - 4x1000 (Deducción 50%)"
+                    year={y}
+                    value={d.noLaborales.gmf}
+                    onChange={(n) => patch((x) => (x.noLaborales.gmf = n))}
+                    hint="Deducción del 50 % del 4x1000 certificado en cuentas bancarias del negocio (Art. 115 E.T.)."
+                    source="Art. 115 E.T. / Certificado bancario anual de GMF"
+                  />
+                  <MoneyField
+                    label="Intereses en créditos educativos ICETEX (Casilla 85)"
+                    casilla={85}
+                    year={y}
+                    value={d.noLaborales.icetex}
+                    onChange={(n) => patch((x) => (x.noLaborales.icetex = n))}
+                    hint="Intereses pagados al ICETEX para estudios superiores del contribuyente (Art. 119 E.T. - Tope 100 UVT)."
+                    source="Certificado anual ICETEX"
+                  />
+                  <MoneyField
+                    label="Aportes a fondos de cesantías del independiente (Casilla 86)"
+                    casilla={86}
+                    year={y}
+                    value={d.noLaborales.aportesCesantiasIndependiente}
+                    onChange={(n) => patch((x) => (x.noLaborales.aportesCesantiasIndependiente = n))}
+                    hint="Ahorro en fondos de cesantías para independientes (Art. 126-1 E.T. - Límite 2.500 UVT y 1/12 del ingreso)."
+                    source="Certificado del fondo de cesantías"
+                  />
+                  <MoneyField
+                    label="Deducción anual FNCE / Movilidad eléctrica"
+                    year={y}
+                    value={d.noLaborales.fnceAnual}
+                    onChange={(n) => patch((x) => (x.noLaborales.fnceAnual = n))}
+                    hint="Deducción del 50 % de la inversión en energías limpias y vehículos eléctricos (Ley 1715 de 2014)."
+                  />
+                  <MoneyField
+                    label="Otras deducciones imputables no laborales (Casilla 87)"
+                    casilla={87}
+                    year={y}
+                    value={d.noLaborales.otrasDeducciones}
+                    onChange={(n) => patch((x) => (x.noLaborales.otrasDeducciones = n))}
+                    hint="Otras deducciones autorizadas expresamente en el régimen tributario para la subcédula no laboral."
+                  />
+                </div>
+              </div>
+
+              {/* 7. Compensaciones */}
+              <div className="space-y-3 pt-2 border-t border-line">
+                <h3 className="font-display text-base font-semibold text-ink">7. Compensación de Pérdidas No Laborales · Casilla 89</h3>
+                <div className={fieldGrid}>
+                  <MoneyField
+                    label="Compensación de pérdidas fiscales no laborales (Casilla 89)"
+                    casilla={89}
+                    year={y}
+                    value={d.noLaborales.compensacionPerdidas}
+                    onChange={(n) => patch((x) => (x.noLaborales.compensacionPerdidas = n))}
+                    hint="Pérdidas fiscales arrastradas de años gravables anteriores en la subcédula no laboral (Art. 147 E.T.)."
+                    source="Declaraciones de renta de años anteriores"
+                  />
+                  <div className="sm:col-span-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="w-full justify-start text-xs text-forest"
+                      onClick={() => openCompensaciones("noLaborales")}
+                    >
+                      <History className="mr-1.5 size-3.5" />
+                      Gestionar historial y reajuste de pérdidas no laborales (Art. 147 E.T.)
+                    </Button>
+                  </div>
                 </div>
               </div>
             </Card>
           )}
 
           {sec === "pen" && (
-            <Card className="space-y-4">
-              <CardTitle>Cédula de pensiones</CardTitle>
-              <CardHint>Num. 5 art. 206 E.T.: exenta la parte que no supere 1.000 UVT mensuales ({formatCOP(c.uvt * 1000)}/mes), después de descontar aportes obligatorios a salud y solidaridad.</CardHint>
-              <div className={fieldGrid}>
-                <MoneyField
-                  label="Ingresos brutos por pensiones (país y exterior - Casilla 99)"
-                  casilla={99}
-                  year={y}
-                  value={d.pensiones.ingresos}
-                  onChange={(n) => patch((x) => (x.pensiones.ingresos = n))}
-                  hint="Mesadas pensionales de jubilación, vejez, invalidez y sobrevivientes pagadas por Colpensiones, fondos privados o aseguradoras."
-                />
-                <MoneyField
-                  label="Aportes obligatorios a salud y solidaridad pensional (Casilla 100)"
-                  casilla={100}
-                  year={y}
-                  value={d.pensiones.incrngo}
-                  onChange={(n) => patch((x) => (x.pensiones.incrngo = n))}
-                  hint="Descuentos obligatorios efectuados en la mesada para el sistema de salud (EPS) y fondo de solidaridad."
-                />
+            <Card className="space-y-5">
+              <div>
+                <CardTitle>Cédula de pensiones</CardTitle>
+                <CardHint>
+                  Numeral 5 del Art. 206 del Estatuto Tributario: las pensiones de jubilación, invalidez, vejez, de sobrevivientes y sobre riesgos laborales están exentas hasta 1.000 UVT mensuales ({formatCOP(c.uvt * 1000)}/mes), previa detracción de los aportes obligatorios a salud y fondo de solidaridad.
+                </CardHint>
               </div>
-              <div className="space-y-1.5 pt-2 border-t border-line">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink">Meses de mesada pensional pagados en el año</p>
-                  <span className="text-xs font-mono text-forest font-bold bg-forest-mist px-2 py-0.5 rounded-md">
-                    {d.pensiones.meses} meses seleccionados
-                  </span>
+
+              {/* 1. Ingresos Brutos */}
+              <div className="space-y-3 pt-2 border-t border-line">
+                <h3 className="font-display text-base font-semibold text-ink">1. Ingresos Brutos por Pensiones · Casilla 99</h3>
+                <div className={fieldGrid}>
+                  <MoneyField
+                    label="Ingresos brutos por pensiones del país y del exterior (Casilla 99)"
+                    casilla={99}
+                    year={y}
+                    value={d.pensiones.ingresos}
+                    onChange={(n) => patch((x) => (x.pensiones.ingresos = n))}
+                    hint="Total de mesadas pensionales ordinarias y extraordinarias recibidas de Colpensiones, fondos privados, aseguradoras o entidades del exterior."
+                    source="Formato 220 de pensionados / Certificado tributario del fondo de pensiones"
+                  />
                 </div>
-                <input
-                  type="range"
-                  min={1}
-                  max={12}
-                  value={d.pensiones.meses}
-                  onChange={(e) => patch((x) => (x.pensiones.meses = Number(e.target.value)))}
-                  className="w-full accent-[var(--color-forest)] cursor-pointer"
-                />
-                <p className="text-xs text-muted">
-                  Exención máxima calculada para {d.pensiones.meses} mesadas: <strong>{formatCOP((c.casillas[102] ?? 0))}</strong> (Art. 206 Num. 5 E.T.).
-                </p>
+              </div>
+
+              {/* 2. Ingresos No Constitutivos de Renta */}
+              <div className="space-y-3 pt-2 border-t border-line">
+                <h3 className="font-display text-base font-semibold text-ink">2. Ingresos No Constitutivos de Renta (Salud) · Casilla 100</h3>
+                <div className={fieldGrid}>
+                  <MoneyField
+                    label="Aportes obligatorios a salud y fondo de solidaridad pensional (Casilla 100)"
+                    casilla={100}
+                    year={y}
+                    value={d.pensiones.incrngo}
+                    onChange={(n) => patch((x) => (x.pensiones.incrngo = n))}
+                    hint="Descuentos obligatorios efectuados en la mesada pensional con destino a la EPS y al Fondo de Solidaridad Pensional (Art. 56 E.T.)."
+                    source="Formato 220 de pensionados (Casilla aportes a salud) / Desprendibles de pago"
+                  />
+                </div>
+              </div>
+
+              {/* 3. Exención Legal */}
+              <div className="space-y-3 pt-2 border-t border-line">
+                <h3 className="font-display text-base font-semibold text-ink">3. Exención Pensional Legal (Art. 206 Num. 5 E.T.) · Casilla 102</h3>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink">Meses de mesada pensional pagados en el año gravable</p>
+                    <span className="text-xs font-mono text-forest font-bold bg-forest-mist px-2.5 py-1 rounded-md border border-forest/20">
+                      {d.pensiones.meses} mesadas seleccionadas
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min={1}
+                    max={13}
+                    value={d.pensiones.meses}
+                    onChange={(e) => patch((x) => (x.pensiones.meses = Number(e.target.value)))}
+                    className="w-full accent-[var(--color-forest)] cursor-pointer"
+                  />
+                  <p className="text-xs text-muted leading-relaxed">
+                    Exención máxima legal calculada para {d.pensiones.meses} mesadas: <strong>{formatCOP((c.casillas[102] ?? 0))}</strong> ({d.pensiones.meses * 1000} UVT). Si la mesada mensual no supera 1.000 UVT ({formatCOP(c.uvt * 1000)}/mes), el 100 % de la pensión es exenta de renta.
+                  </p>
+                </div>
               </div>
             </Card>
           )}
 
           {sec === "div" && (
-            <Card className="space-y-4">
-              <CardTitle>Dividendos y participaciones</CardTitle>
-              <CardHint>El certificado tributario emitido por la sociedad detalla el año de origen de las utilidades y si corresponden al Numeral 3 o Parágrafo 2 del Art. 49 del E.T.</CardHint>
-              <div className={fieldGrid}>
-                <MoneyField
-                  label="Dividendos año 2016 y anteriores gravados (Casilla 104)"
-                  casilla={104}
-                  year={y}
-                  value={d.dividendos.div2016}
-                  onChange={(n) => patch((x) => (x.dividendos.div2016 = n))}
-                />
-                <MoneyField
-                  label="Dividendos año 2016 y anteriores no gravados (Casilla 105)"
-                  casilla={105}
-                  year={y}
-                  value={d.dividendos.incrngo2016}
-                  onChange={(n) => patch((x) => (x.dividendos.incrngo2016 = n))}
-                />
-                <MoneyField
-                  label="1ª Subcédula 2017+ (No gravados en sociedad - Num. 3 Art. 49 - Casilla 107)"
-                  casilla={107}
-                  year={y}
-                  value={d.dividendos.subcedula1}
-                  onChange={(n) => patch((x) => (x.dividendos.subcedula1 = n))}
-                  hint="Se integran a la base de la tabla del Art. 241 E.T. con descuento tributario del 19 % (Art. 242 E.T.)."
-                />
-                <MoneyField
-                  label="2ª Subcédula 2017+ (Gravados en sociedad - Par. 2 Art. 49 - Casilla 108)"
-                  casilla={108}
-                  year={y}
-                  value={d.dividendos.subcedula2}
-                  onChange={(n) => patch((x) => (x.dividendos.subcedula2 = n))}
-                  hint="Tributan primero a la tarifa general de sociedades (35%) y el remanente a la tabla general."
-                />
-                <MoneyField
-                  label="Dividendos recibidos del exterior (Casilla 109)"
-                  casilla={109}
-                  year={y}
-                  value={d.dividendos.exterior}
-                  onChange={(n) => patch((x) => (x.dividendos.exterior = n))}
-                />
-                <MoneyField
-                  label="Rentas exentas de dividendos del exterior CAN / CDI (Casilla 110)"
-                  casilla={110}
-                  year={y}
-                  value={d.dividendos.exentasExterior}
-                  onChange={(n) => patch((x) => (x.dividendos.exentasExterior = n))}
-                />
+            <Card className="space-y-5">
+              <div>
+                <CardTitle>Dividendos y participaciones</CardTitle>
+                <CardHint>
+                  Arts. 49, 242 y 245 del Estatuto Tributario: el tratamiento tributario depende del año en que se generaron las utilidades en la sociedad y de si corresponden a utilidades no gravadas (Num. 3 Art. 49) o gravadas en cabeza de la sociedad (Par. 2 Art. 49).
+                </CardHint>
+              </div>
+
+              {/* 1. Dividendos Históricos 2016 y Anteriores */}
+              <div className="space-y-3 pt-2 border-t border-line">
+                <h3 className="font-display text-base font-semibold text-ink">1. Dividendos Históricos (Años 2016 y Anteriores) · Casillas 104 y 105</h3>
+                <div className={fieldGrid}>
+                  <MoneyField
+                    label="Dividendos año 2016 y anteriores gravados (Casilla 104)"
+                    casilla={104}
+                    year={y}
+                    value={d.dividendos.div2016}
+                    onChange={(n) => patch((x) => (x.dividendos.div2016 = n))}
+                    hint="Utilidades comerciales generadas antes de 2017 que no pagaron impuesto en la sociedad (Parágrafo 2 Art. 49 E.T.). Tributan a la tabla del Art. 241 E.T."
+                    source="Certificado tributario de dividendos y participaciones expedido por la sociedad"
+                  />
+                  <MoneyField
+                    label="Dividendos año 2016 y anteriores no gravados (Casilla 105)"
+                    casilla={105}
+                    year={y}
+                    value={d.dividendos.incrngo2016}
+                    onChange={(n) => patch((x) => (x.dividendos.incrngo2016 = n))}
+                    hint="Utilidades generadas hasta 2016 que tributaron plenamente en la sociedad (Num. 3 Art. 49 E.T.). Constituyen ingreso no constitutivo de renta (INCRNGO)."
+                    source="Certificado tributario de dividendos"
+                  />
+                </div>
+              </div>
+
+              {/* 2. Dividendos 2017 y Siguientes */}
+              <div className="space-y-3 pt-2 border-t border-line">
+                <h3 className="font-display text-base font-semibold text-ink">2. Dividendos Año 2017 y Siguientes · Casillas 107 y 108</h3>
+                <div className={fieldGrid}>
+                  <MoneyField
+                    label="1ª Subcédula 2017+ (No gravados en sociedad - Num. 3 Art. 49 - Casilla 107)"
+                    casilla={107}
+                    year={y}
+                    value={d.dividendos.subcedula1}
+                    onChange={(n) => patch((x) => (x.dividendos.subcedula1 = n))}
+                    hint="Utilidades pagaron impuesto en la sociedad. Se suman a la renta líquida de la tabla del Art. 241 E.T. con descuento tributario del 19 % (Art. 242 E.T.)."
+                    source="Certificado tributario de dividendos / Formato 1010"
+                  />
+                  <MoneyField
+                    label="2ª Subcédula 2017+ (Gravados en sociedad - Par. 2 Art. 49 - Casilla 108)"
+                    casilla={108}
+                    year={y}
+                    value={d.dividendos.subcedula2}
+                    onChange={(n) => patch((x) => (x.dividendos.subcedula2 = n))}
+                    hint="Utilidades NO pagaron impuesto en la sociedad. Tributan primero a la tarifa general de sociedades (35 %) y el remanente a la tabla general."
+                    source="Certificado tributario de dividendos"
+                  />
+                </div>
+              </div>
+
+              {/* 3. Dividendos del Exterior */}
+              <div className="space-y-3 pt-2 border-t border-line">
+                <h3 className="font-display text-base font-semibold text-ink">3. Dividendos del Exterior · Casillas 109 a 111</h3>
+                <div className={fieldGrid}>
+                  <MoneyField
+                    label="Dividendos recibidos del exterior (Casilla 109)"
+                    casilla={109}
+                    year={y}
+                    value={d.dividendos.exterior}
+                    onChange={(n) => patch((x) => (x.dividendos.exterior = n))}
+                    hint="Dividendos y participaciones decretados por sociedades extranjeras o vehículos de inversión internacionales (Renta mundial)."
+                    source="Certificado de dividendos internacional / Extracto de bróker"
+                  />
+                  <MoneyField
+                    label="Rentas exentas de dividendos del exterior CAN / CDI (Casilla 110)"
+                    casilla={110}
+                    year={y}
+                    value={d.dividendos.exentasExterior}
+                    onChange={(n) => patch((x) => (x.dividendos.exentasExterior = n))}
+                    hint="Dividendos exentos amparados por Convenios para Evitar la Doble Imposición (CDI) o Decisión 578 CAN."
+                    source="Certificado de residencia fiscal del país emisor"
+                  />
+                </div>
               </div>
             </Card>
           )}
 
           {sec === "go" && (
-            <Card className="space-y-4">
-              <CardTitle>Ganancias ocasionales</CardTitle>
-              <CardHint>Tarifa general del 15 % (enajenación de activos fijos poseídos 2 años o más, herencias, donaciones) y 20 % en loterías, rifas y apuestas (Arts. 300 a 317 E.T.).</CardHint>
-              <div className={fieldGrid}>
-                <MoneyField
-                  label="Venta de activos fijos poseídos 2 años o más (Casilla 112)"
-                  casilla={112}
-                  year={y}
-                  value={d.gananciasOcasionales.enajenacionActivos}
-                  onChange={(n) => patch((x) => (x.gananciasOcasionales.enajenacionActivos = n))}
-                  hint="Valor de la enajenación de inmuebles, vehículos o acciones poseídos por 2 años o más (Art. 300 E.T.)."
-                />
-                <MoneyField
-                  label="Costo fiscal de los activos fijos enajenados (Casilla 113)"
-                  casilla={113}
-                  year={y}
-                  value={d.gananciasOcasionales.costos}
-                  onChange={(n) => patch((x) => (x.gananciasOcasionales.costos = n))}
-                  hint="Mayor entre costo de adquisición, avalúo catastral o autoavalúo declarado (Arts. 72, 73 y 277 E.T.)."
-                />
-                <MoneyField
-                  label="Herencias, legados y porción conyugal"
-                  year={y}
-                  value={d.gananciasOcasionales.herencias}
-                  onChange={(n) => patch((x) => (x.gananciasOcasionales.herencias = n))}
-                  hint="Bienes y derechos recibidos por causa de muerte / sucesión ilíquida (Art. 302 E.T.)."
-                />
-                <MoneyField
-                  label="Donaciones y actos a título gratuito"
-                  year={y}
-                  value={d.gananciasOcasionales.donaciones}
-                  onChange={(n) => patch((x) => (x.gananciasOcasionales.donaciones = n))}
-                  hint="Bienes y recursos recibidos como donación entre vivos (Art. 302 E.T.)."
-                />
-                <MoneyField
-                  label="Premios por loterías, rifas, apuestas y similares"
-                  year={y}
-                  value={d.gananciasOcasionales.loterias}
-                  onChange={(n) => patch((x) => (x.gananciasOcasionales.loterias = n))}
-                  hint="Tarifa especial del 20 % retenida en la fuente por el operador del juego (Arts. 306 y 317 E.T.)."
-                />
-                <MoneyField
-                  label="Indemnizaciones por seguro de vida"
-                  year={y}
-                  value={d.gananciasOcasionales.seguroVida}
-                  onChange={(n) => patch((x) => (x.gananciasOcasionales.seguroVida = n))}
-                  hint="No gravado hasta 3.250 UVT (Art. 303-1 E.T.). El exceso tributa al 15%."
-                />
-                <MoneyField
-                  label="Venta de casa o apartamento de habitación"
-                  year={y}
-                  value={d.gananciasOcasionales.ventaVivienda}
-                  onChange={(n) => patch((x) => (x.gananciasOcasionales.ventaVivienda = n))}
-                  hint="Hasta 5.000 UVT exentas si el valor se destina a adquirir otra vivienda o pagar crédito hipotecario (Art. 311-1 E.T.)."
-                />
-                <MoneyField
-                  label="Otros ingresos por ganancia ocasional"
-                  year={y}
-                  value={d.gananciasOcasionales.otros}
-                  onChange={(n) => patch((x) => (x.gananciasOcasionales.otros = n))}
-                />
-                <MoneyField
-                  label="Ganancias ocasionales no gravadas y exentas (Casilla 114)"
-                  casilla={114}
-                  year={y}
-                  value={d.gananciasOcasionales.goNoGravadas}
-                  onChange={(n) => patch((x) => (x.gananciasOcasionales.goNoGravadas = n))}
-                />
-                <MoneyField
-                  label="Impuesto pagado en el exterior por ganancia ocasional (Casilla 128)"
-                  casilla={128}
-                  year={y}
-                  value={d.gananciasOcasionales.impuestoExterior}
-                  onChange={(n) => patch((x) => (x.gananciasOcasionales.impuestoExterior = n))}
-                />
+            <Card className="space-y-5">
+              <div>
+                <CardTitle>Ganancias ocasionales</CardTitle>
+                <CardHint>
+                  Arts. 300 a 317 del Estatuto Tributario: grava con tarifa del 15 % la enajenación de activos fijos poseídos 2 años o más, herencias, legados, donaciones y porción conyugal. Tarifa especial del 20 % en premios por loterías, rifas y apuestas.
+                </CardHint>
+              </div>
+
+              {/* 1. Activos Fijos */}
+              <div className="space-y-3 pt-2 border-t border-line">
+                <h3 className="font-display text-base font-semibold text-ink">1. Enajenación de Activos Fijos Poseídos 2 Años o Más · Casillas 112 y 113</h3>
+                <div className={fieldGrid}>
+                  <MoneyField
+                    label="Venta de activos fijos poseídos 2 años o más (Casilla 112)"
+                    casilla={112}
+                    year={y}
+                    value={d.gananciasOcasionales.enajenacionActivos}
+                    onChange={(n) => patch((x) => (x.gananciasOcasionales.enajenacionActivos = n))}
+                    hint="Valor de venta declarado en la enajenación de bienes raíces, vehículos, maquinaria o acciones poseídos por 2 años o más (Art. 300 E.T.)."
+                    source="Escritura pública de venta / Formato 1007"
+                  />
+                  <MoneyField
+                    label="Costo fiscal de los activos fijos enajenados (Casilla 113)"
+                    casilla={113}
+                    year={y}
+                    value={d.gananciasOcasionales.costos}
+                    onChange={(n) => patch((x) => (x.gananciasOcasionales.costos = n))}
+                    hint="Costo fiscal determinado por el mayor entre costo de adquisición con ajustes, avalúo catastral o autoavalúo declarado (Arts. 72, 73 y 277 E.T.)."
+                    source="Declaración de renta anterior / Recibo predial del año anterior a la venta"
+                  />
+                </div>
+              </div>
+
+              {/* 2. Herencias, Donaciones y Loterías */}
+              <div className="space-y-3 pt-2 border-t border-line">
+                <h3 className="font-display text-base font-semibold text-ink">2. Herencias, Donaciones y Loterías · Casilla 112</h3>
+                <div className={fieldGrid}>
+                  <MoneyField
+                    label="Herencias, legados y porción conyugal"
+                    year={y}
+                    value={d.gananciasOcasionales.herencias}
+                    onChange={(n) => patch((x) => (x.gananciasOcasionales.herencias = n))}
+                    hint="Bienes, inmuebles, dinero y derechos adjudicados en sucesiones líquidas por causa de muerte (Art. 302 E.T.)."
+                    source="Escritura pública de sucesión o sentencia judicial de partición"
+                  />
+                  <MoneyField
+                    label="Donaciones y actos a título gratuito entre vivos"
+                    year={y}
+                    value={d.gananciasOcasionales.donaciones}
+                    onChange={(n) => patch((x) => (x.gananciasOcasionales.donaciones = n))}
+                    hint="Recursos, dinero y bienes recibidos como donación a título gratuito entre personas vivas (Art. 302 E.T.)."
+                    source="Escritura pública de donación / Extractos bancarios"
+                  />
+                  <MoneyField
+                    label="Premios por loterías, rifas, apuestas y similares"
+                    year={y}
+                    value={d.gananciasOcasionales.loterias}
+                    onChange={(n) => patch((x) => (x.gananciasOcasionales.loterias = n))}
+                    hint="Premios brutos en juegos de suerte y azar. Tributan a tarifa del 20 % retenida en la fuente por el operador del juego (Arts. 306 y 317 E.T.)."
+                    source="Certificado de retención en la fuente expedido por el operador del juego"
+                  />
+                  <MoneyField
+                    label="Indemnizaciones por seguro de vida"
+                    year={y}
+                    value={d.gananciasOcasionales.seguroVida}
+                    onChange={(n) => patch((x) => (x.gananciasOcasionales.seguroVida = n))}
+                    hint="Indemnizaciones de pólizas de seguro de vida (Art. 303-1 E.T. - No gravadas hasta 3.250 UVT). El exceso tributa al 15 %."
+                    source="Liquidación de póliza expedida por la aseguradora"
+                  />
+                  <MoneyField
+                    label="Venta de casa o apartamento de habitación"
+                    year={y}
+                    value={d.gananciasOcasionales.ventaVivienda}
+                    onChange={(n) => patch((x) => (x.gananciasOcasionales.ventaVivienda = n))}
+                    hint="Utilidad en venta de vivienda urbana o rural exenta hasta 5.000 UVT si se destina a adquirir otra vivienda o pagar hipoteca (Art. 311-1 E.T.)."
+                    source="Escritura de venta y soporte de abono en cuenta AFC / Hipoteca"
+                  />
+                  <MoneyField
+                    label="Otros ingresos por ganancia ocasional"
+                    year={y}
+                    value={d.gananciasOcasionales.otros}
+                    onChange={(n) => patch((x) => (x.gananciasOcasionales.otros = n))}
+                    hint="Otras ganancias ocasionales no especificadas en las casillas anteriores."
+                  />
+                </div>
+              </div>
+
+              {/* 3. Exenciones y Tax Credit */}
+              <div className="space-y-3 pt-2 border-t border-line">
+                <h3 className="font-display text-base font-semibold text-ink">3. Exenciones y Descuentos de Ganancias Ocasionales · Casillas 114 y 128</h3>
+                <div className={fieldGrid}>
+                  <MoneyField
+                    label="Ganancias ocasionales no gravadas y exentas (Casilla 114)"
+                    casilla={114}
+                    year={y}
+                    value={d.gananciasOcasionales.goNoGravadas}
+                    onChange={(n) => patch((x) => (x.gananciasOcasionales.goNoGravadas = n))}
+                    hint="Porción exenta de herencias (Art. 307 E.T.), indemnizaciones de seguro de vida y utilidad exenta de vivienda de habitación (Art. 311-1 E.T.)."
+                  />
+                  <MoneyField
+                    label="Impuesto pagado en el exterior por ganancia ocasional (Casilla 128)"
+                    casilla={128}
+                    year={y}
+                    value={d.gananciasOcasionales.impuestoExterior}
+                    onChange={(n) => patch((x) => (x.gananciasOcasionales.impuestoExterior = n))}
+                    hint="Descuento tributario (Tax Credit) por impuestos pagados en otros países sobre ganancias ocasionales de fuente extranjera (Art. 254 E.T.)."
+                    source="Certificado de impuesto pagado expedido por la autoridad fiscal extranjera"
+                  />
+                </div>
               </div>
             </Card>
           )}
 
           {sec === "dsc" && (
-            <Card className="space-y-4">
-              <CardTitle>Descuentos tributarios, retenciones y liquidación privada</CardTitle>
-              <CardHint>Descuentos que restan directamente del impuesto a cargo (Arts. 254 a 258 E.T.), retenciones en la fuente practicadas y saldos a favor anteriores.</CardHint>
-              <div className={fieldGrid}>
-                <MoneyField
-                  label="Compras con Factura Electrónica (Base para deducción del 1 %)"
-                  casilla={28}
-                  year={y}
-                  value={d.trabajo.comprasFacturaElectronica}
-                  onChange={(n) => patch((x) => (x.trabajo.comprasFacturaElectronica = n))}
-                  hint={`Art. 336 num. 5 E.T. Deducción del 1% calculada: ${formatCOP(c.casillas[28] ?? 0)} (tope máx. 240 UVT).`}
-                />
-                <MoneyField
-                  label="Impuestos pagados en el exterior (Tax Credit - Casilla 122)"
-                  casilla={122}
-                  year={y}
-                  value={d.descuentos.impuestosExterior}
-                  onChange={(n) => patch((x) => (x.descuentos.impuestosExterior = n))}
-                  source="Art. 254 E.T."
-                  hint="Descuento tributario por impuestos pagados en otros países sobre rentas de fuente extranjera."
-                />
-                <MoneyField
-                  label="Donaciones a entidades sin ánimo de lucro ESAL (Casilla 123)"
-                  casilla={123}
-                  year={y}
-                  value={d.descuentos.donaciones}
-                  onChange={(n) => patch((x) => (x.descuentos.donaciones = n))}
-                  hint="Donaciones a entidades del Régimen Tributario Especial (25 % de descuento) o proyectos de I+D+i (30 %). Límite conjunto 30 % del impuesto."
-                />
-                <MoneyField
-                  label="IVA de activos fijos reales productivos (Casilla 124)"
-                  year={y}
-                  value={d.descuentos.ivaActivosFijos}
-                  onChange={(n) => patch((x) => (x.descuentos.ivaActivosFijos = n))}
-                  hint="Descuento tributario del IVA pagado en la importación o adquisición de maquinaria pesada (Art. 258-1 E.T.)."
-                />
-                <MoneyField
-                  label="Otros descuentos tributarios legalmente autorizados"
-                  year={y}
-                  value={d.descuentos.otros}
-                  onChange={(n) => patch((x) => (x.descuentos.otros = n))}
-                />
-                <MoneyField
-                  label="Retenciones en la fuente practicadas en el año (Casilla 132)"
-                  casilla={132}
-                  year={y}
-                  value={d.extra.retenciones}
-                  onChange={(n) => patch((x) => (x.extra.retenciones = n))}
-                  hint="Total de retenciones en la fuente que le practicaron en el año gravable. Se restan directamente del impuesto."
-                />
-                <MoneyField
-                  label="Anticipo de renta liquidado el año anterior (Casilla 130)"
-                  casilla={130}
-                  year={y}
-                  value={d.extra.anticipoAnterior}
-                  onChange={(n) => patch((x) => (x.extra.anticipoAnterior = n))}
-                  hint="Anticipo liquidado en la declaración del año gravable anterior para este período."
-                />
-                <MoneyField
-                  label="Saldo a favor del año anterior sin devolución (Casilla 131)"
-                  casilla={131}
-                  year={y}
-                  value={d.extra.saldoFavorAnterior}
-                  onChange={(n) => patch((x) => (x.extra.saldoFavorAnterior = n))}
-                  hint="Saldo a favor de la declaración del año previo arrastrado sin solicitud de devolución o compensación."
-                />
-                <MoneyField
-                  label="Impuesto neto de renta del año anterior"
-                  year={y}
-                  value={d.extra.impuestoNetoAnterior}
-                  onChange={(n) => patch((x) => (x.extra.impuestoNetoAnterior = n))}
-                  hint="Para calcular la procedencia del Beneficio de Auditoría del Art. 689-3 del E.T."
-                />
-                <MoneyField
-                  label="Rentas gravables por omisión de activos o comparación (Casilla 96)"
-                  casilla={96}
-                  year={y}
-                  value={d.extra.rentasGravables}
-                  onChange={(n) => patch((x) => (x.extra.rentasGravables = n))}
-                  hint="Renta líquida por omisión de activos o inclusión de pasivos inexistentes (Arts. 236-239 E.T.)."
-                />
-                <MoneyField
-                  label="Compensación de pérdidas 2018 y anteriores (Casilla 94)"
-                  casilla={94}
-                  year={y}
-                  value={d.extra.compensacionPerdidas2018}
-                  onChange={(n) => patch((x) => (x.extra.compensacionPerdidas2018 = n))}
-                />
-                <MoneyField
-                  label="Compensación exceso de renta presuntiva (Casilla 95)"
-                  casilla={95}
-                  year={y}
-                  value={d.extra.compensacionExcesoPresuntiva}
-                  onChange={(n) => patch((x) => (x.extra.compensacionExcesoPresuntiva = n))}
-                />
-                <div className="sm:col-span-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="w-full justify-start text-xs text-forest"
-                    onClick={() => openCompensaciones("presuntiva")}
-                  >
-                    <History className="mr-1.5 size-3.5" />
-                    Gestionar historial de pérdidas 2018 y excesos de renta presuntiva (Arts. 147, 189 y 330 E.T.)
-                  </Button>
+            <Card className="space-y-5">
+              <div>
+                <CardTitle>Descuentos tributarios, retenciones y liquidación privada</CardTitle>
+                <CardHint>
+                  Arts. 254 a 258 del Estatuto Tributario: descuentos tributarios que restan directamente del impuesto sobre la renta líquida, retenciones en la fuente practicadas, anticipos y saldos a favor anteriores.
+                </CardHint>
+              </div>
+
+              {/* 1. Deducción 1% Factura Electrónica */}
+              <div className="space-y-3 pt-2 border-t border-line">
+                <h3 className="font-display text-base font-semibold text-ink">1. Deducción Especial por Factura Electrónica (1 %) · Casilla 28</h3>
+                <div className={fieldGrid}>
+                  <MoneyField
+                    label="Compras con Factura Electrónica (Base para deducción del 1 %)"
+                    casilla={28}
+                    year={y}
+                    value={d.trabajo.comprasFacturaElectronica}
+                    onChange={(n) => patch((x) => (x.trabajo.comprasFacturaElectronica = n))}
+                    hint={`Art. 336 num. 5 E.T. Se resta como deducción el 1% del total de compras de bienes o servicios soportadas con factura electrónica de validación previa pagadas por medios electrónicos. Deducción calculada: ${formatCOP(c.casillas[28] ?? 0)} (límite máx. 240 UVT).`}
+                    source="Facturas electrónicas emitidas a su nombre con medio de pago bancario (Tarjeta débito, crédito, PSE, transferencia)"
+                  />
                 </div>
-                <MoneyField
-                  label="Renta presuntiva manual (si aplica - Casilla 98)"
-                  casilla={98}
-                  year={y}
-                  value={d.extra.rentaPresuntivaManual}
-                  onChange={(n) => patch((x) => (x.extra.rentaPresuntivaManual = n))}
-                  hint="Tarifa 0 % en años recientes; informe únicamente rentas de activos exceptuados (Art. 189 E.T.)."
-                />
-                <MoneyField
-                  label="Sanciones tributarias liquidadas (Casilla 135)"
-                  casilla={135}
-                  year={y}
-                  value={d.extra.sanciones}
-                  onChange={(n) => patch((x) => (x.extra.sanciones = n))}
-                  hint={`Mínima 10 UVT ${formatCOP(c.uvtFiling * 10)} (UVT año de presentación).`}
-                />
-                <MoneyField
-                  label="Aporte voluntario a programas sociales (Casilla 141)"
-                  casilla={141}
-                  year={y}
-                  value={d.extra.aporteVoluntario}
-                  onChange={(n) => patch((x) => (x.extra.aporteVoluntario = n))}
-                  hint="Aporte voluntario no reembolsable del Art. 244-1 del E.T."
-                />
+              </div>
+
+              {/* 2. Descuentos Tributarios */}
+              <div className="space-y-3 pt-2 border-t border-line">
+                <h3 className="font-display text-base font-semibold text-ink">2. Descuentos Tributarios Directos al Impuesto · Casillas 122 a 125</h3>
+                <div className={fieldGrid}>
+                  <MoneyField
+                    label="Impuestos pagados en el exterior (Tax Credit - Casilla 122)"
+                    casilla={122}
+                    year={y}
+                    value={d.descuentos.impuestosExterior}
+                    onChange={(n) => patch((x) => (x.descuentos.impuestosExterior = n))}
+                    hint="Descuento tributario directo por impuestos a la renta pagados en otros países sobre rentas de fuente extranjera (Art. 254 E.T.)."
+                    source="Art. 254 E.T. / Certificado de retención e impuesto de la administración tributaria extranjera"
+                  />
+                  <MoneyField
+                    label="Donaciones a entidades sin ánimo de lucro ESAL (Casilla 123)"
+                    casilla={123}
+                    year={y}
+                    value={d.descuentos.donaciones}
+                    onChange={(n) => patch((x) => (x.descuentos.donaciones = n))}
+                    hint="Descuento del 25 % del valor donado a entidades del Régimen Tributario Especial (Art. 257 E.T.) o 30 % en proyectos de I+D+i (Art. 256 E.T.). Límite conjunto 30 % del impuesto básico."
+                    source="Certificado de donación firmado por el Revisor Fiscal / Contador de la entidad beneficiaria"
+                  />
+                  <MoneyField
+                    label="IVA de activos fijos reales productivos (Casilla 124)"
+                    casilla={124}
+                    year={y}
+                    value={d.descuentos.ivaActivosFijos}
+                    onChange={(n) => patch((x) => (x.descuentos.ivaActivosFijos = n))}
+                    hint="Descuento tributario del IVA pagado en la importación o compra de maquinaria y bienes de capital productivos (Art. 258-1 E.T.)."
+                    source="Facturas electrónicas de compra / Declaraciones de importación de maquinaria"
+                  />
+                  <MoneyField
+                    label="Otros descuentos tributarios legalmente autorizados (Casilla 125)"
+                    year={y}
+                    value={d.descuentos.otros}
+                    onChange={(n) => patch((x) => (x.descuentos.otros = n))}
+                    hint="Otros descuentos fiscales contemplados taxativamente en la normativa."
+                  />
+                </div>
+              </div>
+
+              {/* 3. Retenciones y Anticipos */}
+              <div className="space-y-3 pt-2 border-t border-line">
+                <h3 className="font-display text-base font-semibold text-ink">3. Retenciones en la Fuente y Anticipos · Casillas 130 a 132</h3>
+                <div className={fieldGrid}>
+                  <MoneyField
+                    label="Retenciones en la fuente practicadas en el año (Casilla 132)"
+                    casilla={132}
+                    year={y}
+                    value={d.extra.retenciones}
+                    onChange={(n) => patch((x) => (x.extra.retenciones = n))}
+                    hint="Total de retenciones en la fuente que le practicaron clientes, empleadores o entidades financieras durante el año. Restan directamente del impuesto."
+                    source="Formato 220 casilla 60 / Certificados tributarios bancarios y de retención / Formato 1003 de Exógena"
+                  />
+                  <MoneyField
+                    label="Anticipo de renta liquidado el año gravable anterior (Casilla 130)"
+                    casilla={130}
+                    year={y}
+                    value={d.extra.anticipoAnterior}
+                    onChange={(n) => patch((x) => (x.extra.anticipoAnterior = n))}
+                    hint="Anticipo liquidado en la declaración del año previo (Casilla 134 del Formulario 210 anterior) imputable a este período."
+                    source="Declaración de renta del año anterior (Casilla 134)"
+                  />
+                  <MoneyField
+                    label="Saldo a favor del año gravable anterior sin devolución (Casilla 131)"
+                    casilla={131}
+                    year={y}
+                    value={d.extra.saldoFavorAnterior}
+                    onChange={(n) => patch((x) => (x.extra.saldoFavorAnterior = n))}
+                    hint="Saldo a favor de la declaración del año anterior (Casilla 137) arrastrado sin solicitud de devolución o compensación."
+                    source="Declaración de renta del año previo (Casilla 137)"
+                  />
+                  <MoneyField
+                    label="Impuesto neto de renta del año anterior"
+                    year={y}
+                    value={d.extra.impuestoNetoAnterior}
+                    onChange={(n) => patch((x) => (x.extra.impuestoNetoAnterior = n))}
+                    hint="Base para evaluar la procedencia del Beneficio de Auditoría del Art. 689-3 del E.T. (Incremento del 35% para firmeza en 6 meses o 25% para 12 meses)."
+                    source="Declaración de renta del año anterior (Casilla 126)"
+                  />
+                </div>
+              </div>
+
+              {/* 4. Rentas Gravables Especiales y Compensaciones Globales */}
+              <div className="space-y-3 pt-2 border-t border-line">
+                <h3 className="font-display text-base font-semibold text-ink">4. Rentas Gravables Especiales y Compensaciones · Casillas 94 a 98</h3>
+                <div className={fieldGrid}>
+                  <MoneyField
+                    label="Rentas líquidas gravables por omisión de activos o comparación (Casilla 96)"
+                    casilla={96}
+                    year={y}
+                    value={d.extra.rentasGravables}
+                    onChange={(n) => patch((x) => (x.extra.rentasGravables = n))}
+                    hint="Renta líquida gravable especial por activos omitidos, pasivos inexistentes o incremento patrimonial no justificado (Arts. 236 a 239 E.T.)."
+                  />
+                  <MoneyField
+                    label="Compensación de pérdidas fiscales 2018 y anteriores (Casilla 94)"
+                    casilla={94}
+                    year={y}
+                    value={d.extra.compensacionPerdidas2018}
+                    onChange={(n) => patch((x) => (x.extra.compensacionPerdidas2018 = n))}
+                    hint="Pérdidas fiscales generadas hasta el año 2018 compensables contra la renta líquida cedular (Art. 147 E.T.)."
+                  />
+                  <MoneyField
+                    label="Compensación de exceso de renta presuntiva (Casilla 95)"
+                    casilla={95}
+                    year={y}
+                    value={d.extra.compensacionExcesoPresuntiva}
+                    onChange={(n) => patch((x) => (x.extra.compensacionExcesoPresuntiva = n))}
+                    hint="Excesos de renta presuntiva sobre renta líquida ordinaria de los últimos 5 años (Art. 189 E.T. reajustados fiscalmente)."
+                  />
+                  <div className="sm:col-span-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="w-full justify-start text-xs text-forest"
+                      onClick={() => openCompensaciones("presuntiva")}
+                    >
+                      <History className="mr-1.5 size-3.5" />
+                      Gestionar historial de pérdidas históricas y exceso de renta presuntiva (Arts. 147, 189 y 330 E.T.)
+                    </Button>
+                  </div>
+                  <MoneyField
+                    label="Renta presuntiva manual (si aplica - Casilla 98)"
+                    casilla={98}
+                    year={y}
+                    value={d.extra.rentaPresuntivaManual}
+                    onChange={(n) => patch((x) => (x.extra.rentaPresuntivaManual = n))}
+                    hint="Tarifa 0 % en años recientes; informe únicamente rentas de activos exceptuados de presuntiva (Art. 189 E.T.)."
+                  />
+                </div>
+              </div>
+
+              {/* 5. Sanciones y Aportes Voluntarios */}
+              <div className="space-y-3 pt-2 border-t border-line">
+                <h3 className="font-display text-base font-semibold text-ink">5. Sanciones y Aportes Voluntarios · Casillas 135 y 141</h3>
+                <div className={fieldGrid}>
+                  <MoneyField
+                    label="Sanciones tributarias liquidadas (Casilla 135)"
+                    casilla={135}
+                    year={y}
+                    value={d.extra.sanciones}
+                    onChange={(n) => patch((x) => (x.extra.sanciones = n))}
+                    hint={`Sanción por extemporaneidad (Art. 641 E.T.) o corrección (Art. 644 E.T.). Sanción mínima legal de 10 UVT: ${formatCOP(c.uvtFiling * 10)}.`}
+                    source="Liquidación de sanciones tributarias (Art. 639 E.T.)"
+                  />
+                  <MoneyField
+                    label="Aporte voluntario no reembolsable a programas sociales (Casilla 141)"
+                    casilla={141}
+                    year={y}
+                    value={d.extra.aporteVoluntario}
+                    onChange={(n) => patch((x) => (x.extra.aporteVoluntario = n))}
+                    hint="Aporte voluntario no reembolsable destinado a la erradicación de la pobreza extrema y proyectos de paz (Art. 244-1 E.T.)."
+                  />
+                </div>
               </div>
             </Card>
           )}
