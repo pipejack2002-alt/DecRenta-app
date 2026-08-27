@@ -131,11 +131,11 @@ export function compute(d: Declaration): ComputedDeclaration {
 
   // Deducción dependientes: 10 % de la renta de trabajo, máx. 32 UVT mensuales = 384 UVT año
   // más 72 UVT por dependiente (máx. 4) que van a casilla 139, fuera del 40 %.
-  const dep = Math.max(0, Math.min(4, Math.floor(t.dependientes)));
+  const dep = Math.max(0, Math.min(4, Math.floor(t.dependientes > 0 ? t.dependientes : (h.dependientes || 0))));
   const depBase = C[32] > 0 ? C[32] : h.usarCostos ? h.ingresos : 0;
-  const depMensual = min3(depBase * 0.1, U(32) * 12, C[32] > 0 ? C[34] : 0);
+  const depMensual = min3(depBase * 0.1, U(32) * 12, C[32] > 0 ? C[34] : C[46]);
   const depDeductionT = dep > 0 && C[32] > 0 ? depMensual : 0;
-  const depDeductionH = dep > 0 && C[32] === 0 && h.usarCostos ? min3(h.ingresos * 0.1, U(32) * 12, h.ingresos) : 0;
+  const depDeductionH = dep > 0 && C[32] === 0 && h.usarCostos ? min3(h.ingresos * 0.1, U(32) * 12, C[46]) : 0;
 
   const medCapT = min3(t.medicinaPrepagada, U(16) * 12, C[34]);
   const gmfDedT = n(t.gmf * 0.5);
