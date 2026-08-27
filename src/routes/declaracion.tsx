@@ -474,9 +474,10 @@ function DeclaracionPage() {
               <CardHint>Art. 103 E.T. Incluya honorarios aquí solo si NO va a restar costos (para tomar el 25 % del num. 10 art. 206).</CardHint>
               <div className={fieldGrid}>
                 <MoneyField label="Salarios" casilla={32} year={y} value={d.trabajo.salarios} onChange={(n) => patch((x) => (x.trabajo.salarios = n))} source="Formato 220, casilla de pagos laborales" />
+                <MoneyField label="Otras prestaciones y primas" year={y} value={d.trabajo.otrasPrestaciones} onChange={(n) => patch((x) => (x.trabajo.otrasPrestaciones = n))} />
+                <MoneyField label="Otros pagos laborales (Bonos, auxilios, no salariales)" year={y} value={d.trabajo.otrosPagosLaborales || 0} onChange={(n) => patch((x) => (x.trabajo.otrosPagosLaborales = n))} hint="Bonos de fin de año, auxilios habituales y pagos del Art. 128 C.S.T. reportados en exógena / Formato 2276." source="Formato 2276, casilla Otros pagos" />
                 <MoneyField label="Honorarios sin costos" year={y} value={d.trabajo.honorariosSinCostos} onChange={(n) => patch((x) => (x.trabajo.honorariosSinCostos = n))} hint="Independiente que opta por la renta exenta del 25 %." />
                 <MoneyField label="Cesantías pagadas o consignadas" year={y} value={d.trabajo.cesantiasPagadas} onChange={(n) => patch((x) => (x.trabajo.cesantiasPagadas = n))} />
-                <MoneyField label="Otras prestaciones y primas" year={y} value={d.trabajo.otrasPrestaciones} onChange={(n) => patch((x) => (x.trabajo.otrasPrestaciones = n))} />
                 <MoneyField label="Ingresos en especie" year={y} value={d.trabajo.ingresosEspecie} onChange={(n) => patch((x) => (x.trabajo.ingresosEspecie = n))} source="Art. 29-1 E.T." />
                 <MoneyField label="Ingresos del exterior" year={y} value={d.trabajo.ingresosExterior} onChange={(n) => patch((x) => (x.trabajo.ingresosExterior = n))} />
                 <MoneyField label="Promedio salarial últimos 6 meses" year={y} value={d.trabajo.promedioMensual6m} onChange={(n) => patch((x) => (x.trabajo.promedioMensual6m = n))} hint="Define el % exento de cesantías (tabla num. 4 art. 206). 100 % si ≤ 350 UVT." />

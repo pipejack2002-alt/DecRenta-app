@@ -80,6 +80,7 @@ export function compute(d: Declaration): ComputedDeclaration {
       honorariosEn32 +
       t.cesantiasPagadas +
       t.otrasPrestaciones +
+      (t.otrosPagosLaborales || 0) +
       t.ingresosEspecie +
       t.ingresosExterior,
   );

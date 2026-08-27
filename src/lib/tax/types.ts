@@ -76,6 +76,7 @@ export type Trabajo = {
   honorariosSinCostos: number;
   cesantiasPagadas: number;
   otrasPrestaciones: number;
+  otrosPagosLaborales?: number;
   ingresosEspecie: number;
   ingresosExterior: number;
   promedioMensual6m: number;
@@ -355,6 +356,7 @@ export const emptyTrabajo = (): Trabajo => ({
   honorariosSinCostos: 0,
   cesantiasPagadas: 0,
   otrasPrestaciones: 0,
+  otrosPagosLaborales: 0,
   ingresosEspecie: 0,
   ingresosExterior: 0,
   promedioMensual6m: 0,
