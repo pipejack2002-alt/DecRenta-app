@@ -311,7 +311,10 @@ export function getCasillaItemizedBreakdown(
     case 36: {
       const t = d.trabajo;
       const cesantiasExentas = t.promedioMensual6m <= (uvt * 350) ? t.cesantiasPagadas : 0;
-      const baseRenta25 = Math.max(0, (c.casillas[34] ?? 0) - cesantiasExentas);
+      const deduccionesImputables = c.casillas[40] ?? 0;
+      const afcTrabajo = c.casillas[35] ?? 0;
+      const otrasEx = (t.otrasExentas || 0) + (t.rentasCan || 0) + (t.indemnizaciones || 0) + (t.cesantiasAcumuladas2016 || 0);
+      const baseRenta25 = Math.max(0, (c.casillas[34] ?? 0) - afcTrabajo - cesantiasExentas - deduccionesImputables - otrasEx);
       const renta25 = Math.min(baseRenta25 * 0.25, uvt * 790);
 
       const items: ItemBreakdown[] = [
@@ -321,13 +324,25 @@ export function getCasillaItemizedBreakdown(
           legal: `Art. 206 Num. 4 E.T. (Salario promedio mensual $${formatNumber(t.promedioMensual6m)} ≤ 350 UVT $${formatNumber(uvt * 350)})`,
           source: "100% exentas por estar en el rango de ingresos de la tabla legal",
         },
-        {
-          label: "Renta exenta laboral del 25% automática",
-          value: formatCOP(renta25),
-          legal: `Art. 206 Num. 10 E.T. (25% sobre renta líquida previa, tope máx. 790 UVT = $${formatNumber(uvt * 790)})`,
-          source: "Cálculo automático sobre base depurada de salarios y prestaciones",
-        },
       ];
+
+      if (deduccionesImputables > 0) {
+        items.push({
+          label: "Deducciones imputables detraídas de la base del 25% (Casilla 40)",
+          value: `-${formatCOP(deduccionesImputables)}`,
+          source: "Dependientes (10%), medicina prepagada, intereses de vivienda o GMF (Art. 387 E.T.)",
+          legal: "Art. 206 Num. 10 E.T. ordena restar deducciones antes de calcular el 25%",
+        });
+      }
+
+      items.push({
+        label: "Renta exenta laboral del 25% (Art. 206 Num. 10 E.T.)",
+        value: formatCOP(renta25),
+        legal: `25% aplicado sobre base depurada de $${formatNumber(baseRenta25)} (Tope máx. 790 UVT = $${formatNumber(uvt * 790)})`,
+        source: deduccionesImputables > 0
+          ? `Base: Renta líquida ($${formatNumber(c.casillas[34] ?? 0)}) - Cesantías ($${formatNumber(cesantiasExentas)}) - Deducciones Casilla 40 ($${formatNumber(deduccionesImputables)}) = $${formatNumber(baseRenta25)}`
+          : `Base: Renta líquida ($${formatNumber(c.casillas[34] ?? 0)}) - Cesantías ($${formatNumber(cesantiasExentas)}) = $${formatNumber(baseRenta25)}`,
+      });
 
       if (t.cesantiasAcumuladas2016 > 0) {
         items.push({
@@ -359,11 +374,13 @@ export function getCasillaItemizedBreakdown(
 
       return {
         title: "Desglose de Otras Rentas Exentas de Trabajo (Casilla 36)",
-        description: "Beneficios tributarios de exención legal aplicables a los ingresos laborales del contribuyente:",
+        description: "Beneficios tributarios de exención legal aplicables a los ingresos laborales del contribuyente (Art. 206 E.T.):",
         items,
         totalLabel: "Total Otras Rentas Exentas (Casilla 36)",
         totalValue: c.casillas[36] ?? 0,
-        footnote: "Tus cesantías e intereses ($1.691.125) están 100% exentos porque tu ingreso promedio mensual es inferior a 350 UVT. Además, la ley te otorga el 25% de exención laboral sobre tus demás ingresos netos.",
+        footnote: deduccionesImputables > 0
+          ? `El Art. 206 Numeral 10 del E.T. ordena restar previamente las deducciones de la Casilla 40 ($${formatNumber(deduccionesImputables)}) antes de calcular el 25%. Por eso la exención del 25% es $${formatNumber(renta25)}, que sumada a tus cesantías 100% exentas ($${formatNumber(cesantiasExentas)}), da exactamente los $${formatNumber(c.casillas[36] ?? 0)} liquidados.`
+          : `Tus cesantías e intereses ($${formatNumber(cesantiasExentas)}) están 100% exentos. La ley te otorga adicionalmente el 25% de exención laboral ($${formatNumber(renta25)}) sobre la base neta. Total exacto: $${formatNumber(c.casillas[36] ?? 0)}.`,
       };
     }
 
