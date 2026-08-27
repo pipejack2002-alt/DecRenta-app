@@ -1583,7 +1583,7 @@ export async function downloadStyledFormulario210Xlsx(
   const depRows = [
     { conc: "(+) Ingresos Brutos", leg: "Arts. 103, 335 E.T.", tr: numVal(32), hon: numVal(43), cap: numVal(58), nol: numVal(74), form: "SUM(C4:F4)" },
     { conc: "(-) Devoluciones, Rebajas y Descuentos", leg: "Art. 336 E.T.", tr: 0, hon: numVal(44), cap: numVal(59), nol: numVal(75), form: "SUM(C5:F5)" },
-    { conc: "(-) Ingresos No Constitutivos (INCRNGO)", leg: "Arts. 55, 56 E.T.", tr: numVal(33), hon: numVal(45), cap: numVal(60), nol: numVal(76), form: "SUM(C6:F6)" },
+    { conc: "(-) Ingresos No Constitutivos de Renta", leg: "Arts. 55, 56 E.T.", tr: numVal(33), hon: numVal(45), cap: numVal(60), nol: numVal(76), form: "SUM(C6:F6)" },
     { conc: "(-) Costos y Gastos Procedentes", leg: "Art. 107, 336 E.T.", tr: 0, hon: 0, cap: 0, nol: numVal(77), form: "SUM(C7:F7)" },
     { conc: "(=) Ingresos Netos Cedulares", leg: "Art. 336 num. 1 E.T.", tr: numVal(34), hon: numVal(46), cap: numVal(61), nol: numVal(78), form: "SUM(C8:F8)", bold: true, bg: "FFECFDF5" },
     { conc: "Tope Límite del 40 % sobre Ingreso Neto", leg: "Art. 336 num. 2 E.T.", tr: Math.round(numVal(34)*0.4), hon: Math.round(numVal(46)*0.4), cap: Math.round(numVal(61)*0.4), nol: Math.round(numVal(78)*0.4), form: "G8*0.4", italic: true },

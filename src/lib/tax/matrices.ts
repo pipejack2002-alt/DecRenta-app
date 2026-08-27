@@ -78,7 +78,7 @@ export const INCR_ROWS: MatrixRow[] = [
     articleId: "et-46",
     cols: { trabajo: true, honorarios: false, capital: false, noLaborales: true },
     whyNot: {
-      honorarios: "El art. 46 solo cubre apoyos para programas educativos en rentas de trabajo (relación laboral) y no laborales. En honorarios con costos no es INCRNGO autónomo.",
+      honorarios: "El art. 46 solo cubre apoyos para programas educativos en rentas de trabajo (relación laboral) y no laborales. En honorarios con costos no es ingreso no constitutivo autónomo.",
       capital: "Los rendimientos de capital no son apoyos educativos. El art. 46 no aplica a intereses, arrendamientos ni regalías.",
     },
     kind: "incr",
@@ -107,7 +107,7 @@ export const INCR_ROWS: MatrixRow[] = [
     whyNot: {
       trabajo: "La indemnización de un seguro de daño no es renta de trabajo. Si es seguro de vida, va a ganancia ocasional (art. 303-1, 3.250 UVT).",
       honorarios: "No es honorario. Llévela a rentas no laborales o, si es de vida, a ganancia ocasional.",
-      capital: "No es rendimiento de capital. El art. 45 la trata como INCRNGO en no laborales.",
+      capital: "No es rendimiento de capital. El art. 45 la trata como ingreso no constitutivo de renta en no laborales.",
     },
     kind: "incr",
     limited40: false,
@@ -119,8 +119,8 @@ export const INCR_ROWS: MatrixRow[] = [
     articleId: "et-26",
     cols: { trabajo: false, honorarios: false, capital: false, noLaborales: true },
     whyNot: {
-      trabajo: "Lo que no esté en los arts. 55, 56 o 46 para trabajo no es INCRNGO residual. Revise si es renta exenta del art. 206.",
-      honorarios: "No hay un residual de INCRNGO en honorarios. Use costos (art. 107) o el 25 % si no resta costos.",
+      trabajo: "Lo que no esté en los arts. 55, 56 o 46 para trabajo no es concepto no gravado residual. Revise si es renta exenta del art. 206.",
+      honorarios: "No hay un residual de ingreso no constitutivo en honorarios. Use costos (art. 107) o el 25 % si no resta costos.",
       capital: "En capital el residual típico es el componente inflacionario (arts. 38-41), no un cajón de sastre.",
     },
     kind: "incr",
@@ -209,7 +209,7 @@ export const EXENTA_ROWS: MatrixRow[] = [
     whyNot: {
       honorarios: "El art. 206 nums. 1 a 3 cubre indemnizaciones laborales. Un independiente no tiene maternidad ni accidente de trabajo del CST.",
       capital: "No es rendimiento de capital.",
-      noLaborales: "Si es seguro de daño, es INCRNGO (art. 45), no renta exenta.",
+      noLaborales: "Si es seguro de daño, es ingreso no constitutivo de renta (art. 45), no renta exenta.",
     },
     kind: "exenta",
     limited40: false,
@@ -221,7 +221,7 @@ export const EXENTA_ROWS: MatrixRow[] = [
     articleId: "et-206",
     cap: "Limitada a 790 UVT anuales",
     capUvt: 790,
-    capNote: "Se calcula después de restar INCRNGO, demás exentas y deducciones. Quien reste costos en honorarios pierde este 25 % sobre esos ingresos (par. 5).",
+    capNote: "Se calcula después de restar ingresos no constitutivos de renta, demás exentas y deducciones. Quien reste costos en honorarios pierde este 25 % sobre esos ingresos (par. 5).",
     cols: { trabajo: true, honorarios: false, capital: false, noLaborales: false },
     whyNot: {
       honorarios: "Si imputa costos (casilla 43) pierde el 25 %. Para tomarlo, lleve los honorarios a la casilla 32 y no reste costos.",

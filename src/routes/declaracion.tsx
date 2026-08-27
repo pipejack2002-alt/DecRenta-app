@@ -580,7 +580,7 @@ function DeclaracionPage() {
                   hint="Apoyos económicos estatales o empresariales entregados para programas de estudio e investigación (no gravables)."
                 />
                 <MoneyField
-                  label="Otros ingresos no constitutivos de renta (INCRNGO)"
+                  label="Otros ingresos no constitutivos de renta ni ganancia ocasional"
                   year={y}
                   value={d.trabajo.otrosINCRNGO}
                   onChange={(n) => patch((x) => (x.trabajo.otrosINCRNGO = n))}
@@ -782,7 +782,7 @@ function DeclaracionPage() {
 
               {/* 2. Ingresos No Constitutivos de Renta */}
               <div className="space-y-3 pt-2 border-t border-line">
-                <h3 className="font-display text-base font-semibold text-ink">2. Ingresos No Constitutivos de Renta (INCRNGO) · Casilla 44</h3>
+                <h3 className="font-display text-base font-semibold text-ink">2. Ingresos No Constitutivos de Renta (Conceptos No Gravados) · Casilla 44</h3>
                 <div className={fieldGrid}>
                   <MoneyField
                     label="Aportes obligatorios a pensión del independiente"
@@ -1034,7 +1034,7 @@ function DeclaracionPage() {
 
               {/* 2. Ingresos No Constitutivos de Renta */}
               <div className="space-y-3 pt-2 border-t border-line">
-                <h3 className="font-display text-base font-semibold text-ink">2. Ingresos No Constitutivos de Renta (INCRNGO) · Casilla 59</h3>
+                <h3 className="font-display text-base font-semibold text-ink">2. Ingresos No Constitutivos de Renta (Conceptos No Gravados) · Casilla 59</h3>
                 <div className={fieldGrid}>
                   <MoneyField
                     label="Componente inflacionario no gravado de rendimientos financieros (Casilla 59)"
@@ -1241,23 +1241,50 @@ function DeclaracionPage() {
                     year={y}
                     value={d.noLaborales.ventas}
                     onChange={(n) => patch((x) => (x.noLaborales.ventas = n))}
-                    hint="Enajenación de vehículos, maquinaria o inmuebles poseídos por menos de 2 años (constituyen renta ordinaria no laboral, no ganancia ocasional)."
-                    source="Escrituras públicas / Contratos de compraventa / Facturas"
+                    hint="Ingreso bruto por enajenación de vehículos, maquinaria o inmuebles poseídos por menos de 2 años (Renta ordinaria - Art. 335 E.T.)."
+                    source="Contrato de compraventa / Facturas"
                   />
                   <MoneyField
-                    label="Otros ingresos no laborales (Recompensas, apoyos, notarías y curadurías)"
+                    label="Ingresos por recompensas estatales y distritales"
+                    year={y}
+                    value={d.noLaborales.recompensas}
+                    onChange={(n) => patch((x) => (x.noLaborales.recompensas = n))}
+                    hint="Recompensas dinerarias otorgadas por autoridades públicas."
+                  />
+                  <MoneyField
+                    label="Ingresos de notarías por servicios notariales (Art. 335 E.T.)"
+                    year={y}
+                    value={d.noLaborales.notarios}
+                    onChange={(n) => patch((x) => (x.noLaborales.notarios = n))}
+                    hint="Ingresos de notarios por derechos y derechos notariales (Art. 335 E.T.)."
+                  />
+                  <MoneyField
+                    label="Ingresos de curadurías urbanas"
+                    year={y}
+                    value={d.noLaborales.curadores}
+                    onChange={(n) => patch((x) => (x.noLaborales.curadores = n))}
+                    hint="Ingresos por expensas en el trámite de licencias de construcción y urbanismo."
+                  />
+                  <MoneyField
+                    label="Donaciones recibidas para campañas políticas (Ley 130 de 1994)"
+                    year={y}
+                    value={d.noLaborales.donacionesCampanas}
+                    onChange={(n) => patch((x) => (x.noLaborales.donacionesCampanas = n))}
+                    hint="Financiación privada y donaciones para campañas políticas."
+                  />
+                  <MoneyField
+                    label="Otros ingresos ordinarios no laborales"
                     year={y}
                     value={d.noLaborales.demas}
                     onChange={(n) => patch((x) => (x.noLaborales.demas = n))}
-                    hint="Ingresos brutos de notarios por derechos notariales, curadores urbanos, recompensas estatales y demás ingresos mercantiles."
-                    source="Art. 335 E.T. / Certificados tributarios de notarías o entidades pagadoras"
+                    hint="Demás ingresos ordinarios que no califiquen en los conceptos anteriores."
                   />
                 </div>
               </div>
 
               {/* 2. Devoluciones, Rebajas y Descuentos */}
               <div className="space-y-3 pt-2 border-t border-line">
-                <h3 className="font-display text-base font-semibold text-ink">2. Devoluciones, Rebajas y Descuentos · Casilla 75</h3>
+                <h3 className="font-display text-base font-semibold text-ink">2. Devoluciones, Rebajas y Descuentos en Ventas · Casilla 75</h3>
                 <div className={fieldGrid}>
                   <MoneyField
                     label="Devoluciones, rebajas y descuentos en ventas (Casilla 75)"
@@ -1265,15 +1292,15 @@ function DeclaracionPage() {
                     year={y}
                     value={d.noLaborales.devoluciones}
                     onChange={(n) => patch((x) => (x.noLaborales.devoluciones = n))}
-                    hint="Anulaciones, notas crédito, devoluciones de mercancías y descuentos comerciales concedidos a clientes (Art. 26 E.T.)."
-                    source="Notas crédito electrónicas / Registros contables de devoluciones"
+                    hint="Valores devueltos o rebajados a clientes debidamente soportados en notas crédito (Art. 26 E.T.)."
+                    source="Notas crédito electrónicas / Registros de facturación"
                   />
                 </div>
               </div>
 
               {/* 3. Ingresos No Constitutivos de Renta */}
               <div className="space-y-3 pt-2 border-t border-line">
-                <h3 className="font-display text-base font-semibold text-ink">3. Ingresos No Constitutivos de Renta (INCRNGO) · Casilla 76</h3>
+                <h3 className="font-display text-base font-semibold text-ink">3. Ingresos No Constitutivos de Renta (Conceptos No Gravados) · Casilla 76</h3>
                 <div className={fieldGrid}>
                   <MoneyField
                     label="Apoyos económicos educativos no gravados (Art. 46 E.T.)"
@@ -1307,7 +1334,7 @@ function DeclaracionPage() {
                     hint="Aportes voluntarios del afiliado al régimen de ahorro individual (Art. 135 Ley 100/1993)."
                   />
                   <MoneyField
-                    label="Otros ingresos no constitutivos de renta (Casilla 76)"
+                    label="Otros conceptos no constitutivos de renta (Casilla 76)"
                     casilla={76}
                     year={y}
                     value={d.noLaborales.incrngo}
@@ -1561,7 +1588,7 @@ function DeclaracionPage() {
                     year={y}
                     value={d.dividendos.incrngo2016}
                     onChange={(n) => patch((x) => (x.dividendos.incrngo2016 = n))}
-                    hint="Utilidades generadas hasta 2016 que tributaron plenamente en la sociedad (Num. 3 Art. 49 E.T.). Constituyen ingreso no constitutivo de renta (INCRNGO)."
+                    hint="Utilidades generadas hasta 2016 que tributaron plenamente en la sociedad (Num. 3 Art. 49 E.T.). Constituyen ingreso no constitutivo de renta ni ganancia ocasional."
                     source="Certificado tributario de dividendos"
                   />
                 </div>

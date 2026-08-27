@@ -91,7 +91,7 @@ export function compute(d: Declaration): ComputedDeclaration {
       id: "rais-cap",
       level: "warn",
       title: "Aportes voluntarios RAIS limitados",
-      detail: `Las cotizaciones voluntarias al RAIS son INCRNGO hasta el 25 % del ingreso laboral o tributario, con tope de 2.500 UVT (${formatU(U(2500))}). El excedente no se restó.`,
+      detail: `Las cotizaciones voluntarias al RAIS son ingresos no constitutivos de renta hasta el 25 % del ingreso laboral o tributario, con tope de 2.500 UVT (${formatU(U(2500))}). El excedente no se restó.`,
       source: "Art. 55 E.T. · par. 1 art. 135 Ley 100 de 1993",
       casilla: 33,
       section: "trabajo",

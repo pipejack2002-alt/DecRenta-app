@@ -63,7 +63,7 @@ export function providerAsks(d: Declaration, c: ComputedDeclaration, docs: Vault
       reason: "Sin el Formato 220 no hay cómo cuadrar salarios, aportes ni la retención que le practicaron.",
       documents: [
         { kind: "formato220", what: "Formato 220 (certificado de ingresos y retenciones) AG 2025", why: "Ingresos laborales, aportes y retención.", article: "Arts. 378 y 381 E.T." },
-        { kind: "pila", what: "Comprobante de PILA / seguridad social del año", why: "Cuadra pensión y salud obligatorias (INCRNGO arts. 55 y 56).", article: "Arts. 55, 56 y 108 E.T." },
+        { kind: "pila", what: "Comprobante de PILA / seguridad social del año", why: "Cuadra pensión y salud obligatorias (no constitutivas de renta arts. 55 y 56).", article: "Arts. 55, 56 y 108 E.T." },
       ],
       howToAsk: "Solicite el Formato 220 del año gravable, firmado, con NIT del agente y el desglose de salarios, cesantías, aportes y retención. Pídalo por escrito; el empleador está obligado a expedirlo (art. 378 E.T.).",
     },
@@ -112,7 +112,7 @@ export function providerAsks(d: Declaration, c: ComputedDeclaration, docs: Vault
       needed: t.aportesVoluntariosRais > 0 || t.aportesAfcFvpAvc > 0 || t.aportesPensionObligatorios > 0 || h.aportesRais > 0,
       reason: "RAIS 25 % / 2.500 UVT y FVP 30 % / 3.800 UVT se prueban con el certificado del fondo. El retiro antes de 10 años hace perder el beneficio.",
       documents: [
-        { kind: "certPensionVoluntaria", what: "Certificado de aportes obligatorios, voluntarios RAIS y FVP, y de retiros", why: "INCRNGO art. 55 y renta exenta arts. 126-1.", article: "Arts. 55 y 126-1 E.T." },
+        { kind: "certPensionVoluntaria", what: "Certificado de aportes obligatorios, voluntarios RAIS y FVP, y de retiros", why: "No constitutivo de renta art. 55 y renta exenta arts. 126-1.", article: "Arts. 55 y 126-1 E.T." },
       ],
       howToAsk: "Pida el certificado tributario del año con: cotización obligatoria, cotización voluntaria al RAIS, aportes a pensión voluntaria y fecha de cada retiro (para el requisito de 10 años).",
     },
@@ -161,7 +161,7 @@ export function providerAsks(d: Declaration, c: ComputedDeclaration, docs: Vault
       documents: [
         { kind: "certDividendos", what: "Certificado de dividendos y participaciones (desglose art. 49)", why: "Subcédula 1 (tabla 241) vs. subcédula 2 (tarifa 240).", article: "Arts. 48, 49 y 242 E.T." },
       ],
-      howToAsk: "Pida a la sociedad el certificado del art. 49: utilidad máxima distribuible como INCRNGO (num. 3), utilidad gravada (par. 2), año de origen y retención practicada.",
+      howToAsk: "Pida a la sociedad el certificado del art. 49: utilidad máxima distribuible no gravada (num. 3), utilidad gravada (par. 2), año de origen y retención practicada.",
     },
     {
       id: "arrendatario",
@@ -234,9 +234,9 @@ export function providerAsks(d: Declaration, c: ComputedDeclaration, docs: Vault
       provider: "Aseguradora",
       role: "Compañía que pagó indemnización de vida o de daño",
       needed: go.seguroVida > 0 || nl.indemnizacionesSeguroDano > 0,
-      reason: "Vida: GO no gravada hasta 3.250 UVT (303-1). Daño: INCRNGO del daño emergente (art. 45), en no laborales.",
+      reason: "Vida: GO no gravada hasta 3.250 UVT (303-1). Daño: no constitutivo de renta del daño emergente (art. 45), en no laborales.",
       documents: [
-        { kind: "seguroVida", what: "Certificado de indemnización (vida o daño), con valor y concepto", why: "Clasificar GO vs. INCRNGO.", article: "Arts. 45 y 303-1 E.T." },
+        { kind: "seguroVida", what: "Certificado de indemnización (vida o daño), con valor y concepto", why: "Clasificar GO vs. ingreso no constitutivo de renta.", article: "Arts. 45 y 303-1 E.T." },
       ],
       howToAsk: "Pida la liquidación de la indemnización: valor pagado, si es daño emergente o lucro cesante, y si es seguro de vida.",
     },
