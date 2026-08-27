@@ -71,6 +71,27 @@ export type Patrimonio = {
   otrosAjustesJustificativos?: number;
 };
 
+export type TipoDocumentoDependiente = "CC" | "TI" | "RC" | "CE" | "PPT" | "PAS";
+
+export type ParentescoDependiente =
+  | "hijo_menor_18"
+  | "hijo_estudiante_18_23"
+  | "hijo_discapacidad"
+  | "conyuge_dependiente"
+  | "padres_dependientes"
+  | "hermano_dependiente";
+
+export interface DependienteItem {
+  id: string;
+  tipoDocumento: TipoDocumentoDependiente;
+  numeroDocumento: string;
+  nombresApellidos: string;
+  parentesco: ParentescoDependiente;
+  edad?: number;
+  institucionEducativa?: string;
+  soporte?: string;
+}
+
 export type Trabajo = {
   salarios: number;
   honorariosSinCostos: number;
@@ -99,6 +120,7 @@ export type Trabajo = {
   medicinaPrepagada: number;
   gmf: number;
   dependientes: number;
+  dependientesDetalle?: DependienteItem[];
   icetex: number;
   fnceAnual: number;
   otrasDeducciones: number;
@@ -121,6 +143,8 @@ export type Honorarios = {
   icetex: number;
   medicinaPrepagada: number;
   aportesCesantiasIndependiente: number;
+  dependientes?: number;
+  dependientesDetalle?: DependienteItem[];
   fnceAnual: number;
   otrasDeducciones: number;
   compensacionPerdidas: number;

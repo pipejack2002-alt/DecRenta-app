@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { Columns2, Eye, FileText, History, Maximize2, Settings2, Sparkles, Plus, Sliders, Minimize2 } from "lucide-react";
+import { Columns2, Eye, FileText, History, Maximize2, Settings2, Sparkles, Plus, Sliders, Minimize2, Users, UserCheck, ShieldCheck } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { CatalogManagerModal } from "@/components/layout/catalog-manager-modal";
 import { CompensacionesDialog } from "@/components/layout/compensaciones-dialog";
 import { LiveFormPreview } from "@/components/layout/live-form-preview";
 import { MoneyField, TextField, ToggleField } from "@/components/layout/money-field";
+import { DependientesManagerModal } from "@/components/tax/dependientes-manager-modal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardHint, CardTitle } from "@/components/ui/card";
@@ -39,6 +40,8 @@ function DeclaracionPage() {
   const [initialCompTipo, setInitialCompTipo] = useState<TipoCompensacion>("capital");
   const [catalogModalOpen, setCatalogModalOpen] = useState(false);
   const [catalogModalTab, setCatalogModalTab] = useState<"seccionales" | "ciiu">("seccionales");
+  const [dependientesModalOpen, setDependientesModalOpen] = useState(false);
+  const [dependientesModalTarget, setDependientesModalTarget] = useState<"trabajo" | "honorarios">("trabajo");
   const d = useAppStore((s) => s.declaration);
   const patch = useAppStore((s) => s.patch);
   const seccionales = useAppStore((s) => s.customSeccionales);
@@ -719,30 +722,89 @@ function DeclaracionPage() {
                   hint="Total de compras de bienes y servicios respaldadas con Factura Electrónica de Venta y pagadas por medios electrónicos. Tope 240 UVT (No entra al límite del 40%)."
                 />
               </div>
-              <div className="space-y-1.5 pt-2 border-t border-line">
+              {/* Sección Dependientes Económicos con Gestión Profesional */}
+              <div className="space-y-3 pt-3 border-t border-line bg-forest-mist/20 p-4 rounded-xl border border-forest/20">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink">Dependientes económicos a cargo (Art. 387 E.T. - Máx. 4)</p>
-                  <span className="text-xs font-mono text-forest font-bold bg-forest-mist px-2 py-0.5 rounded-md">
-                    {d.trabajo.dependientes} dependiente(s) seleccionado(s)
+                  <div className="flex items-center gap-2">
+                    <Users className="size-4 text-forest" />
+                    <p className="text-xs font-bold uppercase tracking-wide text-ink">
+                      Dependientes Económicos a Cargo (Arts. 387 y 336 Num. 2 E.T.)
+                    </p>
+                  </div>
+                  <span className="text-xs font-mono text-forest font-bold bg-white border border-forest/30 px-2.5 py-0.5 rounded-full shadow-2xs">
+                    {d.trabajo.dependientes} dependiente(s)
                   </span>
                 </div>
+
                 <div className="flex gap-2">
                   {[0, 1, 2, 3, 4].map((n) => (
                     <button
                       key={n}
                       type="button"
-                      onClick={() => patch((x) => (x.trabajo.dependientes = n))}
+                      onClick={() => patch((x) => {
+                        x.trabajo.dependientes = n;
+                        if (x.trabajo.dependientesDetalle && x.trabajo.dependientesDetalle.length > n) {
+                          x.trabajo.dependientesDetalle = x.trabajo.dependientesDetalle.slice(0, n);
+                        }
+                      })}
                       className={cn(
-                        "h-11 flex-1 rounded-lg border text-sm font-bold font-mono transition-colors",
-                        d.trabajo.dependientes === n ? "border-forest bg-forest text-white shadow-xs" : "border-line bg-surface text-ink hover:bg-forest-mist",
+                        "h-10 flex-1 rounded-lg border text-xs font-bold font-mono transition-all",
+                        d.trabajo.dependientes === n
+                          ? "border-forest bg-forest text-white shadow-xs"
+                          : "border-line bg-surface text-ink hover:bg-forest-mist/50",
                       )}
                     >
-                      {n}
+                      {n === 0 ? "0 (Sin dep.)" : `${n} dep.`}
                     </button>
                   ))}
                 </div>
-                <p className="text-xs text-muted leading-relaxed">
-                  <strong>Beneficio doble por dependientes:</strong> 1) Deducción del 10 % del ingreso bruto laboral (máx. 32 UVT mensuales = {formatCOP((c.uvt || 0) * 32)}/mes) dentro del límite del 40 %. 2) Además, <strong>72 UVT anuales adicionales por cada dependiente</strong> ({formatCOP((c.uvt || 0) * 72)}) que salen del límite del 40 % y se restan directamente en la Casilla 139 (Art. 336 num. 2 E.T. y DUR 1.2.1.20.3).
+
+                <div className="flex items-center justify-between pt-1">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setDependientesModalTarget("trabajo");
+                      setDependientesModalOpen(true);
+                    }}
+                    className="text-xs h-8 bg-white border-forest/40 text-forest hover:bg-forest-mist font-semibold shadow-2xs"
+                  >
+                    <Users className="size-3.5 mr-1.5" />
+                    Gestionar Perfil de Dependientes (Cédulas y Parentesco)
+                  </Button>
+
+                  {d.trabajo.dependientes > 0 && (
+                    <span className="text-[11px] font-mono text-emerald-800 font-bold">
+                      Beneficio 72 UVT: {formatCOP(d.trabajo.dependientes * (c.uvt || 0) * 72)}
+                    </span>
+                  )}
+                </div>
+
+                {/* Chips de dependientes guardados */}
+                {d.trabajo.dependientesDetalle && d.trabajo.dependientesDetalle.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {d.trabajo.dependientesDetalle.map((dep, idx) => (
+                      <span
+                        key={dep.id || idx}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border border-line rounded-lg text-[11px] text-ink font-medium shadow-2xs"
+                      >
+                        <span className="size-4 rounded-full bg-forest/15 text-forest font-mono font-bold text-[9px] flex items-center justify-center">
+                          {idx + 1}
+                        </span>
+                        <strong>{dep.nombresApellidos || "Dependiente"}</strong>
+                        {dep.numeroDocumento && (
+                          <span className="text-muted font-mono">({dep.tipoDocumento} {dep.numeroDocumento})</span>
+                        )}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                <p className="text-[11.5px] text-muted leading-relaxed">
+                  💡 <strong>Beneficio Doble Concurrente:</strong> Cada dependiente seleccionado otorga: 
+                  1) <strong>Deducción del 10% del ingreso laboral</strong> (máx. 32 UVT/mes = {formatCOP((c.uvt || 0) * 32)}/mes) en la Casilla 39/40 (dentro del 40%).
+                  2) <strong>72 UVT anuales adicionales</strong> ({formatCOP((c.uvt || 0) * 72)}) por CADA dependiente en la Casilla 139 (fuera del 40%).
                 </p>
               </div>
             </Card>
@@ -935,6 +997,86 @@ function DeclaracionPage() {
                     onChange={(n) => patch((x) => (x.honorarios.otrasDeducciones = n))}
                     hint="Otras deducciones taxativamente autorizadas por la ley tributaria."
                   />
+                </div>
+
+                {/* Dependientes en Honorarios */}
+                <div className="space-y-3 pt-3 border-t border-line bg-forest-mist/20 p-4 rounded-xl border border-forest/20 mt-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Users className="size-4 text-forest" />
+                      <p className="text-xs font-bold uppercase tracking-wide text-ink">
+                        Dependientes Económicos en Honorarios (Arts. 387 y 336 Num. 2 E.T.)
+                      </p>
+                    </div>
+                    <span className="text-xs font-mono text-forest font-bold bg-white border border-forest/30 px-2.5 py-0.5 rounded-full shadow-2xs">
+                      {(d.honorarios.dependientes ?? 0)} dependiente(s)
+                    </span>
+                  </div>
+
+                  <div className="flex gap-2">
+                    {[0, 1, 2, 3, 4].map((n) => (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={() => patch((x) => {
+                          x.honorarios.dependientes = n;
+                          if (x.honorarios.dependientesDetalle && x.honorarios.dependientesDetalle.length > n) {
+                            x.honorarios.dependientesDetalle = x.honorarios.dependientesDetalle.slice(0, n);
+                          }
+                        })}
+                        className={cn(
+                          "h-10 flex-1 rounded-lg border text-xs font-bold font-mono transition-all",
+                          (d.honorarios.dependientes ?? 0) === n
+                            ? "border-forest bg-forest text-white shadow-xs"
+                            : "border-line bg-surface text-ink hover:bg-forest-mist/50",
+                        )}
+                      >
+                        {n === 0 ? "0 (Sin dep.)" : `${n} dep.`}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setDependientesModalTarget("honorarios");
+                        setDependientesModalOpen(true);
+                      }}
+                      className="text-xs h-8 bg-white border-forest/40 text-forest hover:bg-forest-mist font-semibold shadow-2xs"
+                    >
+                      <Users className="size-3.5 mr-1.5" />
+                      Gestionar Perfil de Dependientes de Honorarios
+                    </Button>
+
+                    {(d.honorarios.dependientes ?? 0) > 0 && (
+                      <span className="text-[11px] font-mono text-emerald-800 font-bold">
+                        Beneficio 72 UVT: {formatCOP((d.honorarios.dependientes ?? 0) * (c.uvt || 0) * 72)}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Chips de dependientes guardados */}
+                  {d.honorarios.dependientesDetalle && d.honorarios.dependientesDetalle.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {d.honorarios.dependientesDetalle.map((dep, idx) => (
+                        <span
+                          key={dep.id || idx}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border border-line rounded-lg text-[11px] text-ink font-medium shadow-2xs"
+                        >
+                          <span className="size-4 rounded-full bg-forest/15 text-forest font-mono font-bold text-[9px] flex items-center justify-center">
+                            {idx + 1}
+                          </span>
+                          <strong>{dep.nombresApellidos || "Dependiente"}</strong>
+                          {dep.numeroDocumento && (
+                            <span className="text-muted font-mono">({dep.tipoDocumento} {dep.numeroDocumento})</span>
+                          )}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -2216,6 +2358,26 @@ function DeclaracionPage() {
         defaultTab={catalogModalTab}
         onSelectSeccional={(code) => patch((x) => (x.identity.dirSeccional = code))}
         onSelectCiiu={(code) => patch((x) => (x.identity.actividadCiiu = code))}
+      />
+
+      <DependientesManagerModal
+        isOpen={dependientesModalOpen}
+        onClose={() => setDependientesModalOpen(false)}
+        dependientes={dependientesModalTarget === "trabajo" ? d.trabajo.dependientes : (d.honorarios.dependientes ?? 0)}
+        dependientesDetalle={dependientesModalTarget === "trabajo" ? d.trabajo.dependientesDetalle : d.honorarios.dependientesDetalle}
+        uvt={c.uvt || 0}
+        salarioBase={dependientesModalTarget === "trabajo" ? d.trabajo.salarios : d.honorarios.ingresos}
+        onSave={(count, detalle) => {
+          patch((x) => {
+            if (dependientesModalTarget === "trabajo") {
+              x.trabajo.dependientes = count;
+              x.trabajo.dependientesDetalle = detalle;
+            } else {
+              x.honorarios.dependientes = count;
+              x.honorarios.dependientesDetalle = detalle;
+            }
+          });
+        }}
       />
     </div>
   );
