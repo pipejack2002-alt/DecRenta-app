@@ -743,8 +743,10 @@ function DeclaracionPage() {
                       type="button"
                       onClick={() => patch((x) => {
                         x.trabajo.dependientes = n;
+                        x.honorarios.dependientes = n;
                         if (x.trabajo.dependientesDetalle && x.trabajo.dependientesDetalle.length > n) {
                           x.trabajo.dependientesDetalle = x.trabajo.dependientesDetalle.slice(0, n);
+                          x.honorarios.dependientesDetalle = x.trabajo.dependientesDetalle;
                         }
                       })}
                       className={cn(
@@ -1019,9 +1021,11 @@ function DeclaracionPage() {
                         key={n}
                         type="button"
                         onClick={() => patch((x) => {
+                          x.trabajo.dependientes = n;
                           x.honorarios.dependientes = n;
                           if (x.honorarios.dependientesDetalle && x.honorarios.dependientesDetalle.length > n) {
                             x.honorarios.dependientesDetalle = x.honorarios.dependientesDetalle.slice(0, n);
+                            x.trabajo.dependientesDetalle = x.honorarios.dependientesDetalle;
                           }
                         })}
                         className={cn(
@@ -2369,13 +2373,10 @@ function DeclaracionPage() {
         salarioBase={dependientesModalTarget === "trabajo" ? d.trabajo.salarios : d.honorarios.ingresos}
         onSave={(count, detalle) => {
           patch((x) => {
-            if (dependientesModalTarget === "trabajo") {
-              x.trabajo.dependientes = count;
-              x.trabajo.dependientesDetalle = detalle;
-            } else {
-              x.honorarios.dependientes = count;
-              x.honorarios.dependientesDetalle = detalle;
-            }
+            x.trabajo.dependientes = count;
+            x.trabajo.dependientesDetalle = detalle;
+            x.honorarios.dependientes = count;
+            x.honorarios.dependientesDetalle = detalle;
           });
         }}
       />
