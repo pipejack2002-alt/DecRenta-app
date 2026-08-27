@@ -26,6 +26,9 @@ export function getCasillaItemizedBreakdown(
   const uvt = c.uvt;
 
   switch (casillaNum) {
+    // -------------------------------------------------------------------------
+    // PATRIMONIO
+    // -------------------------------------------------------------------------
     case 28: {
       const base = d.trabajo.comprasFacturaElectronica || 0;
       const deduccion = c.casillas[28] ?? Math.min(base * 0.01, uvt * 240);
@@ -174,6 +177,9 @@ export function getCasillaItemizedBreakdown(
       };
     }
 
+    // -------------------------------------------------------------------------
+    // RENTAS DE TRABAJO
+    // -------------------------------------------------------------------------
     case 32: {
       const t = d.trabajo;
       const items: ItemBreakdown[] = [];
@@ -285,6 +291,23 @@ export function getCasillaItemizedBreakdown(
       };
     }
 
+    case 35: {
+      return {
+        title: "Aportes Voluntarios a Fondos de Pensiones (FVP) y Cuentas AFC / AVC (Casilla 35)",
+        description: "Beneficio de renta exenta por ahorro voluntario para pensiones y fomento de la construcción en rentas de trabajo (Arts. 126-1 y 126-4 E.T.):",
+        items: [
+          {
+            label: "Aportes voluntarios FVP y cuentas AFC / AVC",
+            value: formatCOP(d.trabajo.aportesAfcFvpAvc),
+            source: "Certificados tributarios bancarios y de FVP",
+            legal: `Límite individual: 30% del ingreso laboral y hasta 3.800 UVT (${formatCOP(uvt * 3800)})`,
+          },
+        ],
+        totalLabel: "Total Aportes AFC/FVP (Casilla 35)",
+        totalValue: c.casillas[35] ?? 0,
+      };
+    }
+
     case 36: {
       const t = d.trabajo;
       const cesantiasExentas = t.promedioMensual6m <= (uvt * 350) ? t.cesantiasPagadas : 0;
@@ -344,6 +367,282 @@ export function getCasillaItemizedBreakdown(
       };
     }
 
+    case 38: {
+      return {
+        title: "Intereses de Crédito Hipotecario / Leasing de Vivienda (Casilla 38)",
+        description: "Deducción de intereses pagados durante el año gravable para la adquisición de vivienda del contribuyente (Art. 119 E.T.):",
+        items: [
+          {
+            label: "Intereses pagados en créditos hipotecarios o contratos de leasing",
+            value: formatCOP(d.trabajo.interesesVivienda),
+            source: "Certificado tributario bancario de crédito de vivienda",
+            legal: `Límite legal anual: 1.200 UVT (${formatCOP(uvt * 1200)})`,
+          },
+        ],
+        totalLabel: "Total Intereses de Vivienda (Casilla 38)",
+        totalValue: c.casillas[38] ?? 0,
+      };
+    }
+
+    case 39: {
+      const t = d.trabajo;
+      const items: ItemBreakdown[] = [];
+      if (t.medicinaPrepagada > 0) {
+        items.push({
+          label: "Medicina prepagada y seguros privados de salud",
+          value: formatCOP(t.medicinaPrepagada),
+          source: "Certificado anual de la entidad de medicina prepagada",
+          legal: `Art. 387 E.T. (Tope 16 UVT/mes = ${formatCOP(uvt * 192)}/año)`,
+        });
+      }
+      if (t.gmf > 0) {
+        items.push({
+          label: "Gravamen a los Movimientos Financieros (50% del 4x1000)",
+          value: formatCOP(t.gmf),
+          source: "Certificados bancarios anuales de GMF",
+          legal: "Art. 115 del Estatuto Tributario",
+        });
+      }
+      if (t.icetex > 0) {
+        items.push({
+          label: "Intereses de crédito educativo ICETEX",
+          value: formatCOP(t.icetex),
+          source: "Certificado anual expedido por el ICETEX",
+          legal: `Art. 119 E.T. (Tope 100 UVT = ${formatCOP(uvt * 100)})`,
+        });
+      }
+      if (t.dependientes > 0) {
+        const deducDep = Math.min(t.salarios * 0.1, uvt * 384);
+        items.push({
+          label: `Deducción por dependientes (10% ingreso bruto de trabajo)`,
+          value: formatCOP(deducDep),
+          legal: `Art. 387 E.T. (Máx. 32 UVT/mes = ${formatCOP(uvt * 384)}/año)`,
+          source: `Para ${t.dependientes} dependiente(s) a cargo dentro del 40%`,
+        });
+      }
+      if (t.fnceAnual > 0) {
+        items.push({
+          label: "Deducción inversiones FNCE y movilidad eléctrica",
+          value: formatCOP(t.fnceAnual),
+          legal: "Ley 1715 de 2014 y Ley 2099 de 2021",
+        });
+      }
+      if (t.otrasDeducciones > 0) {
+        items.push({
+          label: "Otras deducciones imputables",
+          value: formatCOP(t.otrasDeducciones),
+        });
+      }
+      if (items.length === 0) {
+        items.push({
+          label: "Sin otras deducciones reportadas",
+          value: "$0",
+        });
+      }
+      return {
+        title: "Desglose de Otras Deducciones Imputables de Trabajo (Casilla 39)",
+        description: "Deducciones personales aceptadas en la ley tributaria que disminuyen la base de renta líquida:",
+        items,
+        totalLabel: "Total Otras Deducciones (Casilla 39)",
+        totalValue: c.casillas[39] ?? 0,
+      };
+    }
+
+    // -------------------------------------------------------------------------
+    // HONORARIOS Y SERVICIOS PERSONALES
+    // -------------------------------------------------------------------------
+    case 43: {
+      return {
+        title: "Desglose de Ingresos Brutos por Honorarios (Casilla 43)",
+        description: "Honorarios, comisiones y compensación por servicios personales calificados independientes:",
+        items: [
+          {
+            label: "Honorarios y servicios personales independientes",
+            value: formatCOP(d.honorarios.ingresos),
+            source: "Formato 1001 / Formato 2276 / Facturación electrónica emitida",
+          },
+        ],
+        totalLabel: "Total Ingresos Brutos de Honorarios (Casilla 43)",
+        totalValue: c.casillas[43] ?? 0,
+      };
+    }
+
+    case 44: {
+      const h = d.honorarios;
+      const items: ItemBreakdown[] = [];
+      if (h.aportesPension > 0) {
+        items.push({
+          label: "Aportes obligatorios a pensión del independiente (PILA)",
+          value: formatCOP(h.aportesPension),
+          legal: "Art. 55 E.T. (16% sobre IBC)",
+        });
+      }
+      if (h.aportesSalud > 0) {
+        items.push({
+          label: "Aportes obligatorios a salud (EPS) del independiente (PILA)",
+          value: formatCOP(h.aportesSalud),
+          legal: "Art. 56 E.T. (12.5% sobre IBC)",
+        });
+      }
+      if (h.aportesRais > 0) {
+        items.push({
+          label: "Cotización voluntaria a pensión obligatoria (RAIS)",
+          value: formatCOP(h.aportesRais),
+        });
+      }
+      if (h.incrngo > 0) {
+        items.push({
+          label: "Otros ingresos no constitutivos de renta",
+          value: formatCOP(h.incrngo),
+        });
+      }
+      if (items.length === 0) {
+        items.push({
+          label: "Sin ingresos no constitutivos reportados en honorarios",
+          value: "$0",
+        });
+      }
+      return {
+        title: "Desglose de Ingresos No Constitutivos de Honorarios (Casilla 44)",
+        description: "Aportes obligatorios a seguridad social pagados por el independiente a través de la PILA:",
+        items,
+        totalLabel: "Total Ingresos No Constitutivos (Casilla 44)",
+        totalValue: c.casillas[44] ?? 0,
+      };
+    }
+
+    case 45: {
+      return {
+        title: "Costos y Deducciones Procedentes en Honorarios (Casilla 45)",
+        description: "Gastos con relación de causalidad y necesidad para la actividad profesional independiente (Art. 107 E.T.):",
+        items: [
+          {
+            label: "Costos y deducciones soportados con Factura Electrónica",
+            value: formatCOP(d.honorarios.costos),
+            source: "Facturas electrónicas recibidas con validación previa / Nómina electrónica",
+            legal: "Art. 107 y Art. 336-1 E.T. (Inhabilita la renta exenta del 25%)",
+          },
+        ],
+        totalLabel: "Total Costos y Deducciones (Casilla 45)",
+        totalValue: c.casillas[45] ?? 0,
+      };
+    }
+
+    case 47: {
+      return {
+        title: "Aportes Voluntarios AFC / FVP en Honorarios (Casilla 47)",
+        description: "Rentas exentas por ahorro en fondos de pensiones voluntarias y cuentas AFC en honorarios:",
+        items: [
+          {
+            label: "Aportes voluntarios FVP y cuentas AFC / AVC",
+            value: formatCOP(d.honorarios.aportesAfc),
+            legal: "Arts. 126-1 y 126-4 E.T. (Límite 30% y 3.800 UVT)",
+          },
+        ],
+        totalLabel: "Total Aportes AFC/FVP (Casilla 47)",
+        totalValue: c.casillas[47] ?? 0,
+      };
+    }
+
+    case 48: {
+      return {
+        title: "Otras Rentas Exentas de Honorarios (Casilla 48)",
+        description: "Rentas exentas aplicables a la subcédula de honorarios:",
+        items: [
+          {
+            label: "Renta exenta laboral del 25% (si no restó costos en casilla 45)",
+            value: formatCOP(c.casillas[48] ?? 0),
+            legal: "Art. 206 Num. 10 y Parágrafo 5 E.T.",
+          },
+          {
+            label: "Rentas exentas Convenios CAN (Decisión 578)",
+            value: formatCOP(d.honorarios.rentasCan),
+          },
+          {
+            label: "Otras rentas exentas",
+            value: formatCOP(d.honorarios.otrasExentas),
+          },
+        ],
+        totalLabel: "Total Rentas Exentas (Casilla 48)",
+        totalValue: c.casillas[48] ?? 0,
+      };
+    }
+
+    case 50: {
+      return {
+        title: "Intereses de Vivienda en Honorarios (Casilla 50)",
+        description: "Intereses de crédito hipotecario o leasing imputables a honorarios (Art. 119 E.T. - Tope 1.200 UVT):",
+        items: [
+          {
+            label: "Intereses de crédito de vivienda",
+            value: formatCOP(d.honorarios.interesesVivienda),
+          },
+        ],
+        totalLabel: "Total Intereses de Vivienda (Casilla 50)",
+        totalValue: c.casillas[50] ?? 0,
+      };
+    }
+
+    case 51: {
+      const h = d.honorarios;
+      const items: ItemBreakdown[] = [];
+      if (h.gmf > 0) {
+        items.push({
+          label: "Deducción 50% GMF (4x1000)",
+          value: formatCOP(h.gmf),
+          legal: "Art. 115 E.T.",
+        });
+      }
+      if (h.medicinaPrepagada > 0) {
+        items.push({
+          label: "Medicina prepagada",
+          value: formatCOP(h.medicinaPrepagada),
+          legal: "Art. 387 E.T.",
+        });
+      }
+      if (h.icetex > 0) {
+        items.push({
+          label: "Intereses ICETEX",
+          value: formatCOP(h.icetex),
+        });
+      }
+      if (h.aportesCesantiasIndependiente > 0) {
+        items.push({
+          label: "Aportes a fondos de cesantías del independiente",
+          value: formatCOP(h.aportesCesantiasIndependiente),
+          legal: "Art. 126-1 E.T.",
+        });
+      }
+      if (h.fnceAnual > 0) {
+        items.push({
+          label: "Deducción FNCE y movilidad eléctrica",
+          value: formatCOP(h.fnceAnual),
+        });
+      }
+      if (h.otrasDeducciones > 0) {
+        items.push({
+          label: "Otras deducciones",
+          value: formatCOP(h.otrasDeducciones),
+        });
+      }
+      if (items.length === 0) {
+        items.push({
+          label: "Sin otras deducciones en honorarios",
+          value: "$0",
+        });
+      }
+      return {
+        title: "Desglose de Otras Deducciones en Honorarios (Casilla 51)",
+        description: "Deducciones fiscales imputables a los ingresos por honorarios:",
+        items,
+        totalLabel: "Total Otras Deducciones (Casilla 51)",
+        totalValue: c.casillas[51] ?? 0,
+      };
+    }
+
+    // -------------------------------------------------------------------------
+    // RENTAS DE CAPITAL
+    // -------------------------------------------------------------------------
     case 58: {
       const k = d.capital;
       const items: ItemBreakdown[] = [];
@@ -395,6 +694,64 @@ export function getCasillaItemizedBreakdown(
       };
     }
 
+    case 59: {
+      const k = d.capital;
+      const items: ItemBreakdown[] = [];
+      if (k.componenteInflacionario > 0) {
+        items.push({
+          label: "Componente inflacionario no gravado de rendimientos",
+          value: formatCOP(k.componenteInflacionario),
+          legal: "Arts. 38 a 41 E.T. (Fijado anualmente por decreto)",
+        });
+      }
+      const segSoc = (k.aportesPension || 0) + (k.aportesSalud || 0);
+      if (segSoc > 0) {
+        items.push({
+          label: "Aportes obligatorios a salud y pensión del rentista (PILA)",
+          value: formatCOP(segSoc),
+          legal: "Arts. 55 y 56 E.T.",
+        });
+      }
+      if (k.incrngo > 0) {
+        items.push({
+          label: "Otros ingresos no constitutivos de renta de capital",
+          value: formatCOP(k.incrngo),
+        });
+      }
+      if (items.length === 0) {
+        items.push({
+          label: "Sin ingresos no constitutivos en capital",
+          value: "$0",
+        });
+      }
+      return {
+        title: "Ingresos No Constitutivos de Renta de Capital (Casilla 59)",
+        description: "Componente inflacionario no gravado y aportes a seguridad social en rentas de capital:",
+        items,
+        totalLabel: "Total INCRNGO Capital (Casilla 59)",
+        totalValue: c.casillas[59] ?? 0,
+      };
+    }
+
+    case 60: {
+      return {
+        title: "Costos y Gastos Procedentes de Capital (Casilla 60)",
+        description: "Gastos de mantenimiento, administración, predial y servicios de inmuebles arrendados (Art. 107 E.T.):",
+        items: [
+          {
+            label: "Costos y gastos procedentes de inmuebles arrendados",
+            value: formatCOP(d.capital.costos),
+            source: "Facturas electrónicas / Cuentas de cobro de administración / Recibos prediales",
+          },
+        ],
+        totalLabel: "Total Costos de Capital (Casilla 60)",
+        totalValue: c.casillas[60] ?? 0,
+      };
+    }
+
+    // -------------------------------------------------------------------------
+    // RENTAS NO LABORALES
+    // -------------------------------------------------------------------------
     case 74: {
       const nl = d.noLaborales;
       const items: ItemBreakdown[] = [];
@@ -427,6 +784,87 @@ export function getCasillaItemizedBreakdown(
       };
     }
 
+    case 75: {
+      return {
+        title: "Devoluciones, Rebajas y Descuentos en Ventas (Casilla 75)",
+        description: "Notas crédito comerciales y devoluciones en ventas mercantiles (Art. 26 E.T.):",
+        items: [
+          {
+            label: "Devoluciones y rebajas comerciales concedidas a clientes",
+            value: formatCOP(d.noLaborales.devoluciones),
+            source: "Notas crédito electrónicas / Registros contables",
+          },
+        ],
+        totalLabel: "Total Devoluciones en Ventas (Casilla 75)",
+        totalValue: c.casillas[75] ?? 0,
+      };
+    }
+
+    case 76: {
+      const nl = d.noLaborales;
+      const items: ItemBreakdown[] = [];
+      if (nl.apoyosEducativos > 0) {
+        items.push({
+          label: "Apoyos económicos educativos no gravados",
+          value: formatCOP(nl.apoyosEducativos),
+          legal: "Art. 46 E.T.",
+        });
+      }
+      if (nl.indemnizacionesSeguroDano > 0) {
+        items.push({
+          label: "Indemnizaciones por seguro de daño emergente",
+          value: formatCOP(nl.indemnizacionesSeguroDano),
+          legal: "Art. 45 E.T.",
+        });
+      }
+      const segSoc = (nl.aportesPension || 0) + (nl.aportesSalud || 0);
+      if (segSoc > 0) {
+        items.push({
+          label: "Aportes obligatorios a seguridad social (PILA)",
+          value: formatCOP(segSoc),
+          legal: "Arts. 55 y 56 E.T.",
+        });
+      }
+      if (nl.incrngo > 0) {
+        items.push({
+          label: "Otros ingresos no constitutivos",
+          value: formatCOP(nl.incrngo),
+        });
+      }
+      if (items.length === 0) {
+        items.push({
+          label: "Sin ingresos no constitutivos no laborales",
+          value: "$0",
+        });
+      }
+      return {
+        title: "Ingresos No Constitutivos de Rentas No Laborales (Casilla 76)",
+        description: "Conceptos no constitutivos de renta aplicables a la subcédula no laboral:",
+        items,
+        totalLabel: "Total INCRNGO No Laboral (Casilla 76)",
+        totalValue: c.casillas[76] ?? 0,
+      };
+    }
+
+    case 77: {
+      return {
+        title: "Costos y Deducciones Procedentes No Laborales (Casilla 77)",
+        description: "Costo de ventas, compras de mercancía, insumos, nómina y gastos operativos (Art. 107 E.T.):",
+        items: [
+          {
+            label: "Costos y gastos del negocio soportados con Factura Electrónica",
+            value: formatCOP(d.noLaborales.costos),
+            source: "Facturas electrónicas recibidas / Documentos soporte",
+          },
+        ],
+        totalLabel: "Total Costos No Laborales (Casilla 77)",
+        totalValue: c.casillas[77] ?? 0,
+      };
+    }
+
+    // -------------------------------------------------------------------------
+    // CÉDULA DE PENSIONES
+    // -------------------------------------------------------------------------
     case 99: {
       const p = d.pensiones;
       return {
@@ -441,6 +879,22 @@ export function getCasillaItemizedBreakdown(
         ],
         totalLabel: "Total Ingresos Brutos de Pensiones (Casilla 99)",
         totalValue: c.casillas[99] ?? 0,
+      };
+    }
+
+    case 100: {
+      return {
+        title: "Aportes a Salud y Solidaridad Pensional (Casilla 100)",
+        description: "Descuentos obligatorios efectuados en la mesada pensional con destino al sistema de salud (Art. 56 E.T.):",
+        items: [
+          {
+            label: "Aportes obligatorios a salud y Fondo de Solidaridad Pensional",
+            value: formatCOP(d.pensiones.incrngo),
+            source: "Formato 220 de pensionados / Desprendibles de mesada",
+          },
+        ],
+        totalLabel: "Total Aportes Salud Pensiones (Casilla 100)",
+        totalValue: c.casillas[100] ?? 0,
       };
     }
 
@@ -470,6 +924,76 @@ export function getCasillaItemizedBreakdown(
       };
     }
 
+    // -------------------------------------------------------------------------
+    // CÉDULA DE DIVIDENDOS Y PARTICIPACIONES
+    // -------------------------------------------------------------------------
+    case 104: {
+      return {
+        title: "Dividendos Año 2016 y Anteriores Gravados (Casilla 104)",
+        description: "Utilidades generadas hasta 2016 que no tributaron en la sociedad (Parágrafo 2 Art. 49 E.T.):",
+        items: [
+          {
+            label: "Dividendos gravados de utilidades 2016 y anteriores",
+            value: formatCOP(d.dividendos.div2016),
+            source: "Certificado de dividendos expedido por la sociedad",
+          },
+        ],
+        totalLabel: "Total Dividendos Gravados 2016 (Casilla 104)",
+        totalValue: c.casillas[104] ?? 0,
+      };
+    }
+
+    case 105: {
+      return {
+        title: "Dividendos Año 2016 y Anteriores No Gravados (Casilla 105)",
+        description: "Utilidades generadas hasta 2016 que tributaron plenamente en la sociedad (Num. 3 Art. 49 E.T. - INCRNGO):",
+        items: [
+          {
+            label: "Dividendos no gravados de utilidades 2016 y anteriores",
+            value: formatCOP(d.dividendos.incrngo2016),
+            source: "Certificado de dividendos / Formato 1010",
+          },
+        ],
+        totalLabel: "Total Dividendos No Gravados 2016 (Casilla 105)",
+        totalValue: c.casillas[105] ?? 0,
+      };
+    }
+
+    case 107: {
+      return {
+        title: "1ª Subcédula Dividendos 2017+ No Gravados en Sociedad (Casilla 107)",
+        description: "Utilidades pagaron impuesto en la sociedad (Num. 3 Art. 49 E.T.). Se integran a la base de la tabla del Art. 241 con descuento del 19% (Art. 242 E.T.):",
+        items: [
+          {
+            label: "Dividendos 1ª subcédula 2017 y siguientes",
+            value: formatCOP(d.dividendos.subcedula1),
+            source: "Certificado de dividendos de la sociedad / Formato 1010",
+          },
+        ],
+        totalLabel: "Total 1ª Subcédula Dividendos (Casilla 107)",
+        totalValue: c.casillas[107] ?? 0,
+      };
+    }
+
+    case 108: {
+      return {
+        title: "2ª Subcédula Dividendos 2017+ Gravados en Sociedad (Casilla 108)",
+        description: "Utilidades NO pagaron impuesto en la sociedad (Par. 2 Art. 49 E.T.). Tributan primero al 35% de sociedades y el remanente a la tabla general:",
+        items: [
+          {
+            label: "Dividendos 2ª subcédula 2017 y siguientes",
+            value: formatCOP(d.dividendos.subcedula2),
+            source: "Certificado de dividendos de la sociedad",
+          },
+        ],
+        totalLabel: "Total 2ª Subcédula Dividendos (Casilla 108)",
+        totalValue: c.casillas[108] ?? 0,
+      };
+    }
+
+    // -------------------------------------------------------------------------
+    // GANANCIAS OCASIONALES
+    // -------------------------------------------------------------------------
     case 112: {
       const go = d.gananciasOcasionales;
       const items: ItemBreakdown[] = [];
@@ -530,6 +1054,106 @@ export function getCasillaItemizedBreakdown(
       };
     }
 
+    case 113: {
+      return {
+        title: "Costos Fiscales por Ganancias Ocasionales (Casilla 113)",
+        description: "Costo fiscal de los bienes raíces, vehículos o acciones enajenados poseídos 2 años o más (Arts. 72, 73 y 277 E.T.):",
+        items: [
+          {
+            label: "Costo fiscal declarado del bien enajenado",
+            value: formatCOP(d.gananciasOcasionales.costos),
+            source: "Declaración de renta del año anterior / Recibo predial",
+          },
+        ],
+        totalLabel: "Total Costos Fiscales GO (Casilla 113)",
+        totalValue: c.casillas[113] ?? 0,
+      };
+    }
+
+    case 114: {
+      return {
+        title: "Ganancias Ocasionales No Gravadas y Exentas (Casilla 114)",
+        description: "Porción exenta de herencias, vivienda de habitación e indemnizaciones de seguro de vida:",
+        items: [
+          {
+            label: "Ganancias ocasionales exentas y no gravadas",
+            value: formatCOP(d.gananciasOcasionales.goNoGravadas),
+            legal: "Arts. 307 y 311-1 del Estatuto Tributario",
+          },
+        ],
+        totalLabel: "Total Ganancias Exentas (Casilla 114)",
+        totalValue: c.casillas[114] ?? 0,
+      };
+    }
+
+    // -------------------------------------------------------------------------
+    // LIQUIDACIÓN PRIVADA, DESCUENTOS Y SALDOS
+    // -------------------------------------------------------------------------
+    case 122: {
+      return {
+        title: "Descuento por Impuestos Pagados en el Exterior (Casilla 122)",
+        description: "Tax Credit por impuestos a la renta pagados en otros países sobre rentas de fuente extranjera (Art. 254 E.T.):",
+        items: [
+          {
+            label: "Impuestos acreditados pagados en el exterior",
+            value: formatCOP(d.descuentos.impuestosExterior),
+            source: "Certificados tributarios de la administración fiscal extranjera",
+          },
+        ],
+        totalLabel: "Total Descuento Exterior (Casilla 122)",
+        totalValue: c.casillas[122] ?? 0,
+      };
+    }
+
+    case 123: {
+      return {
+        title: "Descuento Tributario por Donaciones a ESAL (Casilla 123)",
+        description: "Descuento del 25% del valor donado a entidades del Régimen Tributario Especial (Art. 257 E.T.) o 30% en I+D+i:",
+        items: [
+          {
+            label: "Donaciones efectivamente realizadas en el año a entidades ESAL",
+            value: formatCOP(d.descuentos.donaciones),
+            legal: `Descuento del 25% (Límite 30% del impuesto básico = ${formatCOP((c.casillas[121] ?? 0) * 0.3)})`,
+            source: "Certificado de donación firmado por Revisor Fiscal de la ESAL",
+          },
+        ],
+        totalLabel: "Total Descuento Donaciones (Casilla 123)",
+        totalValue: c.casillas[123] ?? 0,
+      };
+    }
+
+    case 130: {
+      return {
+        title: "Anticipo de Renta Liquidado el Año Anterior (Casilla 130)",
+        description: "Anticipo liquidado en la declaración de renta del año gravable anterior para este período fiscal (Art. 807 E.T.):",
+        items: [
+          {
+            label: "Anticipo liquidado en el Formulario 210 del año previo",
+            value: formatCOP(d.extra.anticipoAnterior),
+            source: "Declaración de renta del año anterior (Casilla 134)",
+          },
+        ],
+        totalLabel: "Total Anticipo Anterior (Casilla 130)",
+        totalValue: c.casillas[130] ?? 0,
+      };
+    }
+
+    case 131: {
+      return {
+        title: "Saldo a Favor del Año Gravable Anterior (Casilla 131)",
+        description: "Saldo a favor de la declaración del año previo arrastrado sin solicitud de devolución o compensación (Art. 815 E.T.):",
+        items: [
+          {
+            label: "Saldo a favor del período gravable anterior",
+            value: formatCOP(d.extra.saldoFavorAnterior),
+            source: "Declaración de renta del año previo (Casilla 137)",
+          },
+        ],
+        totalLabel: "Total Saldo a Favor Anterior (Casilla 131)",
+        totalValue: c.casillas[131] ?? 0,
+      };
+    }
+
     case 132: {
       return {
         title: "Desglose de Retenciones en la Fuente Practicadas (Casilla 132)",
@@ -543,6 +1167,38 @@ export function getCasillaItemizedBreakdown(
         ],
         totalLabel: "Total Retenciones en la Fuente (Casilla 132)",
         totalValue: c.casillas[132] ?? 0,
+      };
+    }
+
+    case 135: {
+      return {
+        title: "Sanciones Tributarias Liquidadas (Casilla 135)",
+        description: "Sanciones por extemporaneidad (Art. 641 E.T.) o corrección (Art. 644 E.T.) con sanción mínima legal:",
+        items: [
+          {
+            label: "Sanciones liquidadas en la declaración",
+            value: formatCOP(d.extra.sanciones),
+            legal: `Sanción mínima legal: 10 UVT (${formatCOP(c.uvtFiling * 10)}) según Art. 639 E.T.`,
+          },
+        ],
+        totalLabel: "Total Sanciones (Casilla 135)",
+        totalValue: c.casillas[135] ?? 0,
+      };
+    }
+
+    case 138: {
+      return {
+        title: "Número de Dependientes Económicos (Casilla 138)",
+        description: "Criterios del Art. 387 del Estatuto Tributario para acreditar dependientes económicos:",
+        items: [
+          {
+            label: "Dependientes económicos registrados a cargo (hasta 4)",
+            value: `${d.trabajo.dependientes} dependiente(s)`,
+            source: "Hijos menores de 18 años, hijos entre 18 y 23 estudiando, cónyuge o padres dependientes",
+          },
+        ],
+        totalLabel: "Total Dependientes (Casilla 138)",
+        totalValue: d.trabajo.dependientes,
       };
     }
 
@@ -565,6 +1221,35 @@ export function getCasillaItemizedBreakdown(
         totalLabel: "Total Adición Dependientes (Casilla 139)",
         totalValue: dep * uvt * 72,
         footnote: "Esta deducción se suma a las rentas exentas en la Casilla 92 y reduce directamente tu base gravable final.",
+      };
+    }
+
+    case 140: {
+      return {
+        title: "Control Indicativo de Costos y Gastos > 60% (Casilla 140)",
+        description: "Art. 336-1 del Estatuto Tributario: marca informativa si los costos y deducciones procedentes en honorarios o actividades comerciales superan el 60% de los ingresos brutos.",
+        items: [
+          {
+            label: "¿Superó el 60% de costos sobre ingresos brutos?",
+            value: c.casillas[140] ? "SÍ (Marcado con X)" : "NO",
+            legal: "Art. 336-1 E.T. / Facturación electrónica obligatoria",
+          },
+        ],
+      };
+    }
+
+    case 141: {
+      return {
+        title: "Aporte Voluntario a Programas Sociales (Casilla 141)",
+        description: "Aporte voluntario no reembolsable del Art. 244-1 del Estatuto Tributario destinado a programas de paz y erradicación de la pobreza extrema:",
+        items: [
+          {
+            label: "Aporte voluntario declarado",
+            value: formatCOP(d.extra.aporteVoluntario),
+          },
+        ],
+        totalLabel: "Total Aporte Voluntario (Casilla 141)",
+        totalValue: c.casillas[141] ?? 0,
       };
     }
 
