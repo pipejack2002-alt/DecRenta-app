@@ -1,5 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { Columns2, Eye, FileText, History, Maximize2, Settings2, Sparkles, Plus } from "lucide-react";
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { Columns2, Eye, FileText, History, Maximize2, Settings2, Sparkles, Plus, Sliders, Minimize2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { CatalogManagerModal } from "@/components/layout/catalog-manager-modal";
 import { CompensacionesDialog } from "@/components/layout/compensaciones-dialog";
@@ -33,6 +33,7 @@ const SECTIONS = [
 function DeclaracionPage() {
   const [sec, setSec] = useState<(typeof SECTIONS)[number]["id"]>("id");
   const [splitScreen, setSplitScreen] = useState(false);
+  const [splitRatio, setSplitRatio] = useState<number>(45);
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [compensacionesOpen, setCompensacionesOpen] = useState(false);
   const [initialCompTipo, setInitialCompTipo] = useState<TipoCompensacion>("capital");
@@ -60,58 +61,123 @@ function DeclaracionPage() {
     return [29, 30, 31, 32, 42, 97, 126, 136, 137].map(pick);
   }, [c.casillas]);
 
-      const fieldGrid = cn("grid gap-4", splitScreen ? "grid-cols-1" : "sm:grid-cols-2");
+  const fieldGrid = cn("grid gap-4", splitScreen ? "grid-cols-1" : "sm:grid-cols-2");
 
-      return (
-        <div className="space-y-6">
-          <header className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Formulario 210 · Año Gravable {d.year}</p>
-              <h1 className="mt-1 font-display text-4xl font-bold">Diligenciamiento de Cédulas</h1>
-              <p className="mt-2 max-w-2xl text-sm text-muted">
-                Diligencie la información patrimonial y cedular con soporte normativo por casilla. Las rentas exentas (25 % laboral, AFC), deducciones imputables (vivienda, dependientes, GMF) y el límite conjunto del 40 % o 1.340 UVT se aplican automáticamente.
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Button
-                variant={splitScreen ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSplitScreen(!splitScreen)}
-                title="Alternar vista dividida con el Formulario 210 en tiempo real"
-              >
-                <Columns2 className="mr-1.5 size-4" />
-                {splitScreen ? "Vista estándar" : "Modo dividido (210 en vivo)"}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPreviewModalOpen(true)}
-                title="Previsualizar el Formulario 210 en ventana flotante"
-              >
-                <Maximize2 className="mr-1.5 size-4" />
-                Previsualizar 210
-              </Button>
-            </div>
-          </header>
+  return (
+    <div className="space-y-6">
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Formulario 210 · Año Gravable {d.year}</p>
+          <h1 className="mt-1 font-display text-4xl font-bold">Diligenciamiento de Cédulas</h1>
+          <p className="mt-2 max-w-2xl text-sm text-muted">
+            Diligencie la información patrimonial y cedular con soporte normativo por casilla. Las rentas exentas (25 % laboral, AFC), deducciones imputables (vivienda, dependientes, GMF) y el límite conjunto del 40 % o 1.340 UVT se aplican automáticamente.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant={splitScreen ? "default" : "outline"}
+            size="sm"
+            onClick={() => setSplitScreen(!splitScreen)}
+            title="Alternar vista dividida con el Formulario 210 en tiempo real"
+            className={cn(splitScreen ? "bg-forest text-white" : "")}
+          >
+            <Columns2 className="mr-1.5 size-4" />
+            {splitScreen ? "Modo dividido activo" : "Modo dividido (210 en vivo)"}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPreviewModalOpen(true)}
+            title="Previsualizar el Formulario 210 en ventana flotante"
+          >
+            <Maximize2 className="mr-1.5 size-4" />
+            Previsualizar 210
+          </Button>
+        </div>
+      </header>
 
-          <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
-            {SECTIONS.map((s) => (
+      {/* Barra de control de proporción de pantalla para modo dividido */}
+      {splitScreen && (
+        <div className="flex flex-wrap items-center justify-between gap-3 p-2.5 bg-forest-mist/60 border border-forest/30 rounded-xl shadow-xs animate-in fade-in">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-semibold text-forest flex items-center gap-1.5">
+              <Sliders className="size-3.5" />
+              Proporción de pantalla:
+            </span>
+            <div className="flex items-center gap-1">
               <button
-                key={s.id}
                 type="button"
-                onClick={() => setSec(s.id)}
-                className={cn(
-                  "h-11 shrink-0 rounded-full px-4 text-sm transition-colors",
-                  sec === s.id ? "bg-forest text-primary-fg" : "bg-surface text-ink-soft shadow-[0_0_0_1px_var(--color-line)]",
-                )}
+                onClick={() => setSplitRatio(35)}
+                className={cn("px-2.5 py-1 text-xs rounded-md font-mono transition-colors", splitRatio === 35 ? "bg-forest text-white font-bold shadow-xs" : "bg-surface border border-line text-ink hover:bg-forest-mist")}
+                title="35% Formulario · 65% PDF 210"
               >
-                {s.label}
+                35 / 65
               </button>
-            ))}
+              <button
+                type="button"
+                onClick={() => setSplitRatio(45)}
+                className={cn("px-2.5 py-1 text-xs rounded-md font-mono transition-colors", splitRatio === 45 ? "bg-forest text-white font-bold shadow-xs" : "bg-surface border border-line text-ink hover:bg-forest-mist")}
+                title="45% Formulario · 55% PDF 210"
+              >
+                45 / 55 (Recomendado)
+              </button>
+              <button
+                type="button"
+                onClick={() => setSplitRatio(55)}
+                className={cn("px-2.5 py-1 text-xs rounded-md font-mono transition-colors", splitRatio === 55 ? "bg-forest text-white font-bold shadow-xs" : "bg-surface border border-line text-ink hover:bg-forest-mist")}
+                title="55% Formulario · 45% PDF 210"
+              >
+                55 / 45
+              </button>
+              <button
+                type="button"
+                onClick={() => setSplitRatio(65)}
+                className={cn("px-2.5 py-1 text-xs rounded-md font-mono transition-colors", splitRatio === 65 ? "bg-forest text-white font-bold shadow-xs" : "bg-surface border border-line text-ink hover:bg-forest-mist")}
+                title="65% Formulario · 35% PDF 210"
+              >
+                65 / 35
+              </button>
+            </div>
           </div>
+          <div className="flex items-center gap-2.5 ml-auto">
+            <span className="text-xs text-muted font-mono hidden sm:inline">Formulario: <strong>{splitRatio}%</strong> · 210 DIAN: <strong>{100 - splitRatio}%</strong></span>
+            <input
+              type="range"
+              min={25}
+              max={75}
+              value={splitRatio}
+              onChange={(e) => setSplitRatio(Number(e.target.value))}
+              className="w-28 accent-[var(--color-forest)] cursor-pointer"
+              title="Arrastra para ajustar el tamaño de cada panel milimétricamente"
+            />
+          </div>
+        </div>
+      )}
 
-          <div className={cn("grid gap-6", splitScreen ? "xl:grid-cols-[1fr_1.3fr] lg:grid-cols-1" : "lg:grid-cols-[minmax(0,1fr)_18rem]")}>
-            <div className="space-y-4 min-w-0">
+      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+        {SECTIONS.map((s) => (
+          <button
+            key={s.id}
+            type="button"
+            onClick={() => setSec(s.id)}
+            className={cn(
+              "h-11 shrink-0 rounded-full px-4 text-sm transition-colors",
+              sec === s.id ? "bg-forest text-primary-fg" : "bg-surface text-ink-soft shadow-[0_0_0_1px_var(--color-line)]",
+            )}
+          >
+            {s.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex flex-col lg:flex-row gap-6 w-full items-start">
+        <div
+          className="w-full min-w-0 space-y-4 transition-all duration-150"
+          style={{
+            flex: splitScreen ? `0 0 ${splitRatio}%` : "1 1 auto",
+            maxWidth: splitScreen ? `${splitRatio}%` : "100%",
+          }}
+        >
               {sec === "id" && (
                 <Card className="space-y-4">
                   <CardTitle>Datos del declarante y encabezado</CardTitle>
@@ -711,11 +777,17 @@ function DeclaracionPage() {
         </div>
 
         {splitScreen ? (
-          <aside className="sticky top-20 h-[calc(100vh-6rem)] hidden lg:block">
+          <aside
+            className="hidden lg:flex flex-col sticky top-20 h-[calc(100vh-6rem)] min-w-0 transition-all duration-150 shrink-0"
+            style={{
+              flex: `0 0 calc(${100 - splitRatio}% - 1.5rem)`,
+              maxWidth: `calc(${100 - splitRatio}% - 1.5rem)`,
+            }}
+          >
             <LiveFormPreview />
           </aside>
         ) : (
-          <aside className="space-y-3 lg:sticky lg:top-24 h-[calc(100vh-7rem)] flex flex-col min-h-0">
+          <aside className="space-y-3 lg:sticky lg:top-24 h-[calc(100vh-7rem)] flex flex-col min-h-0 w-full lg:w-72 shrink-0">
             <Card className="flex flex-col h-full overflow-hidden p-3.5 sm:p-4 gap-2">
               {/* 1. Encabezado Fijo */}
               <div className="shrink-0 flex items-center justify-between border-b border-line pb-2">

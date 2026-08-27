@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { BookOpen, Menu, Sparkles, X } from "lucide-react";
+import { BookOpen, ChevronLeft, ChevronRight, Menu, PanelLeftClose, PanelLeftOpen, Sparkles, X } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { NAV } from "@/lib/catalogs";
 import { useAppStore, useComputed } from "@/lib/store";
@@ -18,6 +18,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const activeProfile = profiles.find((p) => p.id === activeProfileId);
   const [open, setOpen] = useState(false);
   const [asistenteOpen, setAsistenteOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
     <div className="min-h-screen bg-bg text-ink">
@@ -43,6 +44,14 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </span>
               </span>
             </Link>
+            <button
+              type="button"
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              className="hidden lg:flex items-center justify-center size-8 rounded-lg border border-line bg-surface hover:bg-forest-mist hover:text-forest text-muted transition-colors shadow-2xs"
+              title={sidebarCollapsed ? "Expandir menú lateral" : "Colapsar menú lateral (ganar espacio)"}
+            >
+              {sidebarCollapsed ? <PanelLeftOpen className="size-4" /> : <PanelLeftClose className="size-4" />}
+            </button>
             <ClientSwitcher />
           </div>
           <div className="flex items-center gap-3">
@@ -84,14 +93,16 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <GeminiAsistenteModal isOpen={asistenteOpen} onClose={() => setAsistenteOpen(false)} />
 
-      <div className={cn("mx-auto flex gap-8 px-4 py-6 print:m-0 print:p-0 print:block print:max-w-none transition-all duration-200", pathname.startsWith("/declaracion") ? "max-w-[1600px] 2xl:max-w-[1800px]" : "max-w-7xl")}>
+      <div className={cn("mx-auto flex gap-6 px-4 py-6 print:m-0 print:p-0 print:block print:max-w-none transition-all duration-200", pathname.startsWith("/declaracion") ? "max-w-[98vw] 2xl:max-w-[1800px] px-2 sm:px-6" : "max-w-7xl")}>
         <aside
           data-print-hide
           className={cn(
-            "z-30 flex-col print:hidden no-print",
+            "z-30 flex-col print:hidden no-print transition-all duration-200",
             open
               ? "fixed inset-0 flex bg-bg p-6 pt-20"
-              : "hidden lg:static lg:flex lg:w-56 lg:shrink-0 lg:bg-transparent lg:p-0",
+              : sidebarCollapsed
+                ? "hidden lg:static lg:flex lg:w-16 lg:shrink-0 lg:bg-transparent lg:p-0"
+                : "hidden lg:static lg:flex lg:w-56 lg:shrink-0 lg:bg-transparent lg:p-0",
           )}
         >
           <nav className="flex flex-col gap-1">
@@ -102,22 +113,28 @@ export function AppShell({ children }: { children: ReactNode }) {
                   key={item.to}
                   to={item.to}
                   onClick={() => setOpen(false)}
+                  title={sidebarCollapsed ? `${item.label}: ${item.hint}` : undefined}
                   className={cn(
-                    "rounded-md px-3 py-2.5 transition-colors duration-150",
-                    active ? "bg-forest text-primary-fg" : "text-ink-soft hover:bg-forest-mist hover:text-forest-deep",
+                    "rounded-md transition-colors duration-150",
+                    sidebarCollapsed ? "px-2 py-3 text-center flex flex-col items-center justify-center font-bold text-xs" : "px-3 py-2.5",
+                    active ? "bg-forest text-primary-fg shadow-xs" : "text-ink-soft hover:bg-forest-mist hover:text-forest-deep",
                   )}
                 >
-                  <span className="block text-sm font-medium">{item.label}</span>
-                  <span className={cn("block text-[11px]", active ? "text-primary-fg/70" : "text-faint")}>
-                    {item.hint}
-                  </span>
+                  <span className="block truncate w-full text-center sm:text-left">{sidebarCollapsed ? item.label.slice(0, 4) : item.label}</span>
+                  {!sidebarCollapsed && (
+                    <span className={cn("block text-[11px]", active ? "text-primary-fg/70" : "text-faint")}>
+                      {item.hint}
+                    </span>
+                  )}
                 </Link>
               );
             })}
           </nav>
-          <p className="mt-8 hidden text-[11px] leading-relaxed text-faint lg:block print:hidden no-print" data-print-hide>
-            Orientación con base en fuentes oficiales. No sustituye el SI de Diligenciamiento de la DIAN ni a un contador público.
-          </p>
+          {!sidebarCollapsed && (
+            <p className="mt-8 hidden text-[11px] leading-relaxed text-faint lg:block print:hidden no-print" data-print-hide>
+              Orientación con base en fuentes oficiales. No sustituye el SI de Diligenciamiento de la DIAN ni a un contador público.
+            </p>
+          )}
         </aside>
         <main id="contenido" className="min-w-0 flex-1 pb-16 print:p-0 print:m-0 print:w-full print:max-w-none">
           {activeProfile?.status === "presentado" && (

@@ -62,7 +62,7 @@ export function OfficialDian210({
   const id = d.identity;
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [zoomLevel, setZoomLevel] = useState<number>(compact ? 85 : 100);
+  const [zoomLevel, setZoomLevel] = useState<number>(compact ? 75 : 100);
   const [selectedCasilla, setSelectedCasilla] = useState<number | null>(null);
   const [isEditingDeclarante, setIsEditingDeclarante] = useState(false);
   const [catalogModalOpen, setCatalogModalOpen] = useState(false);
@@ -138,14 +138,14 @@ export function OfficialDian210({
           highlighted
             ? "bg-[#ffeb99] ring-2 ring-amber-500 z-10 font-bold"
             : valStr
-              ? "bg-white text-black font-semibold"
-              : "bg-white text-transparent"
+            ? "bg-white text-black font-semibold hover:bg-amber-100/60"
+            : "bg-white text-black hover:bg-amber-50"
         } ${className}`}
       >
         <span className="absolute left-1 top-0.5 font-sans text-[8px] text-gray-500 select-none pointer-events-none print:text-[6px] print:left-0.5 print:top-0">
           {num}
         </span>
-        <span className="tabular-nums text-right w-full pl-3 whitespace-nowrap print:text-[7.5px] print:pl-1.5">{valStr || "—"}</span>
+        <span className="tabular-nums text-right w-full pl-3 whitespace-nowrap print:text-[7.5px] print:pl-1.5">{valStr || "0"}</span>
       </div>
     );
   }
@@ -154,41 +154,38 @@ export function OfficialDian210({
 
   return (
     <div className={`space-y-4 ${className}`}>
-      {/* Barra de Herramientas y Acciones */}
+      {/* Barra de herramientas superior */}
       {!hideHeaderActions && (
-        <div
-          data-print-hide
-          className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-surface p-3 shadow-xs print:hidden no-print"
-        >
-          {/* Búsqueda y Zoom */}
-          <div className="flex flex-1 items-center gap-2 min-w-[280px]">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-2.5 size-4 text-muted" />
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-surface p-3 shadow-xs print:hidden no-print" data-print-hide>
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Buscador de casillas */}
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted" />
               <input
                 type="text"
-                placeholder="Buscar casilla en el PDF oficial (ej: 32, 97, patrimonio, retenciones)..."
+                placeholder="Buscar casilla o concepto..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-9 w-full rounded-xl border border-line bg-bg-raised pl-9 pr-8 text-xs text-ink focus:border-forest focus:outline-none"
+                className="h-8 w-44 sm:w-60 rounded-lg border border-line bg-surface pl-8 pr-3 text-xs focus:border-forest focus:outline-none"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-2.5 text-xs text-muted hover:text-ink"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted hover:text-ink text-xs"
                 >
                   ✕
                 </button>
               )}
             </div>
 
-            <div className="hidden sm:flex items-center gap-1 border-l border-line pl-2">
+            <div className="flex items-center gap-1 border-l border-line pl-2">
               <Button
                 variant="ghost"
                 size="sm"
                 className="h-8 px-2 text-xs"
-                onClick={() => setZoomLevel((z) => Math.max(65, z - 10))}
-                title="Reducir escala"
+                onClick={() => setZoomLevel((z) => Math.max(50, z - 10))}
+                title="Reducir escala (hacer más pequeño)"
               >
                 <ZoomOut className="size-3.5" />
               </Button>
@@ -204,6 +201,30 @@ export function OfficialDian210({
               >
                 <ZoomIn className="size-3.5" />
               </Button>
+              <button
+                type="button"
+                onClick={() => setZoomLevel(60)}
+                className={`px-1.5 py-0.5 text-[10px] font-mono rounded transition-colors ${zoomLevel === 60 ? "bg-forest text-white font-bold" : "bg-muted-mist hover:bg-forest-mist text-ink"}`}
+                title="Escala compacta 60%"
+              >
+                60%
+              </button>
+              <button
+                type="button"
+                onClick={() => setZoomLevel(75)}
+                className={`px-1.5 py-0.5 text-[10px] font-mono rounded transition-colors ${zoomLevel === 75 ? "bg-forest text-white font-bold" : "bg-muted-mist hover:bg-forest-mist text-ink"}`}
+                title="Escala media 75%"
+              >
+                75%
+              </button>
+              <button
+                type="button"
+                onClick={() => setZoomLevel(100)}
+                className={`px-1.5 py-0.5 text-[10px] font-mono rounded transition-colors ${zoomLevel === 100 ? "bg-forest text-white font-bold" : "bg-muted-mist hover:bg-forest-mist text-ink"}`}
+                title="Escala 100%"
+              >
+                100%
+              </button>
             </div>
           </div>
 
