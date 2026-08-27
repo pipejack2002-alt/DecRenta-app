@@ -1001,87 +1001,156 @@ function DeclaracionPage() {
                   />
                 </div>
 
-                {/* Dependientes en Honorarios */}
-                <div className="space-y-3 pt-3 border-t border-line bg-forest-mist/20 p-4 rounded-xl border border-forest/20 mt-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Users className="size-4 text-forest" />
-                      <p className="text-xs font-bold uppercase tracking-wide text-ink">
-                        Dependientes Económicos en Honorarios (Arts. 387 y 336 Num. 2 E.T.)
-                      </p>
-                    </div>
-                    <span className="text-xs font-mono text-forest font-bold bg-white border border-forest/30 px-2.5 py-0.5 rounded-full shadow-2xs">
-                      {(d.honorarios.dependientes ?? 0)} dependiente(s)
-                    </span>
-                  </div>
-
-                  <div className="flex gap-2">
-                    {[0, 1, 2, 3, 4].map((n) => (
-                      <button
-                        key={n}
-                        type="button"
-                        onClick={() => patch((x) => {
-                          x.trabajo.dependientes = n;
-                          x.honorarios.dependientes = n;
-                          if (x.honorarios.dependientesDetalle && x.honorarios.dependientesDetalle.length > n) {
-                            x.honorarios.dependientesDetalle = x.honorarios.dependientesDetalle.slice(0, n);
-                            x.trabajo.dependientesDetalle = x.honorarios.dependientesDetalle;
-                          }
-                        })}
-                        className={cn(
-                          "h-10 flex-1 rounded-lg border text-xs font-bold font-mono transition-all",
-                          (d.honorarios.dependientes ?? 0) === n
-                            ? "border-forest bg-forest text-white shadow-xs"
-                            : "border-line bg-surface text-ink hover:bg-forest-mist/50",
-                        )}
-                      >
-                        {n === 0 ? "0 (Sin dep.)" : `${n} dep.`}
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className="flex items-center justify-between pt-1">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setDependientesModalTarget("honorarios");
-                        setDependientesModalOpen(true);
-                      }}
-                      className="text-xs h-8 bg-white border-forest/40 text-forest hover:bg-forest-mist font-semibold shadow-2xs"
-                    >
-                      <Users className="size-3.5 mr-1.5" />
-                      Gestionar Perfil de Dependientes de Honorarios
-                    </Button>
-
-                    {(d.honorarios.dependientes ?? 0) > 0 && (
-                      <span className="text-[11px] font-mono text-emerald-800 font-bold">
-                        Beneficio 72 UVT: {formatCOP((d.honorarios.dependientes ?? 0) * (c.uvt || 0) * 72)}
+                {/* Dependientes en Honorarios con Control Inteligente de Aplicación */}
+                {d.trabajo.salarios > 0 ? (
+                  <div className="space-y-2 pt-3 border-t border-line bg-blue-50/60 p-4 rounded-xl border border-blue-200 mt-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Users className="size-4 text-blue-700" />
+                        <p className="text-xs font-bold uppercase tracking-wide text-blue-950">
+                          Dependientes Económicos (Asignados en Rentas de Trabajo)
+                        </p>
+                      </div>
+                      <span className="text-xs font-mono text-blue-800 font-bold bg-white border border-blue-200 px-2.5 py-0.5 rounded-full shadow-2xs">
+                        {d.trabajo.dependientes} dependiente(s) activo(s)
                       </span>
-                    )}
-                  </div>
+                    </div>
 
-                  {/* Chips de dependientes guardados */}
-                  {d.honorarios.dependientesDetalle && d.honorarios.dependientesDetalle.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 pt-1">
-                      {d.honorarios.dependientesDetalle.map((dep, idx) => (
-                        <span
-                          key={dep.id || idx}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border border-line rounded-lg text-[11px] text-ink font-medium shadow-2xs"
-                        >
-                          <span className="size-4 rounded-full bg-forest/15 text-forest font-mono font-bold text-[9px] flex items-center justify-center">
-                            {idx + 1}
+                    <p className="text-xs text-blue-900 leading-relaxed font-medium">
+                      ℹ️ Como tienes ingresos laborales registrados en la pestaña <strong>Trabajo (Casilla 32)</strong>, la deducción del <strong>10% por dependientes</strong> se aplica automáticamente en la <strong>Casilla 39</strong> y las <strong>72 UVT</strong> en la <strong>Casilla 139</strong>. Por norma legal (Art. 387 E.T.), la deducción no se duplica en honorarios.
+                    </p>
+
+                    {d.trabajo.dependientesDetalle && d.trabajo.dependientesDetalle.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {d.trabajo.dependientesDetalle.map((dep, idx) => (
+                          <span
+                            key={dep.id || idx}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border border-blue-200 rounded-lg text-[11px] text-blue-950 font-medium shadow-2xs"
+                          >
+                            <span className="size-4 rounded-full bg-blue-100 text-blue-800 font-mono font-bold text-[9px] flex items-center justify-center">
+                              {idx + 1}
+                            </span>
+                            <strong>{dep.nombresApellidos || "Dependiente"}</strong>
+                            {dep.numeroDocumento && (
+                              <span className="text-blue-700 font-mono">({dep.tipoDocumento} {dep.numeroDocumento})</span>
+                            )}
                           </span>
-                          <strong>{dep.nombresApellidos || "Dependiente"}</strong>
-                          {dep.numeroDocumento && (
-                            <span className="text-muted font-mono">({dep.tipoDocumento} {dep.numeroDocumento})</span>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="pt-1 flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setDependientesModalTarget("trabajo");
+                          setDependientesModalOpen(true);
+                        }}
+                        className="text-xs h-7.5 bg-white border-blue-300 text-blue-900 hover:bg-blue-100 font-semibold shadow-2xs"
+                      >
+                        <Users className="size-3.5 mr-1.5 text-blue-700" />
+                        Modificar Perfil de Dependientes
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSec("tr")}
+                        className="text-xs h-7.5 text-blue-800 hover:bg-blue-100"
+                      >
+                        Ir a pestaña Trabajo →
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3 pt-3 border-t border-line bg-forest-mist/20 p-4 rounded-xl border border-forest/20 mt-3">
+                    {/* Caso independiente 100%: los gestiona directamente aquí y se aplican en Casilla 51 */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Users className="size-4 text-forest" />
+                        <p className="text-xs font-bold uppercase tracking-wide text-ink">
+                          Dependientes Económicos en Honorarios (Arts. 387 y 336 Num. 2 E.T.)
+                        </p>
+                      </div>
+                      <span className="text-xs font-mono text-forest font-bold bg-white border border-forest/30 px-2.5 py-0.5 rounded-full shadow-2xs">
+                        {(d.honorarios.dependientes ?? 0)} dependiente(s)
+                      </span>
+                    </div>
+
+                    <p className="text-xs text-forest-deep leading-relaxed font-medium">
+                      💼 Como eres trabajador independiente sin salario laboral, la deducción del <strong>10% por dependientes</strong> se aplica directamente sobre tus honorarios en la <strong>Casilla 51</strong> y las <strong>72 UVT</strong> en la <strong>Casilla 139</strong>.
+                    </p>
+
+                    <div className="flex gap-2">
+                      {[0, 1, 2, 3, 4].map((n) => (
+                        <button
+                          key={n}
+                          type="button"
+                          onClick={() => patch((x) => {
+                            x.trabajo.dependientes = n;
+                            x.honorarios.dependientes = n;
+                            if (x.honorarios.dependientesDetalle && x.honorarios.dependientesDetalle.length > n) {
+                              x.honorarios.dependientesDetalle = x.honorarios.dependientesDetalle.slice(0, n);
+                              x.trabajo.dependientesDetalle = x.honorarios.dependientesDetalle;
+                            }
+                          })}
+                          className={cn(
+                            "h-10 flex-1 rounded-lg border text-xs font-bold font-mono transition-all",
+                            (d.honorarios.dependientes ?? 0) === n
+                              ? "border-forest bg-forest text-white shadow-xs"
+                              : "border-line bg-surface text-ink hover:bg-forest-mist/50",
                           )}
-                        </span>
+                        >
+                          {n === 0 ? "0 (Sin dep.)" : `${n} dep.`}
+                        </button>
                       ))}
                     </div>
-                  )}
-                </div>
+
+                    <div className="flex items-center justify-between pt-1">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setDependientesModalTarget("honorarios");
+                          setDependientesModalOpen(true);
+                        }}
+                        className="text-xs h-8 bg-white border-forest/40 text-forest hover:bg-forest-mist font-semibold shadow-2xs"
+                      >
+                        <Users className="size-3.5 mr-1.5" />
+                        Gestionar Perfil de Dependientes de Honorarios
+                      </Button>
+
+                      {(d.honorarios.dependientes ?? 0) > 0 && (
+                        <span className="text-[11px] font-mono text-emerald-800 font-bold">
+                          Beneficio 72 UVT: {formatCOP((d.honorarios.dependientes ?? 0) * (c.uvt || 0) * 72)}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Chips de dependientes guardados */}
+                    {d.honorarios.dependientesDetalle && d.honorarios.dependientesDetalle.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {d.honorarios.dependientesDetalle.map((dep, idx) => (
+                          <span
+                            key={dep.id || idx}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border border-line rounded-lg text-[11px] text-ink font-medium shadow-2xs"
+                          >
+                            <span className="size-4 rounded-full bg-forest/15 text-forest font-mono font-bold text-[9px] flex items-center justify-center">
+                              {idx + 1}
+                            </span>
+                            <strong>{dep.nombresApellidos || "Dependiente"}</strong>
+                            {dep.numeroDocumento && (
+                              <span className="text-muted font-mono">({dep.tipoDocumento} {dep.numeroDocumento})</span>
+                            )}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* 6. Compensaciones */}
