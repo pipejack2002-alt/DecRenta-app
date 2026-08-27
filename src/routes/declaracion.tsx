@@ -470,48 +470,262 @@ function DeclaracionPage() {
 
           {sec === "tr" && (
             <Card className="space-y-4">
-              <CardTitle>Rentas de trabajo</CardTitle>
-              <CardHint>Art. 103 E.T. Incluya honorarios aquí solo si NO va a restar costos (para tomar el 25 % del num. 10 art. 206).</CardHint>
+              <CardTitle>Rentas de trabajo (Cédula General)</CardTitle>
+              <CardHint>Art. 103, 206 y 336 E.T. Incluye todos los ingresos originados en contratos laborales, prestaciones y pagos no salariales. Las deducciones y rentas exentas se depuran automáticamente con sus topes legales.</CardHint>
               <div className={fieldGrid}>
-                <MoneyField label="Salarios" casilla={32} year={y} value={d.trabajo.salarios} onChange={(n) => patch((x) => (x.trabajo.salarios = n))} source="Formato 220, casilla de pagos laborales" />
-                <MoneyField label="Otras prestaciones y primas" year={y} value={d.trabajo.otrasPrestaciones} onChange={(n) => patch((x) => (x.trabajo.otrasPrestaciones = n))} />
-                <MoneyField label="Otros pagos laborales (Bonos, auxilios, no salariales)" year={y} value={d.trabajo.otrosPagosLaborales || 0} onChange={(n) => patch((x) => (x.trabajo.otrosPagosLaborales = n))} hint="Bonos de fin de año, auxilios habituales y pagos del Art. 128 C.S.T. reportados en exógena / Formato 2276." source="Formato 2276, casilla Otros pagos" />
-                <MoneyField label="Honorarios sin costos" year={y} value={d.trabajo.honorariosSinCostos} onChange={(n) => patch((x) => (x.trabajo.honorariosSinCostos = n))} hint="Independiente que opta por la renta exenta del 25 %." />
-                <MoneyField label="Cesantías pagadas o consignadas" year={y} value={d.trabajo.cesantiasPagadas} onChange={(n) => patch((x) => (x.trabajo.cesantiasPagadas = n))} />
-                <MoneyField label="Ingresos en especie" year={y} value={d.trabajo.ingresosEspecie} onChange={(n) => patch((x) => (x.trabajo.ingresosEspecie = n))} source="Art. 29-1 E.T." />
-                <MoneyField label="Ingresos del exterior" year={y} value={d.trabajo.ingresosExterior} onChange={(n) => patch((x) => (x.trabajo.ingresosExterior = n))} />
-                <MoneyField label="Promedio salarial últimos 6 meses" year={y} value={d.trabajo.promedioMensual6m} onChange={(n) => patch((x) => (x.trabajo.promedioMensual6m = n))} hint="Define el % exento de cesantías (tabla num. 4 art. 206). 100 % si ≤ 350 UVT." />
-                <MoneyField label="Cesantías acumuladas a 31/12/2016 (retiradas)" year={y} value={d.trabajo.cesantiasAcumuladas2016} onChange={(n) => patch((x) => (x.trabajo.cesantiasAcumuladas2016 = n))} />
+                <MoneyField
+                  label="Salarios y sueldos directos"
+                  casilla={32}
+                  year={y}
+                  value={d.trabajo.salarios}
+                  onChange={(n) => patch((x) => (x.trabajo.salarios = n))}
+                  source="Formato 220 casilla 36 / Formato 2276 Pagos salariales"
+                  hint="Sueldos básicos, comisiones, horas extras, recargos y sobresueldos devengados en el año."
+                />
+                <MoneyField
+                  label="Prestaciones sociales y primas legales"
+                  year={y}
+                  value={d.trabajo.otrasPrestaciones}
+                  onChange={(n) => patch((x) => (x.trabajo.otrasPrestaciones = n))}
+                  source="Formato 220 casilla 38 / Formato 2276 Prestaciones"
+                  hint="Primas de servicios legales o extralegales, vacaciones en dinero o tiempo y descansos remunerados."
+                />
+                <MoneyField
+                  label="Otros pagos laborales (Bonos, auxilios no salariales)"
+                  year={y}
+                  value={d.trabajo.otrosPagosLaborales || 0}
+                  onChange={(n) => patch((x) => (x.trabajo.otrosPagosLaborales = n))}
+                  source="Formato 2276 casilla Otros pagos"
+                  hint="Bonos de fin de año, auxilios habituales y pagos no salariales acordados según Art. 128 C.S.T."
+                />
+                <MoneyField
+                  label="Cesantías e intereses de cesantías consignadas o pagadas"
+                  year={y}
+                  value={d.trabajo.cesantiasPagadas}
+                  onChange={(n) => patch((x) => (x.trabajo.cesantiasPagadas = n))}
+                  source="Formato 220 casilla 39-40 / Formato 2276 Cesantías"
+                  hint="Cesantías consignadas al fondo o pagadas directamente al trabajador durante el año."
+                />
+                <MoneyField
+                  label="Honorarios y compensación de servicios (Sin costos)"
+                  year={y}
+                  value={d.trabajo.honorariosSinCostos}
+                  onChange={(n) => patch((x) => (x.trabajo.honorariosSinCostos = n))}
+                  hint="Para trabajadores independientes que NO restan costos y deducciones, para tomar la renta exenta del 25 %."
+                />
+                <MoneyField
+                  label="Pagos e ingresos en especie"
+                  year={y}
+                  value={d.trabajo.ingresosEspecie}
+                  onChange={(n) => patch((x) => (x.trabajo.ingresosEspecie = n))}
+                  source="Art. 29-1 E.T."
+                  hint="Vivienda, vehículos, medicina u otros bienes y servicios costeados directamente por el empleador."
+                />
+                <MoneyField
+                  label="Ingresos laborales del exterior"
+                  year={y}
+                  value={d.trabajo.ingresosExterior}
+                  onChange={(n) => patch((x) => (x.trabajo.ingresosExterior = n))}
+                  hint="Salarios o compensaciones por servicios personales prestados fuera de Colombia (renta mundial)."
+                />
+                <MoneyField
+                  label="Salario mensual promedio últimos 6 meses"
+                  year={y}
+                  value={d.trabajo.promedioMensual6m}
+                  onChange={(n) => patch((x) => (x.trabajo.promedioMensual6m = n))}
+                  hint="Base para determinar el porcentaje exento de cesantías (Art. 206 Num. 4 E.T.). 100 % exentas si promedio ≤ 350 UVT."
+                />
+                <MoneyField
+                  label="Cesantías acumuladas a 31/12/2016 (Retiradas)"
+                  year={y}
+                  value={d.trabajo.cesantiasAcumuladas2016}
+                  onChange={(n) => patch((x) => (x.trabajo.cesantiasAcumuladas2016 = n))}
+                  hint="Cesantías del régimen tradicional acumuladas antes de 2017 y retiradas en el año (Art. 1.2.1.20.7 DUR)."
+                />
               </div>
+
               <h3 className="font-display text-lg">Aportes a Seguridad Social y conceptos no gravados · Casilla 33</h3>
               <div className={fieldGrid}>
-                <MoneyField label="Aportes obligatorios a pensión" casilla={33} year={y} value={d.trabajo.aportesPensionObligatorios} onChange={(n) => patch((x) => (x.trabajo.aportesPensionObligatorios = n))} source="Art. 55 E.T." />
-                <MoneyField label="Aportes obligatorios a salud" year={y} value={d.trabajo.aportesSaludObligatorios} onChange={(n) => patch((x) => (x.trabajo.aportesSaludObligatorios = n))} source="Art. 56 E.T." />
-                <MoneyField label="Cotizaciones voluntarias RAIS" year={y} value={d.trabajo.aportesVoluntariosRais} onChange={(n) => patch((x) => (x.trabajo.aportesVoluntariosRais = n))} hint="Tope 25 % y 2.500 UVT, global entre cédulas." />
-                <MoneyField label="Apoyos económicos educativos" year={y} value={d.trabajo.apoyosEducativos} onChange={(n) => patch((x) => (x.trabajo.apoyosEducativos = n))} hint="Ingreso no gravable. No aplica a honorarios ni a capital." source="Art. 46 E.T." />
-                <MoneyField label="Otros ingresos no constitutivos de renta" year={y} value={d.trabajo.otrosINCRNGO} onChange={(n) => patch((x) => (x.trabajo.otrosINCRNGO = n))} />
+                <MoneyField
+                  label="Aportes obligatorios a pensión"
+                  casilla={33}
+                  year={y}
+                  value={d.trabajo.aportesPensionObligatorios}
+                  onChange={(n) => patch((x) => (x.trabajo.aportesPensionObligatorios = n))}
+                  source="Art. 55 E.T. · Formato 220 casilla 48"
+                  hint="Aporte obligatorio del 4 % a cargo del trabajador al fondo de pensiones (Colpensiones o privados)."
+                />
+                <MoneyField
+                  label="Aportes obligatorios a salud"
+                  year={y}
+                  value={d.trabajo.aportesSaludObligatorios}
+                  onChange={(n) => patch((x) => (x.trabajo.aportesSaludObligatorios = n))}
+                  source="Art. 56 E.T. · Formato 220 casilla 47"
+                  hint="Aporte obligatorio del 4 % a cargo del trabajador a su EPS."
+                />
+                <MoneyField
+                  label="Cotizaciones voluntarias a pensión obligatoria (RAIS)"
+                  year={y}
+                  value={d.trabajo.aportesVoluntariosRais}
+                  onChange={(n) => patch((x) => (x.trabajo.aportesVoluntariosRais = n))}
+                  source="Art. 55 E.T. · Par. 1 Art. 135 Ley 100/1993"
+                  hint="Aportes voluntarios al fondo de pensión obligatoria. Tope 25 % del ingreso laboral y 2.500 UVT globales."
+                />
+                <MoneyField
+                  label="Apoyos económicos educativos (Becas no reembolsables)"
+                  year={y}
+                  value={d.trabajo.apoyosEducativos}
+                  onChange={(n) => patch((x) => (x.trabajo.apoyosEducativos = n))}
+                  source="Art. 46 E.T."
+                  hint="Apoyos económicos estatales o empresariales entregados para programas de estudio e investigación (no gravables)."
+                />
+                <MoneyField
+                  label="Otros ingresos no constitutivos de renta (INCRNGO)"
+                  year={y}
+                  value={d.trabajo.otrosINCRNGO}
+                  onChange={(n) => patch((x) => (x.trabajo.otrosINCRNGO = n))}
+                  hint="Demás conceptos expresamente calificados por el Estatuto Tributario como no constitutivos de renta ni ganancia ocasional."
+                />
               </div>
-              <h3 className="font-display text-lg">Exentas y deducciones</h3>
+
+              <h3 className="font-display text-lg">Rentas Exentas y Deducciones Imputables (Casillas 35 a 41)</h3>
               <div className={fieldGrid}>
-                <MoneyField label="Aportes AFC / FVP / AVC" casilla={35} year={y} value={d.trabajo.aportesAfcFvpAvc} onChange={(n) => patch((x) => (x.trabajo.aportesAfcFvpAvc = n))} hint="30 % del ingreso y 3.800 UVT. Permanencia 10 años." source="Arts. 126-1 y 126-4 E.T." />
-                <MoneyField label="Indemnizaciones exentas" year={y} value={d.trabajo.indemnizaciones} onChange={(n) => patch((x) => (x.trabajo.indemnizaciones = n))} hint="Accidente de trabajo, maternidad, entierro. No entran al 40 %." source="Nums. 1-3 art. 206." />
-                <MoneyField label="Gastos de representación" year={y} value={d.trabajo.gastosRepresentacion} onChange={(n) => patch((x) => (x.trabajo.gastosRepresentacion = n))} hint="Magistrados 50 %, jueces 25 %, rectores públicos 50 %. Fuera del 40 %." source="Nums. 6 y 8 art. 206." />
-                <MoneyField label="Prestaciones / seguro de muerte FF.MM. y Policía" year={y} value={d.trabajo.ffmmPrestaciones} onChange={(n) => patch((x) => (x.trabajo.ffmmPrestaciones = n))} source="Num. 7 art. 206." />
-                <MoneyField label="Exceso del salario básico FF.MM. y POLINAL" year={y} value={d.trabajo.ffmmExcesoSalario} onChange={(n) => patch((x) => (x.trabajo.ffmmExcesoSalario = n))} source="Num. 7 art. 206." />
-                <MoneyField label="Rentas CAN (exentas, fuera del 40 %)" year={y} value={d.trabajo.rentasCan} onChange={(n) => patch((x) => (x.trabajo.rentasCan = n))} source="Decisión 578 CAN" />
-                <MoneyField label="Primas diplomáticas / costo de vida" year={y} value={d.trabajo.primasDiplomaticas} onChange={(n) => patch((x) => (x.trabajo.primasDiplomaticas = n))} source="Art. 206-1 E.T." />
-                <MoneyField label="Otras exentas ilimitadas" year={y} value={d.trabajo.otrasExentasIlimitadas} onChange={(n) => patch((x) => (x.trabajo.otrasExentasIlimitadas = n))} />
-                <MoneyField label="Otras exentas limitadas" year={y} value={d.trabajo.otrasExentas} onChange={(n) => patch((x) => (x.trabajo.otrasExentas = n))} />
-                <MoneyField label="Intereses de vivienda" casilla={38} year={y} value={d.trabajo.interesesVivienda} onChange={(n) => patch((x) => (x.trabajo.interesesVivienda = n))} hint="Tope 1.200 UVT, art. 119. Global entre cédulas." />
-                <MoneyField label="Medicina prepagada / seguro de salud" year={y} value={d.trabajo.medicinaPrepagada} onChange={(n) => patch((x) => (x.trabajo.medicinaPrepagada = n))} hint="16 UVT mensuales. Art. 387." />
-                <MoneyField label="GMF pagado (se toma el 50 %)" year={y} value={d.trabajo.gmf} onChange={(n) => patch((x) => (x.trabajo.gmf = n))} source="Art. 115 E.T. Certificado del banco." />
-                <MoneyField label="Intereses ICETEX" year={y} value={d.trabajo.icetex} onChange={(n) => patch((x) => (x.trabajo.icetex = n))} hint="Tope 100 UVT, art. 119." />
-                <MoneyField label="Deducción anual FNCE / vehículo eléctrico" year={y} value={d.trabajo.fnceAnual} onChange={(n) => patch((x) => (x.trabajo.fnceAnual = n))} hint="50 % de la inversión en 15 años. Certificado UPME." source="Art. 11 Ley 1715/2014" />
-                <MoneyField label="Otras deducciones imputables" year={y} value={d.trabajo.otrasDeducciones} onChange={(n) => patch((x) => (x.trabajo.otrasDeducciones = n))} />
-                <MoneyField label="Compras con factura electrónica (base del 1 %)" casilla={28} year={y} value={d.trabajo.comprasFacturaElectronica} onChange={(n) => patch((x) => (x.trabajo.comprasFacturaElectronica = n))} hint="Pagadas con tarjeta o medio electrónico. Tope de la deducción: 240 UVT. No se pueden haber tomado como costo." source="Num. 5 art. 336 E.T." />
+                <MoneyField
+                  label="Aportes voluntarios a FVP y cuentas AFC / AVC"
+                  casilla={35}
+                  year={y}
+                  value={d.trabajo.aportesAfcFvpAvc}
+                  onChange={(n) => patch((x) => (x.trabajo.aportesAfcFvpAvc = n))}
+                  source="Arts. 126-1 y 126-4 E.T."
+                  hint="Aportes a Fondos de Pensiones Voluntarias y ahorro en cuentas AFC/AVC. Límite 30 % del ingreso y 3.800 UVT. Permanencia 10 años."
+                />
+                <MoneyField
+                  label="Indemnizaciones exentas (Accidente, maternidad, muerte)"
+                  year={y}
+                  value={d.trabajo.indemnizaciones}
+                  onChange={(n) => patch((x) => (x.trabajo.indemnizaciones = n))}
+                  source="Art. 206 Nums. 1, 2 y 3 E.T."
+                  hint="Indemnizaciones por accidentes de trabajo, auxilio de maternidad y gastos de entierro (Exentas fuera del límite del 40%)."
+                />
+                <MoneyField
+                  label="Gastos de representación exentos"
+                  year={y}
+                  value={d.trabajo.gastosRepresentacion}
+                  onChange={(n) => patch((x) => (x.trabajo.gastosRepresentacion = n))}
+                  source="Art. 206 Nums. 6 y 8 E.T."
+                  hint="Magistrados 50 %, jueces y fiscales 25 %, rectores y profesores de universidades públicas 50 % (Exentos fuera del 40%)."
+                />
+                <MoneyField
+                  label="Prestaciones y seguro por muerte FF.MM. y Policía"
+                  year={y}
+                  value={d.trabajo.ffmmPrestaciones}
+                  onChange={(n) => patch((x) => (x.trabajo.ffmmPrestaciones = n))}
+                  source="Art. 206 Num. 7 E.T."
+                  hint="Indemnizaciones y prestaciones sociales por muerte de miembros de las FF.MM. y Policía Nacional."
+                />
+                <MoneyField
+                  label="Exceso del salario básico FF.MM. y Policía Nacional"
+                  year={y}
+                  value={d.trabajo.ffmmExcesoSalario}
+                  onChange={(n) => patch((x) => (x.trabajo.ffmmExcesoSalario = n))}
+                  source="Art. 206 Num. 7 E.T."
+                  hint="Exceso del salario básico percibido por oficiales y suboficiales de las FF.MM. y Policía."
+                />
+                <MoneyField
+                  label="Rentas exentas por Convenios CAN (Decisión 578)"
+                  year={y}
+                  value={d.trabajo.rentasCan}
+                  onChange={(n) => patch((x) => (x.trabajo.rentasCan = n))}
+                  source="Decisión 578 CAN (Colombia, Perú, Ecuador, Bolivia)"
+                  hint="Ingresos laborales obtenidos y gravados en países miembros de la Comunidad Andina (Exentos fuera del 40%)."
+                />
+                <MoneyField
+                  label="Primas diplomáticas y de costo de vida en el exterior"
+                  year={y}
+                  value={d.trabajo.primasDiplomaticas}
+                  onChange={(n) => patch((x) => (x.trabajo.primasDiplomaticas = n))}
+                  source="Art. 206-1 E.T."
+                  hint="Primas de servicio y de costo de vida en el exterior de diplomáticos colombianos."
+                />
+                <MoneyField
+                  label="Otras rentas exentas laborales ilimitadas"
+                  year={y}
+                  value={d.trabajo.otrasExentasIlimitadas}
+                  onChange={(n) => patch((x) => (x.trabajo.otrasExentasIlimitadas = n))}
+                  hint="Rentas exentas que por ley expresa no se someten al límite conjunto del 40 % ni 1.340 UVT."
+                />
+                <MoneyField
+                  label="Otras rentas exentas laborales limitadas"
+                  year={y}
+                  value={d.trabajo.otrasExentas}
+                  onChange={(n) => patch((x) => (x.trabajo.otrasExentas = n))}
+                  hint="Demás rentas exentas laborales sujetas al límite conjunto del 40 % o 1.340 UVT."
+                />
+                <MoneyField
+                  label="Intereses de crédito de vivienda / leasing habitacional"
+                  casilla={38}
+                  year={y}
+                  value={d.trabajo.interesesVivienda}
+                  onChange={(n) => patch((x) => (x.trabajo.interesesVivienda = n))}
+                  source="Art. 119 E.T. · Formato 220 casilla 52"
+                  hint="Intereses y corrección monetaria pagados en créditos hipotecarios para adquisición de vivienda. Límite 1.200 UVT anuales."
+                />
+                <MoneyField
+                  label="Medicina prepagada y seguros de salud"
+                  year={y}
+                  value={d.trabajo.medicinaPrepagada}
+                  onChange={(n) => patch((x) => (x.trabajo.medicinaPrepagada = n))}
+                  source="Art. 387 E.T. · Formato 220 casilla 53"
+                  hint="Pagos por planes adicionales de salud y medicina prepagada del trabajador o su familia. Límite 16 UVT mensuales (192 UVT anuales)."
+                />
+                <MoneyField
+                  label="Gravamen a los Movimientos Financieros - 4x1000 (Deducción 50%)"
+                  year={y}
+                  value={d.trabajo.gmf}
+                  onChange={(n) => patch((x) => (x.trabajo.gmf = n))}
+                  source="Art. 115 E.T. · Certificado anual del banco"
+                  hint="Se deduce el 50 % del total del GMF (4x1000) efectivamente pagado y certificado por entidades financieras."
+                />
+                <MoneyField
+                  label="Intereses en créditos educativos ICETEX"
+                  year={y}
+                  value={d.trabajo.icetex}
+                  onChange={(n) => patch((x) => (x.trabajo.icetex = n))}
+                  source="Art. 119 E.T."
+                  hint="Intereses pagados por el contribuyente en créditos educativos con el ICETEX. Límite máximo 100 UVT anuales."
+                />
+                <MoneyField
+                  label="Deducción anual FNCE / Movilidad eléctrica"
+                  year={y}
+                  value={d.trabajo.fnceAnual}
+                  onChange={(n) => patch((x) => (x.trabajo.fnceAnual = n))}
+                  source="Art. 11 Ley 1715/2014 modificada por Ley 2099/2021"
+                  hint="50 % de la inversión en Fuentes No Convencionales de Energía y vehículos eléctricos amortizable en 15 años. Requiere certificado UPME."
+                />
+                <MoneyField
+                  label="Otras deducciones imputables laborales"
+                  year={y}
+                  value={d.trabajo.otrasDeducciones}
+                  onChange={(n) => patch((x) => (x.trabajo.otrasDeducciones = n))}
+                  hint="Demás deducciones autorizadas por ley sujetas al límite conjunto del 40 % o 1.340 UVT."
+                />
+                <MoneyField
+                  label="Compras con Factura Electrónica (Base para deducción del 1 %)"
+                  casilla={28}
+                  year={y}
+                  value={d.trabajo.comprasFacturaElectronica}
+                  onChange={(n) => patch((x) => (x.trabajo.comprasFacturaElectronica = n))}
+                  source="Num. 5 Art. 336 E.T."
+                  hint="Total de compras de bienes y servicios respaldadas con Factura Electrónica de Venta y pagadas por medios electrónicos. Tope 240 UVT (No entra al límite del 40%)."
+                />
               </div>
-              <div className="space-y-1.5">
-                <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted">Dependientes económicos (máx. 4)</p>
+              <div className="space-y-1.5 pt-2 border-t border-line">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink">Dependientes económicos a cargo (Art. 387 E.T. - Máx. 4)</p>
+                  <span className="text-xs font-mono text-forest font-bold bg-forest-mist px-2 py-0.5 rounded-md">
+                    {d.trabajo.dependientes} dependiente(s) seleccionado(s)
+                  </span>
+                </div>
                 <div className="flex gap-2">
                   {[0, 1, 2, 3, 4].map((n) => (
                     <button
@@ -519,16 +733,16 @@ function DeclaracionPage() {
                       type="button"
                       onClick={() => patch((x) => (x.trabajo.dependientes = n))}
                       className={cn(
-                        "h-11 flex-1 rounded-md border text-sm tabular-nums",
-                        d.trabajo.dependientes === n ? "border-forest bg-forest-mist" : "border-line bg-surface",
+                        "h-11 flex-1 rounded-lg border text-sm font-bold font-mono transition-colors",
+                        d.trabajo.dependientes === n ? "border-forest bg-forest text-white shadow-xs" : "border-line bg-surface text-ink hover:bg-forest-mist",
                       )}
                     >
                       {n}
                     </button>
                   ))}
                 </div>
-                <p className="text-xs text-muted">
-                  Art. 387: 10 % de la renta de trabajo (máx. 32 UVT/mes = {formatCOP((c.uvt || 0) * 32)} ) entra al 40 %. Además, 72 UVT anuales por persona salen del 40 % (casilla 139). Un mismo dependiente no se duplica. DUR 1.2.1.20.3.
+                <p className="text-xs text-muted leading-relaxed">
+                  <strong>Beneficio doble por dependientes:</strong> 1) Deducción del 10 % del ingreso bruto laboral (máx. 32 UVT mensuales = {formatCOP((c.uvt || 0) * 32)}/mes) dentro del límite del 40 %. 2) Además, <strong>72 UVT anuales adicionales por cada dependiente</strong> ({formatCOP((c.uvt || 0) * 72)}) que salen del límite del 40 % y se restan directamente en la Casilla 139 (Art. 336 num. 2 E.T. y DUR 1.2.1.20.3).
                 </p>
               </div>
             </Card>
