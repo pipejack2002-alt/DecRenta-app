@@ -32,32 +32,34 @@ export function MoneyField({
   return (
     <div className="space-y-1.5 min-w-0 w-full">
       <div className="flex items-start justify-between gap-2">
-        <Label htmlFor={id} className="flex-1 min-w-0">{label}</Label>
+        <label htmlFor={id} className="text-xs font-semibold text-ink leading-snug block break-words flex-1 min-w-0">
+          {label}
+        </label>
         {casilla ? (
-          <span className="font-mono text-[10px] font-bold text-forest bg-forest-mist px-1.5 py-0.5 rounded shrink-0 self-start">
+          <span className="font-mono text-[10.5px] font-bold text-forest bg-forest-mist border border-forest/20 px-1.5 py-0.5 rounded shrink-0 whitespace-nowrap">
             c.{casilla}
           </span>
         ) : null}
       </div>
       <div className="relative">
-        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted font-medium">
+        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted font-medium select-none">
           $
         </span>
         <Input
           id={id}
           inputMode="numeric"
           disabled={disabled}
-          className="pl-7 pr-20 font-mono"
+          className="pl-7 pr-20 font-mono text-sm font-semibold"
           value={value ? formatNumber(value) : ""}
           placeholder="0"
           onChange={(e) => onChange(parseMoney(e.target.value))}
         />
-        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[11px] tabular-nums font-mono text-muted">
+        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[11px] tabular-nums font-mono text-muted select-none">
           {value ? formatUvt(uvt, 1) : ""}
         </span>
       </div>
-      {hint ? <p className="text-xs leading-relaxed text-muted break-words">{hint}</p> : null}
-      {source ? <p className="text-[11px] text-faint break-words font-medium">{source}</p> : null}
+      {hint ? <p className="text-[11.5px] leading-relaxed text-muted break-words">{hint}</p> : null}
+      {source ? <p className="text-[10.5px] text-faint break-words font-medium">{source}</p> : null}
     </div>
   );
 }

@@ -61,7 +61,7 @@ function DeclaracionPage() {
     return [29, 30, 31, 32, 42, 97, 126, 136, 137].map(pick);
   }, [c.casillas]);
 
-  const fieldGrid = cn("grid gap-4", splitScreen ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2");
+  const fieldGrid = splitScreen ? "grid grid-cols-1 gap-4" : "grid grid-cols-1 xl:grid-cols-2 gap-4";
 
   return (
     <div className="space-y-6">
