@@ -6,6 +6,7 @@ import {
   FileCode,
   FileSpreadsheet,
   FileText,
+  ListChecks,
   Maximize2,
   Minimize2,
   Pencil,
@@ -21,6 +22,7 @@ import { useEffect, useState } from "react";
 import { CatalogManagerModal } from "@/components/layout/catalog-manager-modal";
 import { Button } from "@/components/ui/button";
 import { useAppStore, useComputed } from "@/lib/store";
+import { getCasillaItemizedBreakdown } from "@/lib/tax/casilla-breakdowns";
 import {
   CASILLAS_OFICIALES_210,
   downloadFile,
@@ -33,7 +35,7 @@ import {
 import { downloadOfficialDian210Pdf } from "@/lib/tax/export-dian-pdf";
 import { formatCOP, formatNumber, parseMoney } from "@/lib/tax/format";
 import { CASILLA_NOMBRES_CLAROS, FORMULAS_EXPLICADAS_210, INSTRUCTIVO_DIAN_210 } from "@/lib/tax/instructivo-dian";
-import type { TaxYear } from "@/lib/tax/types";
+import type { Declaration, TaxYear } from "@/lib/tax/types";
 import {
   UVT_BY_YEAR,
   filingYearOf,
@@ -1588,6 +1590,7 @@ export function OfficialDian210({
         <CasillaInspectorModal
           casillaNum={selectedCasilla}
           computed={c}
+          declaration={d}
           onClose={() => setSelectedCasilla(null)}
           onEditDeclarante={() => {
             setSelectedCasilla(null);
@@ -1602,16 +1605,19 @@ export function OfficialDian210({
 function CasillaInspectorModal({
   casillaNum,
   computed,
+  declaration,
   onClose,
   onEditDeclarante,
 }: {
   casillaNum: number;
   computed: any;
+  declaration: Declaration;
   onClose: () => void;
   onEditDeclarante: () => void;
 }) {
   const meta = CASILLAS_OFICIALES_210.find((x) => x.num === casillaNum);
   const formulaInfo = FORMULAS_EXPLICADAS_210[casillaNum];
+  const itemized = getCasillaItemizedBreakdown(casillaNum, declaration, computed);
   const instructivoText = INSTRUCTIVO_DIAN_210[casillaNum];
   const rawVal = computed.casillas[casillaNum] ?? 0;
   const uvtValue = computed.uvt > 0 ? (rawVal / computed.uvt).toFixed(1) : "0";
@@ -1633,6 +1639,10 @@ function CasillaInspectorModal({
                 {formulaInfo ? (
                   <span className="text-[10px] font-semibold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full flex items-center gap-1">
                     <Calculator className="size-2.5" /> Formulada
+                  </span>
+                ) : itemized ? (
+                  <span className="text-[10px] font-semibold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <ListChecks className="size-2.5" /> Desglose de Conceptos
                   </span>
                 ) : (
                   <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
@@ -1709,6 +1719,60 @@ function CasillaInspectorModal({
               <p className="text-xs text-blue-900 leading-relaxed">
                 {formulaInfo.descripcion}
               </p>
+            </div>
+          )}
+
+          {/* Desglose Interactivo de Conceptos y Soportes Incluidos */}
+          {itemized && (
+            <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50/70 space-y-3">
+              <div className="flex items-center gap-2 text-emerald-950 font-bold text-xs uppercase tracking-wide">
+                <ListChecks className="size-4 text-emerald-700" />
+                <span>{itemized.title}</span>
+              </div>
+              <p className="text-xs text-emerald-900 leading-relaxed font-medium">
+                {itemized.description}
+              </p>
+
+              {/* Lista Desglosada de Conceptos */}
+              <div className="grid gap-2 bg-white p-3 rounded-lg border border-emerald-100 text-xs shadow-2xs">
+                {itemized.items.map((it, idx) => (
+                  <div key={idx} className="border-b border-gray-100 pb-2 last:border-none last:pb-0 space-y-0.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-semibold text-gray-900">{it.label}</span>
+                      <span className="font-bold font-mono text-emerald-900 shrink-0 text-sm">
+                        {it.value}
+                      </span>
+                    </div>
+                    {it.source && (
+                      <p className="text-[10.5px] text-gray-500 font-mono flex items-center gap-1">
+                        📂 <span className="text-gray-600 font-medium">{it.source}</span>
+                      </p>
+                    )}
+                    {it.legal && (
+                      <p className="text-[10px] text-emerald-800 font-medium">
+                        ⚖️ {it.legal}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Subtotal del Desglose */}
+              {itemized.totalLabel && itemized.totalValue !== undefined && (
+                <div className="flex items-center justify-between p-2.5 bg-emerald-100/80 rounded-lg border border-emerald-200 text-xs">
+                  <span className="font-bold text-emerald-950">{itemized.totalLabel}:</span>
+                  <span className="font-mono font-bold text-emerald-950 text-sm">
+                    {formatCOP(itemized.totalValue)}
+                  </span>
+                </div>
+              )}
+
+              {/* Nota probatoria / Explicativa */}
+              {itemized.footnote && (
+                <p className="text-[11px] text-emerald-900 leading-relaxed italic bg-emerald-100/40 p-2.5 rounded-md border border-emerald-200/50">
+                  💡 {itemized.footnote}
+                </p>
+              )}
             </div>
           )}
 
