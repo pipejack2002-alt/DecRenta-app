@@ -84,7 +84,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <GeminiAsistenteModal isOpen={asistenteOpen} onClose={() => setAsistenteOpen(false)} />
 
-      <div className="mx-auto flex max-w-7xl gap-8 px-4 py-6 print:m-0 print:p-0 print:block print:max-w-none">
+      <div className={cn("mx-auto flex gap-8 px-4 py-6 print:m-0 print:p-0 print:block print:max-w-none transition-all duration-200", pathname.startsWith("/declaracion") ? "max-w-[1600px] 2xl:max-w-[1800px]" : "max-w-7xl")}>
         <aside
           data-print-hide
           className={cn(

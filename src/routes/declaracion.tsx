@@ -60,142 +60,144 @@ function DeclaracionPage() {
     return [29, 30, 31, 32, 42, 97, 126, 136, 137].map(pick);
   }, [c.casillas]);
 
-  return (
-    <div className="space-y-6">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Formulario 210 · Año Gravable {d.year}</p>
-          <h1 className="mt-1 font-display text-4xl font-bold">Diligenciamiento de Cédulas</h1>
-          <p className="mt-2 max-w-2xl text-sm text-muted">
-            Diligencie la información patrimonial y cedular con soporte normativo por casilla. Las rentas exentas (25 % laboral, AFC), deducciones imputables (vivienda, dependientes, GMF) y el límite conjunto del 40 % o 1.340 UVT se aplican automáticamente.
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            variant={splitScreen ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSplitScreen(!splitScreen)}
-            title="Alternar vista dividida con el Formulario 210 en tiempo real"
-          >
-            <Columns2 className="mr-1.5 size-4" />
-            {splitScreen ? "Vista estándar" : "Modo dividido (210 en vivo)"}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setPreviewModalOpen(true)}
-            title="Previsualizar el Formulario 210 en ventana flotante"
-          >
-            <Maximize2 className="mr-1.5 size-4" />
-            Previsualizar 210
-          </Button>
-        </div>
-      </header>
+      const fieldGrid = cn("grid gap-4", splitScreen ? "grid-cols-1" : "sm:grid-cols-2");
 
-      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
-        {SECTIONS.map((s) => (
-          <button
-            key={s.id}
-            type="button"
-            onClick={() => setSec(s.id)}
-            className={cn(
-              "h-11 shrink-0 rounded-full px-4 text-sm transition-colors",
-              sec === s.id ? "bg-forest text-primary-fg" : "bg-surface text-ink-soft shadow-[0_0_0_1px_var(--color-line)]",
-            )}
-          >
-            {s.label}
-          </button>
-        ))}
-      </div>
+      return (
+        <div className="space-y-6">
+          <header className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Formulario 210 · Año Gravable {d.year}</p>
+              <h1 className="mt-1 font-display text-4xl font-bold">Diligenciamiento de Cédulas</h1>
+              <p className="mt-2 max-w-2xl text-sm text-muted">
+                Diligencie la información patrimonial y cedular con soporte normativo por casilla. Las rentas exentas (25 % laboral, AFC), deducciones imputables (vivienda, dependientes, GMF) y el límite conjunto del 40 % o 1.340 UVT se aplican automáticamente.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                variant={splitScreen ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSplitScreen(!splitScreen)}
+                title="Alternar vista dividida con el Formulario 210 en tiempo real"
+              >
+                <Columns2 className="mr-1.5 size-4" />
+                {splitScreen ? "Vista estándar" : "Modo dividido (210 en vivo)"}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPreviewModalOpen(true)}
+                title="Previsualizar el Formulario 210 en ventana flotante"
+              >
+                <Maximize2 className="mr-1.5 size-4" />
+                Previsualizar 210
+              </Button>
+            </div>
+          </header>
 
-      <div className={cn("grid gap-6", splitScreen ? "lg:grid-cols-[1fr_1.15fr]" : "lg:grid-cols-[minmax(0,1fr)_18rem]")}>
-        <div className="space-y-4">
-          {sec === "id" && (
-            <Card className="space-y-4">
-              <CardTitle>Datos del declarante y encabezado</CardTitle>
-              <CardHint>Deben coincidir con la hoja principal del RUT (casillas 1 a 12 y 24 a 28).</CardHint>
+          <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+            {SECTIONS.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => setSec(s.id)}
+                className={cn(
+                  "h-11 shrink-0 rounded-full px-4 text-sm transition-colors",
+                  sec === s.id ? "bg-forest text-primary-fg" : "bg-surface text-ink-soft shadow-[0_0_0_1px_var(--color-line)]",
+                )}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
 
-              {/* Año gravable y Número de formulario */}
-              <div className="grid gap-4 sm:grid-cols-2 p-3.5 bg-muted-mist/40 rounded-xl border border-line">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink">1. Año gravable</p>
-                    <span className="text-xs font-mono font-bold text-forest-deep">AG {d.year} (Presentación en {d.year + 1})</span>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    {([2026, 2025, 2024, 2023] as const).map((yr) => (
-                      <button
-                        key={yr}
-                        type="button"
-                        onClick={() => patch((x) => (x.year = yr))}
-                        className={cn(
-                          "h-9 px-3 rounded-lg border text-xs font-mono font-bold transition-colors",
-                          d.year === yr ? "border-forest bg-forest text-white shadow-xs" : "border-line bg-surface text-ink-soft hover:bg-forest-mist",
-                        )}
-                      >
-                        {yr}
-                      </button>
-                    ))}
-                    <div className="flex items-center gap-1 ml-auto">
-                      <span className="text-xs text-muted">Otro:</span>
-                      <input
-                        type="text"
-                        maxLength={4}
-                        placeholder="2030"
-                        className="w-20 h-9 font-mono text-xs font-bold text-center rounded-lg border border-line bg-white"
-                        value={declYearInput}
-                        onChange={(e) => {
-                          const val = e.target.value.replace(/\D/g, "").slice(0, 4);
-                          setDeclYearInput(val);
-                          const y = Number(val);
-                          if (y >= 1990 && y <= 2100) patch((x) => (x.year = y));
-                        }}
-                        onBlur={() => {
-                          const y = Number(declYearInput);
-                          if (y >= 1990 && y <= 2100) {
-                            patch((x) => (x.year = y));
-                          } else {
-                            setDeclYearInput(String(d.year));
-                          }
-                        }}
-                        title="Digita cualquier año"
-                      />
+          <div className={cn("grid gap-6", splitScreen ? "xl:grid-cols-[1fr_1.3fr] lg:grid-cols-1" : "lg:grid-cols-[minmax(0,1fr)_18rem]")}>
+            <div className="space-y-4 min-w-0">
+              {sec === "id" && (
+                <Card className="space-y-4">
+                  <CardTitle>Datos del declarante y encabezado</CardTitle>
+                  <CardHint>Deben coincidir con la hoja principal del RUT (casillas 1 a 12 y 24 a 28).</CardHint>
+
+                  {/* Año gravable y Número de formulario */}
+                  <div className={cn("grid gap-4 p-4 bg-muted-mist/40 rounded-xl border border-line", splitScreen ? "grid-cols-1" : "md:grid-cols-2")}>
+                    <div className="space-y-2 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink">1. Año gravable</p>
+                        <span className="text-xs font-mono font-bold text-forest-deep px-2 py-0.5 bg-forest-mist rounded-md">AG {d.year} (Presentación en {d.year + 1})</span>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {([2026, 2025, 2024, 2023] as const).map((yr) => (
+                          <button
+                            key={yr}
+                            type="button"
+                            onClick={() => patch((x) => (x.year = yr))}
+                            className={cn(
+                              "h-9 px-3 rounded-lg border text-xs font-mono font-bold transition-colors",
+                              d.year === yr ? "border-forest bg-forest text-white shadow-xs" : "border-line bg-surface text-ink-soft hover:bg-forest-mist",
+                            )}
+                          >
+                            {yr}
+                          </button>
+                        ))}
+                        <div className="flex items-center gap-1.5 ml-auto">
+                          <span className="text-xs text-muted">Otro:</span>
+                          <input
+                            type="text"
+                            maxLength={4}
+                            placeholder="2030"
+                            className="w-16 h-9 font-mono text-xs font-bold text-center rounded-lg border border-line bg-white shadow-2xs"
+                            value={declYearInput}
+                            onChange={(e) => {
+                              const val = e.target.value.replace(/\D/g, "").slice(0, 4);
+                              setDeclYearInput(val);
+                              const y = Number(val);
+                              if (y >= 1990 && y <= 2100) patch((x) => (x.year = y));
+                            }}
+                            onBlur={() => {
+                              const y = Number(declYearInput);
+                              if (y >= 1990 && y <= 2100) {
+                                patch((x) => (x.year = y));
+                              } else {
+                                setDeclYearInput(String(d.year));
+                              }
+                            }}
+                            title="Digita cualquier año"
+                          />
+                        </div>
+                      </div>
                     </div>
+                    <TextField
+                      label="4. Número de formulario (Autogenerado o Manual)"
+                      value={d.identity.numeroFormulario || ""}
+                      placeholder={`210${d.year}000${d.identity.nit ? d.identity.nit.slice(-5) : "41029"}`}
+                      onChange={(v) => patch((x) => (x.identity.numeroFormulario = v))}
+                      hint="Si lo dejas vacío, se autogenera según nomenclatura DIAN."
+                    />
                   </div>
-                </div>
-                <TextField
-                  label="4. Número de formulario (Autogenerado o Manual)"
-                  value={d.identity.numeroFormulario || ""}
-                  placeholder={`210${d.year}000${d.identity.nit ? d.identity.nit.slice(-5) : "41029"}`}
-                  onChange={(v) => patch((x) => (x.identity.numeroFormulario = v))}
-                  hint="Si lo dejas vacío, se autogenera según la nomenclatura oficial DIAN."
-                />
-              </div>
 
-              {/* NIT, DV y Nombres */}
-              <div className="grid gap-4 sm:grid-cols-2">
-                <TextField
-                  label="5. Cédula / NIT (sin DV)"
-                  value={d.identity.nit}
-                  inputMode="numeric"
-                  onChange={(v) => patch((x) => (x.identity.nit = v.replace(/\D/g, "")))}
-                  hint="Los dos últimos dígitos fijan el vencimiento del calendario DIAN 2026."
-                />
-                <TextField
-                  label="6. DV (Dígito de verificación)"
-                  value={d.identity.dv}
-                  onChange={(v) => patch((x) => (x.identity.dv = v.slice(0, 1)))}
-                />
-                <TextField label="7. Primer apellido" value={d.identity.primerApellido} onChange={(v) => patch((x) => (x.identity.primerApellido = v))} />
-                <TextField label="8. Segundo apellido" value={d.identity.segundoApellido} onChange={(v) => patch((x) => (x.identity.segundoApellido = v))} />
-                <TextField label="9. Primer nombre" value={d.identity.primerNombre} onChange={(v) => patch((x) => (x.identity.primerNombre = v))} />
-                <TextField label="10. Otros nombres" value={d.identity.otrosNombres} onChange={(v) => patch((x) => (x.identity.otrosNombres = v))} />
-              </div>
+                  {/* NIT, DV y Nombres */}
+                  <div className={fieldGrid}>
+                    <TextField
+                      label="5. Cédula / NIT (sin DV)"
+                      value={d.identity.nit}
+                      inputMode="numeric"
+                      onChange={(v) => patch((x) => (x.identity.nit = v.replace(/\D/g, "")))}
+                      hint="Los dos últimos dígitos fijan el vencimiento del calendario DIAN 2026."
+                    />
+                    <TextField
+                      label="6. DV (Dígito de verificación)"
+                      value={d.identity.dv}
+                      onChange={(v) => patch((x) => (x.identity.dv = v.slice(0, 1)))}
+                    />
+                    <TextField label="7. Primer apellido" value={d.identity.primerApellido} onChange={(v) => patch((x) => (x.identity.primerApellido = v))} />
+                    <TextField label="8. Segundo apellido" value={d.identity.segundoApellido} onChange={(v) => patch((x) => (x.identity.segundoApellido = v))} />
+                    <TextField label="9. Primer nombre" value={d.identity.primerNombre} onChange={(v) => patch((x) => (x.identity.primerNombre = v))} />
+                    <TextField label="10. Otros nombres" value={d.identity.otrosNombres} onChange={(v) => patch((x) => (x.identity.otrosNombres = v))} />
+                  </div>
 
-              <DeadlineInline nit={d.identity.nit} seccional={d.identity.dirSeccional} zonaManual={d.identity.zonaSismo1226} />
+                  <DeadlineInline nit={d.identity.nit} seccional={d.identity.dirSeccional} zonaManual={d.identity.zonaSismo1226} />
 
-              {/* Seccional y Actividad CIIU */}
-              <div className="grid gap-4 sm:grid-cols-2">
+                  {/* Seccional y Actividad CIIU */}
+                  <div className={fieldGrid}>
                 <div className="space-y-2 p-3.5 rounded-xl border border-line bg-surface min-w-0 overflow-hidden">
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink truncate">12. Dirección seccional</p>
@@ -376,7 +378,7 @@ function DeclaracionPage() {
             <Card className="space-y-4">
               <CardTitle>Patrimonio</CardTitle>
               <CardHint>Art. 261 E.T. Valor patrimonial al 31 de diciembre. Inmuebles: el mayor entre costo fiscal, avalúo catastral y autoavalúo (arts. 72 y 277).</CardHint>
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className={fieldGrid}>
                 <MoneyField label="Efectivo" casilla={29} year={y} value={d.patrimonio.efectivo} onChange={(n) => patch((x) => (x.patrimonio.efectivo = n))} />
                 <MoneyField label="Cuentas bancarias" year={y} value={d.patrimonio.cuentas} onChange={(n) => patch((x) => (x.patrimonio.cuentas = n))} />
                 <MoneyField label="Inversiones" year={y} value={d.patrimonio.inversiones} onChange={(n) => patch((x) => (x.patrimonio.inversiones = n))} />
@@ -390,7 +392,7 @@ function DeclaracionPage() {
                 <MoneyField label="Aportes en sociedades nacionales" year={y} value={d.patrimonio.aportesSociedadesNacionales} onChange={(n) => patch((x) => (x.patrimonio.aportesSociedadesNacionales = n))} hint="Se restan de la base de renta presuntiva." />
               </div>
               <h3 className="font-display text-lg">Deudas · casilla 30</h3>
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className={fieldGrid}>
                 <MoneyField label="Obligaciones financieras" casilla={30} year={y} value={d.patrimonio.obligacionesFinancieras} onChange={(n) => patch((x) => (x.patrimonio.obligacionesFinancieras = n))} />
                 <MoneyField label="Cuentas por pagar" year={y} value={d.patrimonio.cuentasPorPagar} onChange={(n) => patch((x) => (x.patrimonio.cuentasPorPagar = n))} />
                 <MoneyField label="Impuestos por pagar" year={y} value={d.patrimonio.impuestosPorPagar} onChange={(n) => patch((x) => (x.patrimonio.impuestosPorPagar = n))} />
@@ -404,7 +406,7 @@ function DeclaracionPage() {
             <Card className="space-y-4">
               <CardTitle>Rentas de trabajo</CardTitle>
               <CardHint>Art. 103 E.T. Incluya honorarios aquí solo si NO va a restar costos (para tomar el 25 % del num. 10 art. 206).</CardHint>
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className={fieldGrid}>
                 <MoneyField label="Salarios" casilla={32} year={y} value={d.trabajo.salarios} onChange={(n) => patch((x) => (x.trabajo.salarios = n))} source="Formato 220, casilla de pagos laborales" />
                 <MoneyField label="Honorarios sin costos" year={y} value={d.trabajo.honorariosSinCostos} onChange={(n) => patch((x) => (x.trabajo.honorariosSinCostos = n))} hint="Independiente que opta por la renta exenta del 25 %." />
                 <MoneyField label="Cesantías pagadas o consignadas" year={y} value={d.trabajo.cesantiasPagadas} onChange={(n) => patch((x) => (x.trabajo.cesantiasPagadas = n))} />
@@ -415,7 +417,7 @@ function DeclaracionPage() {
                 <MoneyField label="Cesantías acumuladas a 31/12/2016 (retiradas)" year={y} value={d.trabajo.cesantiasAcumuladas2016} onChange={(n) => patch((x) => (x.trabajo.cesantiasAcumuladas2016 = n))} />
               </div>
               <h3 className="font-display text-lg">Aportes a Seguridad Social y conceptos no gravados · Casilla 33</h3>
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className={fieldGrid}>
                 <MoneyField label="Aportes obligatorios a pensión" casilla={33} year={y} value={d.trabajo.aportesPensionObligatorios} onChange={(n) => patch((x) => (x.trabajo.aportesPensionObligatorios = n))} source="Art. 55 E.T." />
                 <MoneyField label="Aportes obligatorios a salud" year={y} value={d.trabajo.aportesSaludObligatorios} onChange={(n) => patch((x) => (x.trabajo.aportesSaludObligatorios = n))} source="Art. 56 E.T." />
                 <MoneyField label="Cotizaciones voluntarias RAIS" year={y} value={d.trabajo.aportesVoluntariosRais} onChange={(n) => patch((x) => (x.trabajo.aportesVoluntariosRais = n))} hint="Tope 25 % y 2.500 UVT, global entre cédulas." />
@@ -423,7 +425,7 @@ function DeclaracionPage() {
                 <MoneyField label="Otros ingresos no constitutivos de renta" year={y} value={d.trabajo.otrosINCRNGO} onChange={(n) => patch((x) => (x.trabajo.otrosINCRNGO = n))} />
               </div>
               <h3 className="font-display text-lg">Exentas y deducciones</h3>
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className={fieldGrid}>
                 <MoneyField label="Aportes AFC / FVP / AVC" casilla={35} year={y} value={d.trabajo.aportesAfcFvpAvc} onChange={(n) => patch((x) => (x.trabajo.aportesAfcFvpAvc = n))} hint="30 % del ingreso y 3.800 UVT. Permanencia 10 años." source="Arts. 126-1 y 126-4 E.T." />
                 <MoneyField label="Indemnizaciones exentas" year={y} value={d.trabajo.indemnizaciones} onChange={(n) => patch((x) => (x.trabajo.indemnizaciones = n))} hint="Accidente de trabajo, maternidad, entierro. No entran al 40 %." source="Nums. 1-3 art. 206." />
                 <MoneyField label="Gastos de representación" year={y} value={d.trabajo.gastosRepresentacion} onChange={(n) => patch((x) => (x.trabajo.gastosRepresentacion = n))} hint="Magistrados 50 %, jueces 25 %, rectores públicos 50 %. Fuera del 40 %." source="Nums. 6 y 8 art. 206." />
@@ -477,7 +479,7 @@ function DeclaracionPage() {
                 checked={d.honorarios.usarCostos}
                 onChange={(v: boolean) => patch((x) => (x.honorarios.usarCostos = v))}
               />
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className={fieldGrid}>
                 <MoneyField label="Ingresos brutos" casilla={43} year={y} value={d.honorarios.ingresos} onChange={(n) => patch((x) => (x.honorarios.ingresos = n))} />
                 <MoneyField label="Otros ingresos no constitutivos de renta" casilla={44} year={y} value={d.honorarios.incrngo} onChange={(n) => patch((x) => (x.honorarios.incrngo = n))} />
                 <MoneyField label="Aportes pensión obligatorios" year={y} value={d.honorarios.aportesPension} onChange={(n) => patch((x) => (x.honorarios.aportesPension = n))} source="Art. 55 E.T." />
@@ -520,7 +522,7 @@ function DeclaracionPage() {
             <Card className="space-y-4">
               <CardTitle>Rentas de capital</CardTitle>
               <CardHint>Art. 335: intereses, arrendamientos, regalías, rendimientos financieros y explotación de intangibles.</CardHint>
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className={fieldGrid}>
                 <MoneyField label="Intereses" casilla={58} year={y} value={d.capital.intereses} onChange={(n) => patch((x) => (x.capital.intereses = n))} />
                 <MoneyField label="Arrendamientos" year={y} value={d.capital.arrendamientos} onChange={(n) => patch((x) => (x.capital.arrendamientos = n))} />
                 <MoneyField label="Regalías" year={y} value={d.capital.regalias} onChange={(n) => patch((x) => (x.capital.regalias = n))} />
@@ -564,7 +566,7 @@ function DeclaracionPage() {
             <Card className="space-y-4">
               <CardTitle>Rentas no laborales</CardTitle>
               <CardHint>Ventas de activos poseídos menos de 2 años, notarios, curadores, apoyos, recompensas y lo no clasificado en otra cédula.</CardHint>
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className={fieldGrid}>
                 <MoneyField label="Ingresos brutos (otros)" casilla={74} year={y} value={d.noLaborales.ingresos} onChange={(n) => patch((x) => (x.noLaborales.ingresos = n))} hint="Use los campos de abajo para desglosar. Se suman." />
                 <MoneyField label="Ventas de muebles o inmuebles" year={y} value={d.noLaborales.ventas} onChange={(n) => patch((x) => (x.noLaborales.ventas = n))} hint="Si el activo se poseyó ≥ 2 años, es ganancia ocasional." />
                 <MoneyField label="Recompensas" year={y} value={d.noLaborales.recompensas} onChange={(n) => patch((x) => (x.noLaborales.recompensas = n))} />
@@ -612,7 +614,7 @@ function DeclaracionPage() {
             <Card className="space-y-4">
               <CardTitle>Cédula de pensiones</CardTitle>
               <CardHint>Num. 5 art. 206: exenta la parte que no supere 1.000 UVT mensuales, después de aportes a salud y solidaridad.</CardHint>
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className={fieldGrid}>
                 <MoneyField label="Ingresos por pensiones (país y exterior)" casilla={99} year={y} value={d.pensiones.ingresos} onChange={(n) => patch((x) => (x.pensiones.ingresos = n))} />
                 <MoneyField label="Aportes obligatorios a salud y solidaridad" casilla={100} year={y} value={d.pensiones.incrngo} onChange={(n) => patch((x) => (x.pensiones.incrngo = n))} />
               </div>
@@ -635,7 +637,7 @@ function DeclaracionPage() {
             <Card className="space-y-4">
               <CardTitle>Dividendos y participaciones</CardTitle>
               <CardHint>El certificado de la sociedad dice si son num. 3 o par. 2 del art. 49, y el año de origen.</CardHint>
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className={fieldGrid}>
                 <MoneyField label="Dividendos 2016 y anteriores" casilla={104} year={y} value={d.dividendos.div2016} onChange={(n) => patch((x) => (x.dividendos.div2016 = n))} />
                 <MoneyField label="Dividendos no gravados (2016 y anteriores)" casilla={105} year={y} value={d.dividendos.incrngo2016} onChange={(n) => patch((x) => (x.dividendos.incrngo2016 = n))} />
                 <MoneyField label="1ª subcédula 2017+ (num. 3 art. 49)" casilla={107} year={y} value={d.dividendos.subcedula1} onChange={(n) => patch((x) => (x.dividendos.subcedula1 = n))} hint="Se suman a la base del art. 241." />
@@ -650,7 +652,7 @@ function DeclaracionPage() {
             <Card className="space-y-4">
               <CardTitle>Ganancias ocasionales</CardTitle>
               <CardHint>15 % general, 20 % loterías. Poseídos ≥ 2 años. Escritura = momento de realización (art. 27-2).</CardHint>
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className={fieldGrid}>
                 <MoneyField label="Enajenación de activos fijos ≥ 2 años" casilla={112} year={y} value={d.gananciasOcasionales.enajenacionActivos} onChange={(n) => patch((x) => (x.gananciasOcasionales.enajenacionActivos = n))} />
                 <MoneyField label="Herencias, legados, porción conyugal" year={y} value={d.gananciasOcasionales.herencias} onChange={(n) => patch((x) => (x.gananciasOcasionales.herencias = n))} />
                 <MoneyField label="Donaciones" year={y} value={d.gananciasOcasionales.donaciones} onChange={(n) => patch((x) => (x.gananciasOcasionales.donaciones = n))} />
@@ -668,7 +670,7 @@ function DeclaracionPage() {
           {sec === "dsc" && (
             <Card className="space-y-4">
               <CardTitle>Descuentos, retenciones y cierre</CardTitle>
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className={fieldGrid}>
                 <MoneyField
                   label="Compras con Factura Electrónica (Base del 1 %)"
                   casilla={28}
