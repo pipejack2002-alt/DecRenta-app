@@ -784,6 +784,147 @@ export function getCasillaItemizedBreakdown(
       };
     }
 
+    case 62: {
+      return {
+        title: "Rentas Pasivas del Exterior - ECE en Capital (Casilla 62)",
+        description: "Rentas pasivas obtenidas a través de Entidades Controladas del Exterior (ECE) en rentas de capital (Art. 884 E.T.):",
+        items: [
+          {
+            label: "Rentas pasivas ECE de capital atribuidas",
+            value: formatCOP(d.capital.ecePasiva),
+            legal: "Arts. 882 a 893 del Estatuto Tributario (Régimen ECE)",
+            source: "Declaración informativa ECE / Extractos de entidades en el exterior",
+          },
+        ],
+        totalLabel: "Total Rentas Pasivas ECE Capital (Casilla 62)",
+        totalValue: c.casillas[62] ?? 0,
+      };
+    }
+
+    case 63: {
+      return {
+        title: "Aportes Voluntarios AFC / FVP en Capital (Casilla 63)",
+        description: "Rentas exentas por aportes voluntarios a fondos de pensiones y cuentas AFC imputables a rentas de capital:",
+        items: [
+          {
+            label: "Aportes voluntarios FVP y cuentas AFC / AVC",
+            value: formatCOP(d.capital.aportesAfc),
+            legal: `Arts. 126-1 y 126-4 E.T. (Límite individual 30% del ingreso y hasta 3.800 UVT = ${formatCOP(uvt * 3800)})`,
+            source: "Certificados tributarios bancarios y de fondos de pensiones voluntarias",
+          },
+        ],
+        totalLabel: "Total Aportes AFC/FVP Capital (Casilla 63)",
+        totalValue: c.casillas[63] ?? 0,
+      };
+    }
+
+    case 64: {
+      return {
+        title: "Otras Rentas Exentas de Capital (Casilla 64)",
+        description: "Beneficios de exención tributaria aplicables a la subcédula de rentas de capital:",
+        items: [
+          {
+            label: "Rentas exentas Convenios CAN (Decisión 578)",
+            value: formatCOP(d.capital.rentasCan),
+            legal: "Decisión 578 de la Comunidad Andina de Naciones",
+          },
+          {
+            label: "Otras rentas exentas de capital",
+            value: formatCOP(d.capital.otrasExentas),
+          },
+        ],
+        totalLabel: "Total Rentas Exentas Capital (Casilla 64)",
+        totalValue: c.casillas[64] ?? 0,
+      };
+    }
+
+    case 66: {
+      return {
+        title: "Intereses de Vivienda en Capital (Casilla 66)",
+        description: "Deducción de intereses pagados por crédito hipotecario o leasing habitacional imputables a capital (Art. 119 E.T. - Tope 1.200 UVT):",
+        items: [
+          {
+            label: "Intereses de crédito hipotecario o leasing habitacional",
+            value: formatCOP(d.capital.interesesVivienda),
+            legal: `Art. 119 E.T. (Límite anual 1.200 UVT = ${formatCOP(uvt * 1200)})`,
+            source: "Certificado bancario de crédito de vivienda",
+          },
+        ],
+        totalLabel: "Total Intereses de Vivienda Capital (Casilla 66)",
+        totalValue: c.casillas[66] ?? 0,
+      };
+    }
+
+    case 67: {
+      const k = d.capital;
+      const items: ItemBreakdown[] = [];
+      if (k.gmf > 0) {
+        items.push({
+          label: "Deducción del 50% del GMF (4x1000 bancario)",
+          value: formatCOP(k.gmf * 0.5),
+          legal: "Art. 115 E.T. (50% del 4x1000 certificado por bancos)",
+          source: "Certificados tributarios bancarios (ej. Nu Colombia + Bancolombia)",
+        });
+      }
+      if (k.icetex > 0) {
+        items.push({
+          label: "Intereses de créditos educativos ICETEX",
+          value: formatCOP(k.icetex),
+          legal: `Art. 119 E.T. (Límite 100 UVT = ${formatCOP(uvt * 100)})`,
+        });
+      }
+      if (k.aportesCesantiasIndependiente > 0) {
+        items.push({
+          label: "Aportes a fondos de cesantías como independiente",
+          value: formatCOP(k.aportesCesantiasIndependiente),
+          legal: `Art. 126-1 E.T. (Límite 1/12 del ingreso y 2.500 UVT = ${formatCOP(uvt * 2500)})`,
+        });
+      }
+      if (k.fnceAnual > 0) {
+        items.push({
+          label: "Deducción FNCE y movilidad sostenible",
+          value: formatCOP(k.fnceAnual),
+          legal: "Ley 1715 de 2014 y Ley 2099 de 2021",
+        });
+      }
+      if (k.otrasDeducciones > 0) {
+        items.push({
+          label: "Otras deducciones imputables",
+          value: formatCOP(k.otrasDeducciones),
+        });
+      }
+      if (items.length === 0) {
+        items.push({
+          label: "Sin otras deducciones en capital",
+          value: "$0",
+        });
+      }
+      return {
+        title: "Desglose de Otras Deducciones en Rentas de Capital (Casilla 67)",
+        description: "Deducciones personales imputables a los ingresos de capital autorizadas por ley:",
+        items,
+        totalLabel: "Total Otras Deducciones Capital (Casilla 67)",
+        totalValue: c.casillas[67] ?? 0,
+      };
+    }
+
+    case 72: {
+      return {
+        title: "Compensación de Pérdidas Fiscales de Capital (Casilla 72)",
+        description: "Pérdidas fiscales declaradas en años gravables anteriores en la subcédula de capital que se compensan contra las utilidades del año (Art. 330 E.T.):",
+        items: [
+          {
+            label: "Pérdidas de capital de periodos anteriores compensadas",
+            value: formatCOP(d.capital.compensacionPerdidas),
+            legal: "Art. 330 E.T. (Reajustadas fiscalmente hasta el límite de la renta líquida)",
+            source: "Declaraciones de renta de años anteriores (Formulario 210)",
+          },
+        ],
+        totalLabel: "Total Pérdidas Compensadas Capital (Casilla 72)",
+        totalValue: c.casillas[72] ?? 0,
+      };
+    }
+
     // -------------------------------------------------------------------------
     // RENTAS NO LABORALES
     // -------------------------------------------------------------------------
@@ -894,6 +1035,215 @@ export function getCasillaItemizedBreakdown(
         ],
         totalLabel: "Total Costos No Laborales (Casilla 77)",
         totalValue: c.casillas[77] ?? 0,
+      };
+    }
+
+    case 79: {
+      return {
+        title: "Rentas Pasivas del Exterior - ECE No Laborales (Casilla 79)",
+        description: "Rentas pasivas obtenidas a través de Entidades Controladas del Exterior en actividades comerciales (Art. 884 E.T.):",
+        items: [
+          {
+            label: "Rentas pasivas ECE no laborales atribuidas",
+            value: formatCOP(d.noLaborales.ecePasiva),
+            legal: "Arts. 882 a 893 del Estatuto Tributario (Régimen ECE)",
+          },
+        ],
+        totalLabel: "Total ECE No Laborales (Casilla 79)",
+        totalValue: c.casillas[79] ?? 0,
+      };
+    }
+
+    case 80: {
+      return {
+        title: "Aportes Voluntarios AFC / FVP en No Laborales (Casilla 80)",
+        description: "Rentas exentas por ahorro voluntario para pensión y fomento a la construcción en actividades no laborales:",
+        items: [
+          {
+            label: "Aportes voluntarios FVP y cuentas AFC / AVC",
+            value: formatCOP(d.noLaborales.aportesAfc),
+            legal: `Arts. 126-1 y 126-4 E.T. (Límite individual 30% del ingreso y hasta 3.800 UVT = ${formatCOP(uvt * 3800)})`,
+          },
+        ],
+        totalLabel: "Total Aportes AFC/FVP No Laborales (Casilla 80)",
+        totalValue: c.casillas[80] ?? 0,
+      };
+    }
+
+    case 81: {
+      return {
+        title: "Otras Rentas Exentas No Laborales (Casilla 81)",
+        description: "Beneficios de exención tributaria aplicables a actividades comerciales y no laborales:",
+        items: [
+          {
+            label: "Rentas exentas Convenios CAN (Decisión 578)",
+            value: formatCOP(d.noLaborales.rentasCan),
+            legal: "Decisión 578 de la Comunidad Andina de Naciones",
+          },
+          {
+            label: "Otras rentas exentas no laborales",
+            value: formatCOP(d.noLaborales.otrasExentas),
+          },
+        ],
+        totalLabel: "Total Rentas Exentas No Laborales (Casilla 81)",
+        totalValue: c.casillas[81] ?? 0,
+      };
+    }
+
+    case 83: {
+      return {
+        title: "Intereses de Vivienda No Laborales (Casilla 83)",
+        description: "Deducción de intereses de crédito hipotecario o leasing habitacional en actividades no laborales (Art. 119 E.T.):",
+        items: [
+          {
+            label: "Intereses de crédito hipotecario o leasing de vivienda",
+            value: formatCOP(d.noLaborales.interesesVivienda),
+            legal: `Art. 119 E.T. (Límite 1.200 UVT = ${formatCOP(uvt * 1200)})`,
+          },
+        ],
+        totalLabel: "Total Intereses Vivienda No Laborales (Casilla 83)",
+        totalValue: c.casillas[83] ?? 0,
+      };
+    }
+
+    case 84: {
+      const nl = d.noLaborales;
+      const items: ItemBreakdown[] = [];
+      if (nl.gmf > 0) {
+        items.push({
+          label: "Deducción del 50% del GMF (4x1000 bancario)",
+          value: formatCOP(nl.gmf * 0.5),
+          legal: "Art. 115 E.T.",
+        });
+      }
+      if (nl.icetex > 0) {
+        items.push({
+          label: "Intereses de crédito educativo ICETEX",
+          value: formatCOP(nl.icetex),
+          legal: `Art. 119 E.T. (Tope 100 UVT = ${formatCOP(uvt * 100)})`,
+        });
+      }
+      if (nl.aportesCesantiasIndependiente > 0) {
+        items.push({
+          label: "Aportes a fondos de cesantías como independiente",
+          value: formatCOP(nl.aportesCesantiasIndependiente),
+          legal: `Art. 126-1 E.T. (Tope 1/12 del ingreso y 2.500 UVT = ${formatCOP(uvt * 2500)})`,
+        });
+      }
+      if (nl.fnceAnual > 0) {
+        items.push({
+          label: "Deducción FNCE y movilidad eléctrica",
+          value: formatCOP(nl.fnceAnual),
+        });
+      }
+      if (nl.otrasDeducciones > 0) {
+        items.push({
+          label: "Otras deducciones no laborales",
+          value: formatCOP(nl.otrasDeducciones),
+        });
+      }
+      if (items.length === 0) {
+        items.push({
+          label: "Sin otras deducciones en no laborales",
+          value: "$0",
+        });
+      }
+      return {
+        title: "Desglose de Otras Deducciones No Laborales (Casilla 84)",
+        description: "Deducciones fiscales imputables a los ingresos por actividades comerciales y no laborales:",
+        items,
+        totalLabel: "Total Otras Deducciones No Laborales (Casilla 84)",
+        totalValue: c.casillas[84] ?? 0,
+      };
+    }
+
+    case 89: {
+      return {
+        title: "Compensación de Pérdidas Fiscales No Laborales (Casilla 89)",
+        description: "Pérdidas fiscales de años anteriores originadas en actividades no laborales compensadas en el periodo (Art. 330 E.T.):",
+        items: [
+          {
+            label: "Pérdidas no laborales de años anteriores compensadas",
+            value: formatCOP(d.noLaborales.compensacionPerdidas),
+            legal: "Art. 330 E.T. (Hasta el límite de la renta líquida del ejercicio)",
+          },
+        ],
+        totalLabel: "Total Pérdidas Compensadas No Laborales (Casilla 89)",
+        totalValue: c.casillas[89] ?? 0,
+      };
+    }
+
+    case 94: {
+      return {
+        title: "Compensación de Pérdidas Años 2018 y Anteriores (Casilla 94)",
+        description: "Compensación general de pérdidas fiscales líquidas acumuladas hasta el año 2018 (Art. 330 Parágrafo transitorio E.T.):",
+        items: [
+          {
+            label: "Pérdidas fiscales de 2018 y anteriores compensadas",
+            value: formatCOP(d.extra.compensacionPerdidas2018),
+            legal: "Art. 330 Parágrafo transitorio del Estatuto Tributario",
+            source: "Declaraciones de renta año 2018 y anteriores",
+          },
+        ],
+        totalLabel: "Total Pérdidas 2018 Compensadas (Casilla 94)",
+        totalValue: c.casillas[94] ?? 0,
+      };
+    }
+
+    case 95: {
+      return {
+        title: "Compensación por Exceso de Renta Presuntiva (Casilla 95)",
+        description: "Excesos de renta presuntiva sobre renta ordinaria liquidados en los 5 periodos gravables anteriores (Art. 189 Parágrafo E.T.):",
+        items: [
+          {
+            label: "Exceso de renta presuntiva compensado en el año",
+            value: formatCOP(d.extra.compensacionExcesoPresuntiva),
+            legal: "Art. 189 Parágrafo del Estatuto Tributario (Término de firmeza: 5 años)",
+          },
+        ],
+        totalLabel: "Total Exceso Renta Presuntiva (Casilla 95)",
+        totalValue: c.casillas[95] ?? 0,
+      };
+    }
+
+    case 96: {
+      return {
+        title: "Rentas Gravables Especiales y Descuadre Patrimonial (Casilla 96)",
+        description: "Rentas gravables por recuperación de deducciones, activos omitidos, pasivos inexistentes o renta por comparación patrimonial (Arts. 195 a 199, 236 a 239-1 E.T.):",
+        items: [
+          {
+            label: "Rentas gravables especiales y activos omitidos declarados",
+            value: formatCOP(d.extra.rentasGravables),
+            legal: "Arts. 195, 236 y 239-1 del Estatuto Tributario",
+          },
+        ],
+        totalLabel: "Total Rentas Gravables (Casilla 96)",
+        totalValue: c.casillas[96] ?? 0,
+      };
+    }
+
+    case 98: {
+      return {
+        title: "Renta Presuntiva de Ley (Casilla 98)",
+        description: "Rendimiento mínimo presunto del patrimonio líquido del año anterior exigido por ley (Art. 188 E.T.):",
+        items: [
+          {
+            label: "Patrimonio líquido del año anterior base",
+            value: formatCOP(d.patrimonio.patrimonioLiquidoAnterior),
+          },
+          {
+            label: "Tarifa legal vigente de renta presuntiva",
+            value: "0.0 %",
+            legal: "Art. 188 E.T. (Modificado por Ley 2010 de 2019: tarifa 0% a partir de 2021)",
+          },
+          {
+            label: "Renta presuntiva liquidada",
+            value: "$0",
+          },
+        ],
+        totalLabel: "Total Renta Presuntiva (Casilla 98)",
+        totalValue: 0,
+        footnote: "Desde el año gravable 2021, la tarifa de renta presuntiva en Colombia es del 0%, por lo que la base gravable siempre se liquida sobre la renta ordinaria real.",
       };
     }
 
@@ -1026,6 +1376,38 @@ export function getCasillaItemizedBreakdown(
       };
     }
 
+    case 109: {
+      return {
+        title: "Dividendos y Participaciones del Exterior (Casilla 109)",
+        description: "Dividendos recibidos de sociedades extranjeras durante el año gravable (Art. 241 E.T.):",
+        items: [
+          {
+            label: "Dividendos de fuente extranjera recibidos",
+            value: formatCOP(d.dividendos.exterior),
+            source: "Certificados de dividendos de entidades del exterior / Extractos internacionales",
+          },
+        ],
+        totalLabel: "Total Dividendos Exterior (Casilla 109)",
+        totalValue: c.casillas[109] ?? 0,
+      };
+    }
+
+    case 110: {
+      return {
+        title: "Rentas Exentas sobre Dividendos del Exterior (Casilla 110)",
+        description: "Exenciones aplicables a dividendos del exterior por convenios de doble imposición (CDI):",
+        items: [
+          {
+            label: "Dividendos del exterior exentos por convenios CDI",
+            value: formatCOP(d.dividendos.exentasExterior),
+            legal: "Convenios para Evitar la Doble Imposición (CDI)",
+          },
+        ],
+        totalLabel: "Total Exenciones Dividendos Exterior (Casilla 110)",
+        totalValue: c.casillas[110] ?? 0,
+      };
+    }
+
     // -------------------------------------------------------------------------
     // GANANCIAS OCASIONALES
     // -------------------------------------------------------------------------
@@ -1121,6 +1503,22 @@ export function getCasillaItemizedBreakdown(
       };
     }
 
+    case 117: {
+      return {
+        title: "Impuesto sobre Renta Presuntiva (Casilla 117)",
+        description: "Impuesto calculado sobre la renta presuntiva si esta resultase superior a la renta ordinaria:",
+        items: [
+          {
+            label: "Impuesto sobre renta presuntiva liquidado",
+            value: "$0",
+            legal: "Art. 188 E.T. (Tarifa 0%)",
+          },
+        ],
+        totalLabel: "Total Impuesto Presuntiva (Casilla 117)",
+        totalValue: 0,
+      };
+    }
+
     // -------------------------------------------------------------------------
     // LIQUIDACIÓN PRIVADA, DESCUENTOS Y SALDOS
     // -------------------------------------------------------------------------
@@ -1154,6 +1552,38 @@ export function getCasillaItemizedBreakdown(
         ],
         totalLabel: "Total Descuento Donaciones (Casilla 123)",
         totalValue: c.casillas[123] ?? 0,
+      };
+    }
+
+    case 124: {
+      return {
+        title: "Otros Descuentos Tributarios (Casilla 124)",
+        description: "Descuentos por becas por impuestos, inversiones en I+D+i y medio ambiente (Arts. 255 a 258 E.T.):",
+        items: [
+          {
+            label: "Otros descuentos tributarios aplicados",
+            value: formatCOP(d.descuentos.otros),
+            legal: "Arts. 255, 256, 257-1 y 258 del Estatuto Tributario",
+          },
+        ],
+        totalLabel: "Total Otros Descuentos (Casilla 124)",
+        totalValue: c.casillas[124] ?? 0,
+      };
+    }
+
+    case 128: {
+      return {
+        title: "Descuento Exterior en Ganancias Ocasionales (Casilla 128)",
+        description: "Crédito tributario por impuestos pagados en el exterior sobre ganancias ocasionales de fuente extranjera (Art. 254 E.T.):",
+        items: [
+          {
+            label: "Impuestos acreditables pagados en el exterior sobre GO",
+            value: formatCOP(d.gananciasOcasionales.impuestoExterior),
+            legal: "Art. 254 del Estatuto Tributario",
+          },
+        ],
+        totalLabel: "Total Descuento Exterior GO (Casilla 128)",
+        totalValue: c.casillas[128] ?? 0,
       };
     }
 
@@ -1202,6 +1632,28 @@ export function getCasillaItemizedBreakdown(
         ],
         totalLabel: "Total Retenciones en la Fuente (Casilla 132)",
         totalValue: c.casillas[132] ?? 0,
+      };
+    }
+
+    case 133: {
+      return {
+        title: "Anticipo de Renta para el Año Siguiente (Casilla 133)",
+        description: "Anticipo obligatorio del impuesto de renta del período fiscal siguiente calculado según el Art. 807 del Estatuto Tributario:",
+        items: [
+          {
+            label: "Porcentaje legal de anticipo aplicable",
+            value: "25% (1er año) / 50% (2do año) / 75% (3er año en adelante)",
+            legal: "Art. 807 del Estatuto Tributario",
+          },
+          {
+            label: "Anticipo calculado para el año gravable siguiente",
+            value: formatCOP(c.casillas[133] ?? 0),
+            source: "Menor valor entre procedimiento 1 (Impuesto neto) y procedimiento 2 (Promedio dos últimos años)",
+          },
+        ],
+        totalLabel: "Total Anticipo Año Siguiente (Casilla 133)",
+        totalValue: c.casillas[133] ?? 0,
+        footnote: "El anticipo pagado se resta automáticamente en la declaración de renta del año siguiente (Casilla 130).",
       };
     }
 

@@ -33,7 +33,7 @@ export const FORMULAS_EXPLICADAS_210: Record<number, FormulaExplicada> = {
     casillasInvolucradas: [38, 39],
   },
   41: {
-    formula: "Mínimo entre: (Tus rentas exentas y deducciones solicitadas) y (Límite legal del 40% de tus ingresos netos o 1.340 UVT)",
+    formula: "Mínimo entre: (Casilla 37 Total exentas + Casilla 40 Total deducciones) y (Límite legal del 40% de ingresos netos o 1.340 UVT)",
     descripcion: "La ley tributaria (Art. 336 E.T.) te permite restar tus beneficios y deducciones de trabajo hasta un tope máximo del 40% de tus ingresos netos o 1.340 UVT anuales. Aquí se toma el valor exacto aceptado por la ley.",
     casillasInvolucradas: [34, 37, 40],
   },
@@ -58,39 +58,49 @@ export const FORMULAS_EXPLICADAS_210: Record<number, FormulaExplicada> = {
     casillasInvolucradas: [50, 51],
   },
   53: {
-    formula: "Mínimo entre: (Tus exenciones y deducciones en honorarios) y (Límite del 40% de ingresos o 1.340 UVT)",
+    formula: "Mínimo entre: (Casilla 49 Total exentas + Casilla 52 Total deducciones) y (Límite del 40% de ingresos o 1.340 UVT)",
     descripcion: "Beneficios y deducciones aceptados en honorarios bajo el tope legal del 40% y 1.340 UVT.",
     casillasInvolucradas: [46, 49, 52],
   },
+  54: {
+    formula: "Casilla 46 (Ingresos netos por honorarios) - Casilla 53 (Exentas y deducciones aceptadas)",
+    descripcion: "Renta líquida ordinaria del ejercicio generada en la subcédula de honorarios y servicios personales antes de compensar pérdidas de años anteriores.",
+    casillasInvolucradas: [46, 53],
+  },
   57: {
-    formula: "Casilla 46 (Ingresos netos) - Casilla 53 (Exentas y deducciones aceptadas) - Casilla 56 (Pérdidas de años anteriores)",
-    descripcion: "Ganancia neta depurada de honorarios que se integra a la Cédula General.",
-    casillasInvolucradas: [46, 53, 56],
+    formula: "Casilla 54 (Renta líquida del ejercicio) - Casilla 56 (Pérdidas de años anteriores)",
+    descripcion: "Ganancia neta depurada final de honorarios que se integra a la Cédula General.",
+    casillasInvolucradas: [54, 56],
   },
   61: {
-    formula: "Casilla 58 (Ingresos por arriendos e intereses) - Casilla 59 (Devoluciones) - Casilla 60 (Componente inflacionario y seguridad social)",
-    descripcion: "Ingresos por arrendamientos de inmuebles, rendimientos de cuentas bancarias, CDTs, intereses o regalías, menos los gastos no constitutivos y aportes a seguridad social.",
+    formula: "Casilla 58 (Ingresos brutos capital) - Casilla 59 (Beneficio de inflación y seguridad social) - Casilla 60 (Costos procedentes)",
+    descripcion: "Ingresos netos de capital después de restar beneficios no gravados como el componente inflacionario bancario, aportes de seguridad social y costos deducibles.",
     casillasInvolucradas: [58, 59, 60],
   },
-  64: {
-    formula: "Casilla 62 (Aportes voluntarios AFC/FVP) + Casilla 63 (Otras rentas exentas de capital)",
+  65: {
+    formula: "Casilla 63 (Aportes voluntarios AFC/FVP) + Casilla 64 (Otras rentas exentas de capital)",
     descripcion: "Total de rentas exentas imputables a tus ingresos por rentas de capital.",
-    casillasInvolucradas: [62, 63],
+    casillasInvolucradas: [63, 64],
   },
-  67: {
-    formula: "Casilla 65 (Intereses de vivienda) + Casilla 66 (Medicina prepagada y 50% 4x1000)",
-    descripcion: "Total de deducciones aplicables a tus rentas de capital.",
-    casillasInvolucradas: [65, 66],
+  68: {
+    formula: "Casilla 66 (Intereses de vivienda) + Casilla 67 (Otras deducciones / 50% 4x1000 GMF)",
+    descripcion: "Total de deducciones imputables a la subcédula de rentas de capital (intereses de crédito hipotecario, deducción del 50% del 4x1000 bancario, etc.).",
+    casillasInvolucradas: [66, 67],
   },
   69: {
-    formula: "Mínimo entre: (Exenciones y deducciones en capital) y (Límite del 40% de ingresos o 1.340 UVT)",
-    descripcion: "Beneficios y deducciones aceptados en rentas de capital bajo el límite del 40% y 1.340 UVT.",
-    casillasInvolucradas: [61, 64, 67],
+    formula: "Mínimo entre: (Casilla 65 Total exentas + Casilla 68 Total deducciones) y (Límite del 40% de ingresos netos o 1.340 UVT)",
+    descripcion: "Beneficios y deducciones aceptados en rentas de capital bajo el límite conjunto del 40% y 1.340 UVT.",
+    casillasInvolucradas: [61, 65, 68],
+  },
+  70: {
+    formula: "Casilla 61 (Ingresos netos) + Casilla 62 (Rentas del exterior ECE) - Casilla 69 (Exentas y deducciones aceptadas)",
+    descripcion: "Renta líquida ordinaria del ejercicio generada en rentas de capital antes de compensar pérdidas.",
+    casillasInvolucradas: [61, 62, 69],
   },
   73: {
-    formula: "Casilla 61 (Ingresos netos) + Casilla 68 (Rentas del exterior ECE) - Casilla 69 (Exentas y deducciones aceptadas) - Casilla 72 (Pérdidas anteriores)",
+    formula: "Casilla 70 (Renta líquida del ejercicio) - Casilla 72 (Pérdidas fiscales anteriores)",
     descripcion: "Ganancia neta depurada de rentas de capital que se integra a la Cédula General.",
-    casillasInvolucradas: [61, 68, 69, 72],
+    casillasInvolucradas: [70, 72],
   },
   78: {
     formula: "Casilla 74 (Ventas e ingresos del negocio) - Casilla 75 (Devoluciones) - Casilla 76 (Seguridad social) - Casilla 77 (Costos y gastos procedentes del negocio)",
@@ -103,19 +113,24 @@ export const FORMULAS_EXPLICADAS_210: Record<number, FormulaExplicada> = {
     casillasInvolucradas: [80, 81],
   },
   85: {
-    formula: "Casilla 83 (Intereses de vivienda) + Casilla 84 (Otras deducciones personales)",
-    descripcion: "Total de deducciones aplicables a actividades no laborales.",
+    formula: "Casilla 83 (Intereses de vivienda) + Casilla 84 (Otras deducciones / 50% 4x1000 GMF)",
+    descripcion: "Total de deducciones aplicables a actividades comerciales y no laborales.",
     casillasInvolucradas: [83, 84],
   },
   86: {
-    formula: "Mínimo entre: (Exenciones y deducciones en no laborales) y (Límite del 40% o 1.340 UVT)",
+    formula: "Mínimo entre: (Casilla 82 Total exentas + Casilla 85 Total deducciones) y (Límite del 40% o 1.340 UVT)",
     descripcion: "Beneficios tributarios aceptados en actividades comerciales y no laborales bajo el límite del 40% y 1.340 UVT.",
     casillasInvolucradas: [78, 82, 85],
   },
+  87: {
+    formula: "Casilla 78 (Ingresos netos) + Casilla 79 (Rentas del exterior ECE) - Casilla 86 (Exentas y deducciones aceptadas)",
+    descripcion: "Renta líquida ordinaria del ejercicio en actividades no laborales antes de compensar pérdidas.",
+    casillasInvolucradas: [78, 79, 86],
+  },
   90: {
-    formula: "Casilla 78 (Ingresos netos) + Casilla 79 (Rentas del exterior ECE) - Casilla 86 (Exentas y deducciones aceptadas) - Casilla 89 (Pérdidas anteriores)",
-    descripcion: "Ganancia neta depurada de actividades comerciales y no laborales que se integra a la Cédula General.",
-    casillasInvolucradas: [78, 79, 86, 89],
+    formula: "Casilla 87 (Renta líquida del ejercicio) - Casilla 89 (Pérdidas fiscales anteriores)",
+    descripcion: "Ganancia neta depurada final de actividades comerciales y no laborales que se integra a la Cédula General.",
+    casillasInvolucradas: [87, 89],
   },
   91: {
     formula: "Casilla 34 (Trabajo) + Casilla 46 (Honorarios) + Casilla 61 (Capital) + Casilla 78 (No Laborales)",
@@ -153,7 +168,7 @@ export const FORMULAS_EXPLICADAS_210: Record<number, FormulaExplicada> = {
     casillasInvolucradas: [104, 105],
   },
   111: {
-    formula: "Mayor entre (Casilla 97 Renta gravable y Casilla 98 Renta presuntiva) + Casilla 103 (Pensiones gravables) + Casilla 107 (Dividendos 1ª subcédula) + Casilla 109 (Dividendos exterior)",
+    formula: "Mayor entre (Casilla 97 Renta gravable y Casilla 98 Renta presuntiva) + Casilla 103 (Pensiones gravables) + Casilla 107 (Dividendos 1ª subcédula) + Casilla 109 (Dividendos exterior) - Casilla 110 (Exentas exterior)",
     descripcion: "Base gravable consolidada de todas tus rentas sobre la cual se aplica la tabla de tarifas progresivas de impuesto de renta (Art. 241 E.T.).",
     casillasInvolucradas: [97, 98, 103, 107, 109, 110],
   },
@@ -167,8 +182,13 @@ export const FORMULAS_EXPLICADAS_210: Record<number, FormulaExplicada> = {
     descripcion: "Impuesto determinado según los 7 tramos de tarifas en UVT (los primeros 1.090 UVT pagan 0%, luego 19%, 28%, 33%, 35%, 37% y 39%).",
     casillasInvolucradas: [111],
   },
+  118: {
+    formula: "35% sobre la Casilla 108 (Dividendos y participaciones gravados a la tarifa general del Art. 240 E.T.)",
+    descripcion: "Impuesto generado sobre dividendos recibidos de sociedades que no fueron gravados en cabeza de la sociedad.",
+    casillasInvolucradas: [108],
+  },
   121: {
-    formula: "Casilla 116 (Impuesto Cédula General y Pensiones) + Casilla 118 (Impuesto Dividendos al 35%) + Casilla 119 + Casilla 120",
+    formula: "Casilla 116 (Impuesto Cédula General y Pensiones) + Casilla 117 (Impuesto Renta Presuntiva) + Casilla 118 (Impuesto Dividendos 35%) + Casilla 119 + Casilla 120",
     descripcion: "Suma de los impuestos calculados sobre tus rentas ordinarias y dividendos antes de aplicar descuentos tributarios.",
     casillasInvolucradas: [116, 117, 118, 119, 120],
   },
@@ -206,6 +226,11 @@ export const FORMULAS_EXPLICADAS_210: Record<number, FormulaExplicada> = {
     formula: "Casilla 130 (Anticipo anterior) + Casilla 131 (Saldo a favor anterior) + Casilla 132 (Retenciones que te practicaron) - Casilla 129 (Impuesto a cargo) - Casilla 133 (Anticipo siguiente) - Casilla 135 (Sanciones)",
     descripcion: "Dinero a tu favor porque tus retenciones y anticipos fueron mayores al impuesto liquidado. Puedes pedirlo en devolución, compensación o arrastrarlo a tu declaración del próximo año.",
     casillasInvolucradas: [130, 131, 132, 129, 133, 135],
+  },
+  139: {
+    formula: "Casilla 138 (Número de dependientes económicos) × 72 UVT",
+    descripcion: "Deducción especial de 72 UVT por cada dependiente económico certificado (hasta 4 dependientes máximo), permitida por el Art. 336 numeral 2 E.T. sin quedar sujeta al límite conjunto del 40% ni de las 1.340 UVT.",
+    casillasInvolucradas: [138],
   },
   980: {
     formula: "Igual a Casilla 136 (Total saldo a pagar en bancos)",
