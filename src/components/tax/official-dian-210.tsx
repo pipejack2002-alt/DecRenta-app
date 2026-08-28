@@ -1625,15 +1625,15 @@ function CasillaInspectorModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in">
-      <div className="bg-surface w-full max-w-xl rounded-2xl border border-line shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="bg-surface w-full max-w-2xl rounded-2xl border border-line shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
         {/* Cabecera del Inspector */}
         <div className="flex items-center justify-between p-4 border-b border-line bg-forest-mist/30">
           <div className="flex items-center gap-2.5">
-            <span className="size-9 rounded-xl bg-forest/15 text-forest flex items-center justify-center font-bold text-sm font-mono">
+            <span className="size-9 rounded-xl bg-forest/15 text-forest flex items-center justify-center font-bold text-sm font-mono shrink-0">
               {casillaNum}
             </span>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h3 className="font-bold text-ink text-base">
                   {meta?.label || `Casilla ${casillaNum}`}
                 </h3>
@@ -1656,7 +1656,7 @@ function CasillaInspectorModal({
           </div>
           <button
             onClick={onClose}
-            className="size-8 rounded-lg text-muted hover:text-ink hover:bg-muted-mist flex items-center justify-center transition-colors"
+            className="size-8 rounded-lg text-muted hover:text-ink hover:bg-muted-mist flex items-center justify-center transition-colors shrink-0"
           >
             <X className="size-4" />
           </button>
@@ -1690,7 +1690,7 @@ function CasillaInspectorModal({
                 <Calculator className="size-4 text-blue-600" />
                 <span>Fórmula Matemática Explicada</span>
               </div>
-              <div className="bg-white p-3 rounded-lg border border-blue-200 font-sans text-xs text-blue-950 font-bold leading-relaxed shadow-2xs">
+              <div className="bg-white p-3.5 rounded-lg border border-blue-200 font-sans text-xs text-blue-950 font-bold leading-relaxed shadow-2xs">
                 {formulaInfo.formula}
               </div>
 
@@ -1698,18 +1698,22 @@ function CasillaInspectorModal({
               {formulaInfo.casillasInvolucradas && formulaInfo.casillasInvolucradas.length > 0 && (
                 <div className="space-y-1.5 pt-1">
                   <span className="text-[11px] font-semibold text-blue-900">Desglose de valores del declarante:</span>
-                  <div className="grid gap-1.5 bg-white p-2.5 rounded-lg border border-blue-100 text-xs shadow-2xs">
+                  <div className="grid gap-2 bg-white p-3 rounded-lg border border-blue-100 text-xs shadow-2xs">
                     {formulaInfo.casillasInvolucradas.map((cn: number) => {
                       const clearLabel = CASILLA_NOMBRES_CLAROS[cn] || CASILLAS_OFICIALES_210.find((x) => x.num === cn)?.label || "Concepto";
                       const cVal = computed.casillas[cn] ?? 0;
                       return (
-                        <div key={cn} className="flex items-center justify-between border-b border-gray-100 pb-1.5 last:border-none last:pb-0">
-                          <span className="text-gray-700 truncate mr-2 font-medium">
-                            <strong className="text-blue-900 font-mono font-bold">Casilla {cn}</strong> · {clearLabel}:
-                          </span>
-                          <span className="font-bold font-mono text-gray-900 shrink-0">
-                            {formatCOP(cVal)}
-                          </span>
+                        <div key={cn} className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-4 border-b border-gray-100 pb-2 last:border-none last:pb-0">
+                          <div className="min-w-0 flex-1">
+                            <span className="text-gray-800 text-[11.5px] font-medium leading-snug">
+                              <strong className="text-blue-900 font-mono font-bold">Casilla {cn}</strong> · {clearLabel}:
+                            </span>
+                          </div>
+                          <div className="shrink-0 self-end sm:self-auto">
+                            <span className="font-bold font-mono text-gray-900 text-xs sm:text-sm bg-blue-50/80 px-2.5 py-0.5 rounded border border-blue-200/70 inline-block">
+                              {cn === 138 ? String(cVal) : formatCOP(cVal)}
+                            </span>
+                          </div>
                         </div>
                       );
                     })}
@@ -1738,9 +1742,9 @@ function CasillaInspectorModal({
               <div className="grid gap-2 bg-white p-3 rounded-lg border border-emerald-100 text-xs shadow-2xs">
                 {itemized.items.map((it, idx) => (
                   <div key={idx} className="border-b border-gray-100 pb-2 last:border-none last:pb-0 space-y-0.5">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="font-semibold text-gray-900">{it.label}</span>
-                      <span className="font-bold font-mono text-emerald-900 shrink-0 text-sm">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-3">
+                      <span className="font-semibold text-gray-900 leading-snug">{it.label}</span>
+                      <span className="font-bold font-mono text-emerald-900 shrink-0 text-xs sm:text-sm self-end sm:self-auto bg-emerald-50/80 px-2.5 py-0.5 rounded border border-emerald-200/70">
                         {it.value}
                       </span>
                     </div>
