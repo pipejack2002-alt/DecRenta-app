@@ -330,27 +330,17 @@ export function getCasillaItemizedBreakdown(
           label: "Cesantías e intereses de cesantías 100% exentas",
           value: formatCOP(cesantiasExentas),
           legal: `Art. 206 Num. 4 E.T. (Salario promedio mensual $${formatNumber(t.promedioMensual6m)} ≤ 350 UVT $${formatNumber(uvt * 350)})`,
-          source: "100% exentas por estar en el rango de ingresos de la tabla legal",
+          source: "100% exentas por estar en el rango de ingresos de la tabla legal (Certificado Formato 220)",
+        },
+        {
+          label: "Exención laboral del 25% (Art. 206 Num. 10 E.T.)",
+          value: formatCOP(renta25),
+          legal: `25% legal aplicado sobre base depurada de $${formatNumber(baseRenta25)} (Tope máx. 790 UVT = $${formatNumber(uvt * 790)})`,
+          source: deduccionesImputables > 0
+            ? `Cálculo de la base: Renta líquida ($${formatNumber(c.casillas[34] ?? 0)}) - Cesantías ($${formatNumber(cesantiasExentas)}) - Deducciones Casilla 40 ($${formatNumber(deduccionesImputables)}) = $${formatNumber(baseRenta25)}`
+            : `Cálculo de la base: Renta líquida ($${formatNumber(c.casillas[34] ?? 0)}) - Cesantías ($${formatNumber(cesantiasExentas)}) = $${formatNumber(baseRenta25)}`,
         },
       ];
-
-      if (deduccionesImputables > 0) {
-        items.push({
-          label: "Deducciones imputables detraídas de la base del 25% (Casilla 40)",
-          value: `-${formatCOP(deduccionesImputables)}`,
-          source: "Dependientes (10%), medicina prepagada, intereses de vivienda o GMF (Art. 387 E.T.)",
-          legal: "Art. 206 Num. 10 E.T. ordena restar deducciones antes de calcular el 25%",
-        });
-      }
-
-      items.push({
-        label: "Renta exenta laboral del 25% (Art. 206 Num. 10 E.T.)",
-        value: formatCOP(renta25),
-        legal: `25% aplicado sobre base depurada de $${formatNumber(baseRenta25)} (Tope máx. 790 UVT = $${formatNumber(uvt * 790)})`,
-        source: deduccionesImputables > 0
-          ? `Base: Renta líquida ($${formatNumber(c.casillas[34] ?? 0)}) - Cesantías ($${formatNumber(cesantiasExentas)}) - Deducciones Casilla 40 ($${formatNumber(deduccionesImputables)}) = $${formatNumber(baseRenta25)}`
-          : `Base: Renta líquida ($${formatNumber(c.casillas[34] ?? 0)}) - Cesantías ($${formatNumber(cesantiasExentas)}) = $${formatNumber(baseRenta25)}`,
-      });
 
       if (t.cesantiasAcumuladas2016 > 0) {
         items.push({
@@ -387,8 +377,8 @@ export function getCasillaItemizedBreakdown(
         totalLabel: "Total Otras Rentas Exentas (Casilla 36)",
         totalValue: c.casillas[36] ?? 0,
         footnote: deduccionesImputables > 0
-          ? `El Art. 206 Numeral 10 del E.T. ordena restar previamente las deducciones de la Casilla 40 ($${formatNumber(deduccionesImputables)}) antes de calcular el 25%. Por eso la exención del 25% es $${formatNumber(renta25)}, que sumada a tus cesantías 100% exentas ($${formatNumber(cesantiasExentas)}), da exactamente los $${formatNumber(c.casillas[36] ?? 0)} liquidados.`
-          : `Tus cesantías e intereses ($${formatNumber(cesantiasExentas)}) están 100% exentos. La ley te otorga adicionalmente el 25% de exención laboral ($${formatNumber(renta25)}) sobre la base neta. Total exacto: $${formatNumber(c.casillas[36] ?? 0)}.`,
+          ? `Tus cesantías ($${formatNumber(cesantiasExentas)}) son 100% exentas. Adicionalmente, el Art. 206 Numeral 10 te otorga el 25% de exención laboral ($${formatNumber(renta25)}) sobre tu base depurada de deducciones. La suma exacta de ambos beneficios da los $${formatNumber(c.casillas[36] ?? 0)} liquidados.`
+          : `Tus cesantías ($${formatNumber(cesantiasExentas)}) están 100% exentas. La ley te otorga adicionalmente el 25% de exención laboral ($${formatNumber(renta25)}) sobre la base neta. Total exacto: $${formatNumber(c.casillas[36] ?? 0)}.`,
       };
     }
 
@@ -423,7 +413,7 @@ export function getCasillaItemizedBreakdown(
       if (t.gmf > 0) {
         items.push({
           label: "Gravamen a los Movimientos Financieros (50% del 4x1000)",
-          value: formatCOP(t.gmf),
+          value: formatCOP(t.gmf * 0.5),
           source: "Certificados bancarios anuales de GMF",
           legal: "Art. 115 del Estatuto Tributario",
         });
@@ -437,11 +427,13 @@ export function getCasillaItemizedBreakdown(
         });
       }
       if (t.dependientes > 0) {
-        const deducDep = Math.min(t.salarios * 0.1, uvt * 384);
+        const isLaboral = (c.casillas[32] ?? 0) > 0;
+        const depBase = isLaboral ? (c.casillas[32] ?? 0) : t.salarios;
+        const deducDep = Math.min(depBase * 0.1, uvt * 384, c.casillas[34] ?? 0);
         items.push({
           label: `Deducción por dependientes (10% ingreso bruto de trabajo)`,
           value: formatCOP(deducDep),
-          legal: `Art. 387 E.T. (Máx. 32 UVT/mes = ${formatCOP(uvt * 384)}/año)`,
+          legal: `Art. 387 E.T. (10% sobre ingresos brutos $${formatNumber(depBase)} = $${formatNumber(deducDep)}, máx. 32 UVT/mes = ${formatCOP(uvt * 384)}/año)`,
           source: `Para ${t.dependientes} dependiente(s) a cargo dentro del 40%`,
         });
       }
