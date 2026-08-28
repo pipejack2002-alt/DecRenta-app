@@ -233,7 +233,7 @@ export function generateFormulario210Xml(d: Declaration, c: ComputedDeclaration)
     const val = c.casillas[n];
     if (val === undefined || val === null) continue;
     const label = CASILLA_LABELS[n] ?? `Casilla ${n}`;
-    const formattedVal = n === 140 ? (val ? "1" : "0") : String(Math.round(val / 1000) * 1000);
+    const formattedVal = n === 140 ? (val ? "1" : "0") : n === 138 ? String(val || 0) : String(Math.round(val / 1000) * 1000);
     lines.push(
       `    <casilla num="${n}" valor="${formattedVal}" etiqueta="${escapeXml(label)}" />`,
     );
@@ -270,6 +270,7 @@ export function generateFormulario210Workbook(d: Declaration, c: ComputedDeclara
 
   const numVal = (n: number) => {
     const val = c.casillas[n];
+    if (n === 138) return val !== undefined && val !== null ? val : 0;
     return val !== undefined && val !== null ? Math.round(val / 1000) * 1000 : 0;
   };
 
@@ -519,7 +520,14 @@ export function generateFormulario210Csv(d: Declaration, c: ComputedDeclaration)
     const val = c.casillas[item.num];
     let formattedVal = "0";
     if (val !== undefined && val !== null) {
-      formattedVal = item.num === 140 ? (val ? "X" : "") : String(Math.round(val / 1000) * 1000);
+      formattedVal =
+        item.num === 140
+          ? val
+            ? "X"
+            : ""
+          : item.num === 138
+            ? String(val)
+            : String(Math.round(val / 1000) * 1000);
     }
     lines.push(`${item.num};"${item.label.replace(/"/g, '""')}";"${item.legal.replace(/"/g, '""')}";${formattedVal}`);
   }

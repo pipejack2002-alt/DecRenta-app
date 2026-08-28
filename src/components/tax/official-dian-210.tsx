@@ -86,6 +86,7 @@ export function OfficialDian210({
   function v(num: number): string {
     const val = c.casillas[num];
     if (num === 140) return val ? "X" : "";
+    if (num === 138) return String(val ?? 0);
     if (val === undefined || val === null || val === 0) return "0";
     const rounded = Math.round(val / 1000) * 1000;
     return formatNumber(rounded);

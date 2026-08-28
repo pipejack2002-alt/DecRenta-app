@@ -875,7 +875,7 @@ function DeclaracionPage() {
                   </span>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                   {[0, 1, 2, 3, 4].map((n) => (
                     <button
                       key={n}
@@ -889,13 +889,13 @@ function DeclaracionPage() {
                         }
                       })}
                       className={cn(
-                        "h-10 flex-1 rounded-lg border text-xs font-bold font-mono transition-all",
+                        "h-10 rounded-lg border text-xs font-semibold transition-all px-2 text-center",
                         d.trabajo.dependientes === n
                           ? "border-forest bg-forest text-white shadow-xs"
                           : "border-line bg-surface text-ink hover:bg-forest-mist/50",
                       )}
                     >
-                      {n === 0 ? "0 (Sin dep.)" : `${n} dep.`}
+                      {n === 0 ? "Sin dependientes" : n === 1 ? "1 dependiente" : `${n} dependientes`}
                     </button>
                   ))}
                 </div>
@@ -1236,13 +1236,13 @@ function DeclaracionPage() {
                             }
                           })}
                           className={cn(
-                            "h-10 flex-1 rounded-lg border text-xs font-bold font-mono transition-all",
+                            "h-10 rounded-lg border text-xs font-semibold transition-all px-2 text-center",
                             (d.honorarios.dependientes ?? 0) === n
                               ? "border-forest bg-forest text-white shadow-xs"
                               : "border-line bg-surface text-ink hover:bg-forest-mist/50",
                           )}
                         >
-                          {n === 0 ? "0 (Sin dep.)" : `${n} dep.`}
+                          {n === 0 ? "Sin dependientes" : n === 1 ? "1 dependiente" : `${n} dependientes`}
                         </button>
                       ))}
                     </div>
