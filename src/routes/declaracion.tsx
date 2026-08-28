@@ -1337,13 +1337,22 @@ function DeclaracionPage() {
                 <h3 className="font-display text-base font-semibold text-ink">1. Ingresos Brutos de Capital · Casilla 58</h3>
                 <div className={fieldGrid}>
                   <MoneyField
-                    label="Intereses y rendimientos financieros (Casilla 58)"
+                    label="Intereses y rendimientos en cuentas bancarias y CDTs"
                     casilla={58}
                     year={y}
                     value={d.capital.intereses}
                     onChange={(n) => patch((x) => (x.capital.intereses = n))}
-                    hint="Intereses de cuentas de ahorro, CDT, fondos de inversión, cesantías y rendimientos financieros (ej. Nu, Bancolombia, Colfondos)."
-                    source="Certificados tributarios bancarios / Formato 1007 / Formato 5063"
+                    hint="Intereses de cuentas de ahorro, corrientes y CDTs en entidades financieras vigiladas. Aplica el beneficio de componente inflacionario (Art. 38 E.T.)."
+                    source="Certificados tributarios bancarios (ej. Nu, Bancolombia) / Formato 1007"
+                  />
+                  <MoneyField
+                    label="Rendimientos causados en el fondo de cesantías"
+                    casilla={58}
+                    year={y}
+                    value={d.capital.rendimientosCesantias || 0}
+                    onChange={(n) => patch((x) => (x.capital.rendimientosCesantias = n))}
+                    hint="Rendimientos generados por el portafolio en fondos de cesantías. Son renta gravada en capital sin descuento de inflación (Doctrina DIAN)."
+                    source="Certificado tributario del fondo de cesantías (ej. Colfondos) / Formato 5063"
                   />
                   <MoneyField
                     label="Ingresos por arrendamientos de bienes muebles e inmuebles"
@@ -1387,51 +1396,63 @@ function DeclaracionPage() {
                 </div>
               </div>
 
-              {/* 2. Ingresos No Constitutivos de Renta */}
+              {/* 2. Ingresos no gravados de capital */}
               <div className="space-y-3 pt-2 border-t border-line">
-                <h3 className="font-display text-base font-semibold text-ink">2. Ingresos No Constitutivos de Renta (Conceptos No Gravados) · Casilla 59</h3>
+                <h3 className="font-display text-base font-semibold text-ink">2. Ingresos No Gravados y Beneficios Tributarios · Casilla 59</h3>
 
                 {(() => {
                   const ciInfo = getComponenteInflacionario(y);
-                  const suggestedAmount = Math.round(d.capital.intereses * ciInfo.rate);
+                  const baseBancaria = d.capital.intereses || 0;
+                  const suggestedAmount = Math.round(baseBancaria * ciInfo.rate);
                   return (
                     <div className="rounded-xl border border-line bg-mist/60 p-4 text-xs space-y-3 text-ink/80">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="flex items-center gap-2 font-medium text-ink">
                           <Sparkles className="size-4 text-forest" />
-                          <span>Beneficio legal del Componente Inflacionario (Arts. 38 y 40-1 E.T.):</span>
+                          <span>Beneficio legal por inflación en rendimientos financieros (Arts. 38 y 40-1 E.T.):</span>
                         </div>
                         <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full bg-forest-mist text-forest border border-forest/30">
-                          {ciInfo.decree} ({ciInfo.percentage}%)
+                          {ciInfo.percentage}% · {ciInfo.decree}
                         </span>
                       </div>
 
                       <p className="text-muted leading-relaxed">
-                        Para personas naturales no obligadas a llevar contabilidad, la porción de los intereses y rendimientos financieros generados por entidades financieras (cuentas de ahorro, CDTs, fiducias y rendimientos en fondos de cesantías) que compensa la inflación del año es un <strong>Ingreso No Constitutivo de Renta ni Ganancia Ocasional (INCRNGO)</strong> y se resta directamente en la <strong>Casilla 59</strong> para no tributar sobre la desvalorización monetaria.
+                        Para personas naturales no obligadas a llevar contabilidad, la porción de los intereses bancarios que compensa la inflación del año es un <strong>ingreso no gravado</strong> y se resta directamente en la <strong>Casilla 59</strong> para tributar únicamente sobre la ganancia real y no sobre la desvalorización monetaria.
                       </p>
 
-                      {d.capital.intereses > 0 && (
-                        <div className="rounded-lg bg-surface border border-line p-3 space-y-2">
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px]">
-                            <div>
-                              <span className="text-muted block">Base total rendimientos (c.58):</span>
-                              <span className="font-mono font-bold text-ink">{formatCOP(d.capital.intereses)}</span>
+                      {baseBancaria > 0 && (
+                        <div className="rounded-lg bg-surface border border-line p-3.5 space-y-3 shadow-2xs">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                            <div className="space-y-0.5">
+                              <span className="text-muted block text-[11px]">Base bancaria con beneficio (Art. 38):</span>
+                              <span className="font-mono font-bold text-ink text-sm">{formatCOP(baseBancaria)}</span>
+                              {(d.capital.rendimientosCesantias || 0) > 0 && (
+                                <span className="text-[10px] text-muted block">
+                                  + {formatCOP(d.capital.rendimientosCesantias || 0)} de cesantías (100% gravado)
+                                </span>
+                              )}
                             </div>
-                            <div>
-                              <span className="text-muted block">Tasa legal aplicable (AG {y}):</span>
-                              <span className="font-mono font-bold text-forest">{ciInfo.percentage}% ({ciInfo.decree})</span>
+                            <div className="space-y-0.5">
+                              <span className="text-muted block text-[11px]">Porcentaje legal (Año {y}):</span>
+                              <span className="font-mono font-bold text-forest text-sm">{ciInfo.percentage}%</span>
+                              <span className="text-[10px] text-muted block truncate" title={ciInfo.decree}>
+                                {ciInfo.decree}
+                              </span>
                             </div>
-                            <div>
-                              <span className="text-muted block">Monto INCRNGO sugerido (c.59):</span>
-                              <span className="font-mono font-bold text-emerald-700">{formatCOP(suggestedAmount)}</span>
+                            <div className="space-y-0.5">
+                              <span className="text-muted block text-[11px]">Monto no gravado a restar (c.59):</span>
+                              <span className="font-mono font-bold text-emerald-700 text-sm">{formatCOP(suggestedAmount)}</span>
+                              <span className="text-[10px] text-muted block">
+                                Renta líquida gravable: {formatCOP((baseBancaria + (d.capital.rendimientosCesantias || 0)) - suggestedAmount)}
+                              </span>
                             </div>
                           </div>
 
-                          <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-line/60">
+                          <div className="flex flex-wrap items-center justify-between gap-2 pt-2.5 border-t border-line/60">
                             <span className="text-[11px] text-muted">
                               {d.capital.componenteInflacionario > 0
                                 ? `Valor actual aplicado en Casilla 59: ${formatCOP(d.capital.componenteInflacionario)}`
-                                : "Aún no has aplicado el componente inflacionario en la Casilla 59."}
+                                : "Aún no has restado el beneficio de inflación en la Casilla 59."}
                             </span>
                             <div className="flex items-center gap-2">
                               <Button
@@ -1441,7 +1462,7 @@ function DeclaracionPage() {
                                 className="h-7 text-xs border-forest text-forest hover:bg-forest hover:text-white font-medium"
                                 onClick={() => patch((x) => (x.capital.componenteInflacionario = suggestedAmount))}
                               >
-                                Aplicar tasa oficial ({ciInfo.percentage}%: {formatCOP(suggestedAmount)})
+                                Aplicar beneficio oficial ({ciInfo.percentage}%: {formatCOP(suggestedAmount)})
                               </Button>
                               <Button
                                 type="button"
@@ -1449,11 +1470,11 @@ function DeclaracionPage() {
                                 variant="ghost"
                                 className="h-7 text-xs text-muted hover:text-ink border border-line bg-mist/30"
                                 onClick={() => {
-                                  const custom = window.prompt("Ingrese el porcentaje de componente inflacionario que desea aplicar (%):", String(ciInfo.percentage));
+                                  const custom = window.prompt("Ingrese el porcentaje de inflación no gravado a aplicar (%):", String(ciInfo.percentage));
                                   if (custom !== null) {
                                     const parsed = parseFloat(custom.replace(",", "."));
                                     if (!isNaN(parsed) && parsed >= 0 && parsed <= 100) {
-                                      patch((x) => (x.capital.componenteInflacionario = Math.round(d.capital.intereses * (parsed / 100))));
+                                      patch((x) => (x.capital.componenteInflacionario = Math.round(baseBancaria * (parsed / 100))));
                                     }
                                   }
                                 }}
@@ -1470,12 +1491,12 @@ function DeclaracionPage() {
 
                 <div className={fieldGrid}>
                   <MoneyField
-                    label="Componente inflacionario no gravado de rendimientos financieros (Casilla 59)"
+                    label="Monto no gravado por componente inflacionario (Casilla 59)"
                     casilla={59}
                     year={y}
                     value={d.capital.componenteInflacionario}
                     onChange={(n) => patch((x) => (x.capital.componenteInflacionario = n))}
-                    hint="Porcentaje no constitutivo de renta ni ganancia ocasional de los rendimientos financieros fijado anualmente por decreto (Arts. 38 a 41 E.T.)."
+                    hint="Valor en pesos de los rendimientos financieros bancarios que no constituye renta ni ganancia ocasional (Arts. 38 y 40-1 E.T.)."
                     source="Decreto reglamentario anual / Certificados tributarios bancarios"
                   />
                   <MoneyField

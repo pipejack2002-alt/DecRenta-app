@@ -344,10 +344,11 @@ export function parseExogenaExcel(bufferOrArray: ArrayBuffer | Uint8Array): Exog
       amountsToApply["topes.compras"] = resumen.comprasTotales;
     }
 
-    // Componente inflacionario sugerido sobre rendimientos financieros (Arts. 38 y 40-1 E.T.)
-    if (resumen.ingresosCapital > 0 && !amountsToApply["capital.componenteInflacionario"]) {
+    // Componente inflacionario sugerido sobre rendimientos de entidades financieras/CDTs (Arts. 38 y 40-1 E.T. - No aplica a fondos de cesantías)
+    const baseFinanciera = amountsToApply["capital.intereses"] || 0;
+    if (baseFinanciera > 0 && !amountsToApply["capital.componenteInflacionario"]) {
       const ciInfo = getComponenteInflacionario(year || 2025);
-      amountsToApply["capital.componenteInflacionario"] = Math.round(resumen.ingresosCapital * ciInfo.rate);
+      amountsToApply["capital.componenteInflacionario"] = Math.round(baseFinanciera * ciInfo.rate);
     }
 
     return {
@@ -454,14 +455,14 @@ function classifyItem(
     resumen.ingresosTrabajo += v;
     add("trabajo.otrasPrestaciones", v);
   }
-  // Rendimientos del Fondo de Cesantías -> Rentas de Capital (Casilla 58)
+  // Rendimientos del Fondo de Cesantías -> Rentas de Capital (Casilla 58 - Sin beneficio de inflación)
   else if (
     /intereses o rendimientos causados.*fondo de cesant[ií]as|rendimientos causados.*periodo.*fondo|rendimiento.*fondo.*cesant[ií]a/i.test(
       d,
     )
   ) {
     resumen.ingresosCapital += v;
-    add("capital.intereses", v);
+    add("capital.rendimientosCesantias", v);
   }
   // Cesantías e intereses sobre cesantías (Concepto 5002 / Formato 2276 / Fondo de Cesantías)
   else if (conceptoCode === "5002" || /cesant[ií]a|intereses.*cesant[ií]a/i.test(d)) {

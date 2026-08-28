@@ -673,9 +673,18 @@ export function getCasillaItemizedBreakdown(
       const items: ItemBreakdown[] = [];
       if (k.intereses > 0) {
         items.push({
-          label: "Intereses y rendimientos financieros (Cuentas, CDT, FVP, Cesantías)",
+          label: "Intereses y rendimientos en cuentas bancarias y CDTs",
           value: formatCOP(k.intereses),
-          source: "Certificados tributarios bancarios (ej. Nu $234.098 + Colfondos $63.673) / Formato 1007 / Formato 5063",
+          source: "Certificados tributarios bancarios (ej. Nu Colombia $234.098) / Formato 1007",
+          legal: "Art. 38 E.T. (Aplica beneficio de componente inflacionario)",
+        });
+      }
+      if ((k.rendimientosCesantias || 0) > 0) {
+        items.push({
+          label: "Rendimientos causados en el fondo de cesantías",
+          value: formatCOP(k.rendimientosCesantias || 0),
+          source: "Certificado tributario del fondo de cesantías (ej. Colfondos $63.673) / Formato 5063",
+          legal: "Doctrina DIAN (Gravado 100% en capital sin componente inflacionario)",
         });
       }
       if (k.arrendamientos > 0) {
@@ -711,11 +720,11 @@ export function getCasillaItemizedBreakdown(
       }
       return {
         title: "Desglose de Ingresos Brutos por Rentas de Capital (Casilla 58)",
-        description: "Rendimientos financieros, intereses bancarios y rentabilidad de fondos generados durante el año gravable (Art. 335 E.T.):",
+        description: "Rendimientos financieros bancarios, de fondos y de capital generados durante el año gravable (Art. 335 E.T.):",
         items,
         totalLabel: "Total Ingresos Brutos de Capital (Casilla 58)",
         totalValue: c.casillas[58] ?? 0,
-        footnote: "Los rendimientos del fondo de cesantías ($63.673) son la ganancia financiera que produjo el dinero guardado y se declaran en capital, mientras que el capital de cesantías va en la cédula de trabajo.",
+        footnote: "Los rendimientos del fondo de cesantías ($63.673) son la ganancia financiera generada por el fondo y se declaran en capital, mientras que el saldo de cesantías acumulado va en patrimonio (Casilla 29).",
       };
     }
 
@@ -724,9 +733,10 @@ export function getCasillaItemizedBreakdown(
       const items: ItemBreakdown[] = [];
       if (k.componenteInflacionario > 0) {
         items.push({
-          label: "Componente inflacionario no gravado de rendimientos",
+          label: "Beneficio de inflación no gravado de rendimientos financieros",
           value: formatCOP(k.componenteInflacionario),
-          legal: "Arts. 38 a 41 E.T. (Fijado anualmente por decreto)",
+          legal: "Arts. 38 a 41 E.T. (Fijado anualmente por Decreto Reglamentario)",
+          source: "Calculado sobre rendimientos bancarios de entidades de intermediación financiera",
         });
       }
       const segSoc = (k.aportesPension || 0) + (k.aportesSalud || 0);

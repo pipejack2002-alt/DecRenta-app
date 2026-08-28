@@ -154,6 +154,7 @@ export type Honorarios = {
 
 export type Capital = {
   intereses: number;
+  rendimientosCesantias?: number;
   arrendamientos: number;
   regalias: number;
   rendimientosFinancieros: number;
@@ -435,6 +436,7 @@ export const emptyHonorarios = (): Honorarios => ({
 
 export const emptyCapital = (): Capital => ({
   intereses: 0,
+  rendimientosCesantias: 0,
   arrendamientos: 0,
   regalias: 0,
   rendimientosFinancieros: 0,

@@ -211,6 +211,7 @@ export function compute(d: Declaration): ComputedDeclaration {
   // ——— Capital ———
   C[58] = n(
     k.intereses +
+      (k.rendimientosCesantias || 0) +
       k.arrendamientos +
       k.regalias +
       k.rendimientosFinancieros +

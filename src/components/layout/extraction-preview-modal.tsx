@@ -25,8 +25,9 @@ const FIELD_LABELS: Record<string, { label: string; casilla?: number; source?: s
   "patrimonio.cesantiasFondos": { label: "Saldo en fondos de cesantías al 31 de diciembre", casilla: 29, source: "Art. 261, 271 E.T." },
   "patrimonio.inmuebles": { label: "Avalúo fiscal de bienes inmuebles", casilla: 29, source: "Art. 277 E.T." },
   "patrimonio.obligacionesFinancieras": { label: "Deudas y obligaciones financieras vigentes", casilla: 30, source: "Art. 283 E.T." },
-  "capital.intereses": { label: "Rendimientos financieros e intereses ganados", casilla: 58, source: "Art. 338 E.T." },
-  "capital.componenteInflacionario": { label: "Componente inflacionario no gravado (INCRNGO)", casilla: 59, source: "Arts. 38 y 40-1 E.T." },
+  "capital.intereses": { label: "Intereses y rendimientos en cuentas bancarias / CDTs", casilla: 58, source: "Art. 38 y 338 E.T." },
+  "capital.rendimientosCesantias": { label: "Rendimientos causados en fondo de cesantías", casilla: 58, source: "Doctrina DIAN / Formato 5063" },
+  "capital.componenteInflacionario": { label: "Beneficio de inflación no gravado de rendimientos", casilla: 59, source: "Arts. 38 y 40-1 E.T." },
   "capital.arrendamientos": { label: "Arrendamientos y cánones recibidos", casilla: 58, source: "Art. 338 E.T." },
   "honorarios.ingresos": { label: "Ingresos brutos por honorarios y servicios (independiente)", casilla: 43, source: "Art. 335 E.T." },
   "noLaborales.ingresos": { label: "Ingresos brutos rentas no laborales", casilla: 74, source: "Art. 335 E.T." },
@@ -59,7 +60,7 @@ const GROUPS: { label: string; icon: string; keys: (keyof typeof FIELD_LABELS)[]
   {
     label: "Rentas de Capital",
     icon: "📈",
-    keys: ["capital.intereses", "capital.componenteInflacionario", "capital.arrendamientos"],
+    keys: ["capital.intereses", "capital.rendimientosCesantias", "capital.componenteInflacionario", "capital.arrendamientos"],
   },
   {
     label: "Otras Cédulas",
