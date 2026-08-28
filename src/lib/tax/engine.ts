@@ -129,13 +129,15 @@ export function compute(d: Declaration): ComputedDeclaration {
       ? t.cesantiasAcumuladas2016 + t.cesantiasPagadas * cesPct
       : t.cesantiasPagadas * cesPct;
 
-  // Deducción dependientes: 10 % de la renta de trabajo, máx. 32 UVT mensuales = 384 UVT año
-  // más 72 UVT por dependiente (máx. 4) que van a casilla 139, fuera del 40 %.
+  // Deducción dependientes según Decreto 2231 de 2023 (Art. 1.2.1.20.3 DUR 1625/2016):
+  // - Si C[32] > 0 (rentas laborales): se pueden aplicar AMBAS deducciones por el mismo dependiente (10% en Casilla 39 + 72 UVT en Casilla 139).
+  // - Si C[32] === 0 (solo honorarios / servicios no laborales): un mismo dependiente solo da lugar a UNA de las dos deducciones.
   const dep = Math.max(0, Math.min(4, Math.floor(t.dependientes > 0 ? t.dependientes : (h.dependientes || 0))));
-  const depBase = C[32] > 0 ? C[32] : h.usarCostos ? h.ingresos : 0;
-  const depMensual = min3(depBase * 0.1, U(32) * 12, C[32] > 0 ? C[34] : C[46]);
-  const depDeductionT = dep > 0 && C[32] > 0 ? depMensual : 0;
-  const depDeductionH = dep > 0 && C[32] === 0 && h.usarCostos ? min3(h.ingresos * 0.1, U(32) * 12, C[46]) : 0;
+  const isLaboral = C[32] > 0;
+  const depBase = isLaboral ? C[32] : h.usarCostos ? h.ingresos : 0;
+  const depMensual = min3(depBase * 0.1, U(32) * 12, isLaboral ? C[34] : C[46]);
+  const depDeductionT = dep > 0 && isLaboral ? depMensual : 0;
+  const depDeductionH = dep > 0 && !isLaboral && h.usarCostos ? min3(h.ingresos * 0.1, U(32) * 12, C[46]) : 0;
 
   const medCapT = min3(t.medicinaPrepagada, U(16) * 12, C[34]);
   const gmfDedT = n(t.gmf * 0.5);
@@ -465,7 +467,9 @@ export function compute(d: Declaration): ComputedDeclaration {
   C[91] = n(C[41] + C[42] + C[53] + C[57] + C[69] + C[73] + C[86] + C[90]);
 
   C[138] = dep;
-  const extraDep = n(Math.min(dep, 4) * U(72));
+  // Decreto 2231 de 2023: Para honorarios sin relación laboral, el dependiente que tomó el 10% no puede repetir en 72 UVT.
+  const depCountFor72 = isLaboral ? dep : (depDeductionH > 0 ? Math.max(0, dep - 1) : dep);
+  const extraDep = n(Math.min(depCountFor72, 4) * U(72));
   const cap139 = n(C[42] + C[57]);
   C[139] = Math.min(extraDep, cap139);
 

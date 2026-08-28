@@ -1080,7 +1080,7 @@ function DeclaracionPage() {
                     </div>
 
                     <p className="text-xs text-forest-deep leading-relaxed font-medium">
-                      💼 Como eres trabajador independiente sin salario laboral, la deducción del <strong>10% por dependientes</strong> se aplica directamente sobre tus honorarios en la <strong>Casilla 51</strong> y las <strong>72 UVT</strong> en la <strong>Casilla 139</strong>.
+                      💼 Según el <strong>Decreto 2231 de 2023 (Art. 1.2.1.20.3 DUR 1625)</strong>, para rentas que no provienen de relación laboral (honorarios), un mismo dependiente solo da lugar a una deducción: el 1er dependiente se aplica a la <strong>deducción del 10% (Casilla 51)</strong> y los dependientes adicionales se aplican a las <strong>72 UVT anuales cada uno (Casilla 139)</strong>.
                     </p>
 
                     <div className="flex gap-2">
