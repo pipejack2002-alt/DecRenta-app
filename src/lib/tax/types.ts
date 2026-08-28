@@ -49,6 +49,8 @@ export type TopesInput = {
 export type Patrimonio = {
   efectivo: number;
   cuentas: number;
+  /** Saldo acumulado en fondos de cesantías a 31 de diciembre (Art. 261, 271 E.T. - Colfondos, Porvenir, Protección, FNA). */
+  cesantiasFondos?: number;
   inversiones: number;
   inventarios: number;
   inmuebles: number;
@@ -358,6 +360,7 @@ export const emptyTopes = (): TopesInput => ({
 export const emptyPatrimonio = (): Patrimonio => ({
   efectivo: 0,
   cuentas: 0,
+  cesantiasFondos: 0,
   inversiones: 0,
   inventarios: 0,
   inmuebles: 0,

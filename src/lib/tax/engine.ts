@@ -60,6 +60,7 @@ export function compute(d: Declaration): ComputedDeclaration {
   C[29] = n(
     p.efectivo +
       p.cuentas +
+      (p.cesantiasFondos || 0) +
       p.inversiones +
       p.inventarios +
       p.inmuebles +
@@ -132,7 +133,9 @@ export function compute(d: Declaration): ComputedDeclaration {
   // Deducción dependientes según Decreto 2231 de 2023 (Art. 1.2.1.20.3 DUR 1625/2016):
   // - Si C[32] > 0 (rentas laborales): se pueden aplicar AMBAS deducciones por el mismo dependiente (10% en Casilla 39 + 72 UVT en Casilla 139).
   // - Si C[32] === 0 (solo honorarios / servicios no laborales): un mismo dependiente solo da lugar a UNA de las dos deducciones.
-  const dep = Math.max(0, Math.min(4, Math.floor(t.dependientes > 0 ? t.dependientes : (h.dependientes || 0))));
+  const tDepCount = t.dependientes > 0 ? t.dependientes : (Array.isArray(t.dependientesDetalle) ? t.dependientesDetalle.length : 0);
+  const hDepCount = h.dependientes ? h.dependientes : (Array.isArray(h.dependientesDetalle) ? h.dependientesDetalle.length : 0);
+  const dep = Math.max(0, Math.min(4, Math.floor(tDepCount > 0 ? tDepCount : hDepCount)));
   const isLaboral = C[32] > 0;
   const depBase = isLaboral ? C[32] : h.usarCostos ? h.ingresos : 0;
   const depMensual = min3(depBase * 0.1, U(32) * 12, isLaboral ? C[34] : C[46]);

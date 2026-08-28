@@ -343,6 +343,11 @@ export function parseExogenaExcel(bufferOrArray: ArrayBuffer | Uint8Array): Exog
       amountsToApply["topes.compras"] = resumen.comprasTotales;
     }
 
+    // Componente inflacionario sugerido sobre rendimientos financieros (Arts. 38 y 40-1 E.T. - ~43.6% en rendimientos financieros)
+    if (resumen.ingresosCapital > 0 && !amountsToApply["capital.componenteInflacionario"]) {
+      amountsToApply["capital.componenteInflacionario"] = Math.round(resumen.ingresosCapital * 0.436);
+    }
+
     return {
       ok: true,
       year: year || 2025,
@@ -423,6 +428,11 @@ function classifyItem(
     amounts[path] = (amounts[path] || 0) + val;
   };
 
+  // 0. Concepto 2214 (Aportes parafiscales informativos del empleador - no renta del empleado ni patrimonio)
+  if (conceptoCode === "2214" || /activos aportes parafiscales.*concepto:?\s*2214/i.test(d)) {
+    return;
+  }
+
   // 1. Salarios, pagos laborales y prestaciones
   if (
     conceptoCode === "5001" ||
@@ -431,18 +441,36 @@ function classifyItem(
   ) {
     resumen.ingresosTrabajo += v;
     add("trabajo.salarios", v);
+  } else if (/otros pagos rentas de trabajo|bonos habituales|auxilios no salariales/i.test(d)) {
+    resumen.ingresosTrabajo += v;
+    add("trabajo.otrosPagosLaborales", v);
   } else if (
     conceptoCode === "5003" ||
     conceptoCode === "5010" ||
-    /prestaciones sociales|otros pagos rentas de trabajo|prima.*servicios|bonificaci[oó]n laboral|indemnizaci[oó]n laboral/i.test(d)
+    /prestaciones sociales|prima.*servicios|bonificaci[oó]n laboral|indemnizaci[oó]n laboral/i.test(d)
   ) {
     resumen.ingresosTrabajo += v;
     add("trabajo.otrasPrestaciones", v);
   }
-  // Cesantías e intereses sobre cesantías (Concepto 5002 / Fondo de Cesantías)
-  else if (conceptoCode === "5002" || /cesant[ií]a|intereses.*cesant[ií]a|fondo de cesant[ií]as/i.test(d)) {
-    resumen.cesantias += v;
-    add("trabajo.cesantiasPagadas", v);
+  // Rendimientos del Fondo de Cesantías -> Rentas de Capital (Casilla 58)
+  else if (
+    /intereses o rendimientos causados.*fondo de cesant[ií]as|rendimientos causados.*periodo.*fondo|rendimiento.*fondo.*cesant[ií]a/i.test(
+      d,
+    )
+  ) {
+    resumen.ingresosCapital += v;
+    add("capital.intereses", v);
+  }
+  // Cesantías e intereses sobre cesantías (Concepto 5002 / Formato 2276 / Fondo de Cesantías)
+  else if (conceptoCode === "5002" || /cesant[ií]a|intereses.*cesant[ií]a/i.test(d)) {
+    // Si es "cesantías abonadas en el periodo" reportadas por el fondo, verificar nota DIAN anti-duplicidad
+    if (/cesant[ií]as abonadas en el periodo.*fondo/i.test(d)) {
+      // El valor ya fue reportado por el empleador como cesantías consignadas; registramos en patrimonio del fondo
+      add("patrimonio.cesantiasFondos", v);
+    } else {
+      resumen.cesantias += v;
+      add("trabajo.cesantiasPagadas", v);
+    }
   }
   // Salud obligatoria (Concepto 5007 / EPS / Aporte a salud a cargo trabajador)
   else if (conceptoCode === "5007" || /salud.*cargo trabajador|aporte.*salud|salud obligatoria|cotizaci[oó]n.*salud|pago.*eps|concepto 5007/i.test(d)) {
@@ -536,12 +564,17 @@ function classifyItem(
       add("patrimonio.cuentas", v);
     }
   } else if (
+    /saldo final portafolio.*cesant[ií]as|cesant[ií]as acumuladas.*31 de diciembre|saldo.*fondo de cesant[ií]as/i.test(d)
+  ) {
+    add("patrimonio.cesantiasFondos", v);
+  } else if (
     formatoCode === "1020" ||
     conceptoCode === "1020" ||
-    conceptoCode === "2214" ||
-    /activos aportes parafiscales|inversiones.*31|saldo.*cdt|saldo.*inversi[oó]n/i.test(d)
+    /inversiones.*31|saldo.*cdt|saldo.*inversi[oó]n/i.test(d)
   ) {
     add("patrimonio.inversiones", v);
+  } else if (/activos aportes parafiscales.*concepto: 2214/i.test(d)) {
+    // Concepto 2214 son aportes patronales informativos del empleador, no integran patrimonio individual
   } else if (/inmueble.*escritura|compra.*inmueble|adquisici[oó]n.*predio/i.test(d)) {
     add("patrimonio.inmuebles", v);
   } else if (/veh[ií]culo.*adquisici[oó]n|compra.*automotor|matr[ií]cula.*veh[ií]culo/i.test(d)) {

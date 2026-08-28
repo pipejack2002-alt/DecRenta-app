@@ -69,6 +69,14 @@ export function getCasillaItemizedBreakdown(
           source: "Certificados tributarios bancarios (ej. Nu Colombia $3.954.662 + Bancolombia $2.938) / Formato 1009",
         });
       }
+      if ((p.cesantiasFondos || 0) > 0) {
+        items.push({
+          label: "Saldo acumulado en fondos de cesantías a 31 de diciembre",
+          value: formatCOP(p.cesantiasFondos || 0),
+          legal: "Arts. 261 y 271 E.T. (Colfondos, Porvenir, Protección, FNA)",
+          source: "Certificado tributario para declaración de renta del fondo de cesantías a 31/12",
+        });
+      }
       if (p.inversiones > 0) {
         items.push({
           label: "Inversiones financieras, acciones, CDT y fiducias",

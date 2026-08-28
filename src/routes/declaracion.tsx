@@ -444,29 +444,168 @@ function DeclaracionPage() {
           )}
 
           {sec === "pat" && (
-            <Card className="space-y-4">
-              <CardTitle>Patrimonio</CardTitle>
-              <CardHint>Art. 261 E.T. Valor patrimonial al 31 de diciembre. Inmuebles: el mayor entre costo fiscal, avalúo catastral y autoavalúo (arts. 72 y 277).</CardHint>
-              <div className={fieldGrid}>
-                <MoneyField label="Efectivo" casilla={29} year={y} value={d.patrimonio.efectivo} onChange={(n) => patch((x) => (x.patrimonio.efectivo = n))} />
-                <MoneyField label="Cuentas bancarias" year={y} value={d.patrimonio.cuentas} onChange={(n) => patch((x) => (x.patrimonio.cuentas = n))} />
-                <MoneyField label="Inversiones" year={y} value={d.patrimonio.inversiones} onChange={(n) => patch((x) => (x.patrimonio.inversiones = n))} />
-                <MoneyField label="Inmuebles (Bienes raíces)" year={y} value={d.patrimonio.inmuebles} onChange={(n) => patch((x) => (x.patrimonio.inmuebles = n))} hint="Incluya apartamentos, casas, lotes, fincas y locales comerciales." />
-                <MoneyField label="De los anteriores: Casa o apartamento de habitación" year={y} value={d.patrimonio.viviendaHabitacion} onChange={(n) => patch((x) => (x.patrimonio.viviendaHabitacion = n))} hint="Art. 189 lit. f E.T. Indique el valor de su vivienda principal (se excluyen hasta 8.000 UVT de renta presuntiva)." />
-                <MoneyField label="Vehículos" year={y} value={d.patrimonio.vehiculos} onChange={(n) => patch((x) => (x.patrimonio.vehiculos = n))} />
-                <MoneyField label="Muebles y enseres" year={y} value={d.patrimonio.muebles} onChange={(n) => patch((x) => (x.patrimonio.muebles = n))} />
-                <MoneyField label="Cuentas por cobrar" year={y} value={d.patrimonio.cuentasPorCobrar} onChange={(n) => patch((x) => (x.patrimonio.cuentasPorCobrar = n))} />
-                <MoneyField label="Criptoactivos" year={y} value={d.patrimonio.cripto} onChange={(n) => patch((x) => (x.patrimonio.cripto = n))} />
-                <MoneyField label="Otros activos" year={y} value={d.patrimonio.otrosActivos} onChange={(n) => patch((x) => (x.patrimonio.otrosActivos = n))} />
-                <MoneyField label="Aportes en sociedades nacionales" year={y} value={d.patrimonio.aportesSociedadesNacionales} onChange={(n) => patch((x) => (x.patrimonio.aportesSociedadesNacionales = n))} hint="Se restan de la base de renta presuntiva." />
+            <Card className="space-y-6">
+              <div>
+                <CardTitle>Patrimonio Bruto y Deudas (Casillas 29 a 31)</CardTitle>
+                <CardHint>
+                  Art. 261 a 287 E.T. Incluye el valor patrimonial fiscal de todos los bienes, saldos bancarios, cesantías acumuladas en fondos y derechos apreciables en dinero al 31 de diciembre, menos las deudas respaldadas con documentos idóneos.
+                </CardHint>
               </div>
-              <h3 className="font-display text-lg">Deudas · casilla 30</h3>
+
+              <div className="rounded-xl border border-line bg-mist/60 p-4 text-xs space-y-2 text-ink/80">
+                <div className="flex items-center gap-2 font-medium text-ink">
+                  <ShieldCheck className="size-4 text-forest" />
+                  <span>Criterios de valoración patrimonial oficial (Estatuto Tributario):</span>
+                </div>
+                <ul className="list-disc pl-5 space-y-1 text-muted">
+                  <li><strong>Cuentas bancarias y efectivo (Art. 268 E.T.):</strong> Se declaran por el saldo exacto en extracto a 31 de diciembre.</li>
+                  <li><strong>Fondos de Cesantías (Art. 261 y 271 E.T.):</strong> El saldo acumulado en Colfondos, Porvenir, Protección o FNA a 31 de diciembre es un derecho patrimonial de tu propiedad y se suma a la Casilla 29.</li>
+                  <li><strong>Inmuebles (Arts. 72 y 277 E.T.):</strong> El mayor valor entre costo fiscal ajustado, avalúo catastral del predial y autoavalúo.</li>
+                  <li><strong>Aportes patronales parafiscales (Concepto 2214):</strong> Son informativos del empleador y NO hacen parte del patrimonio individual.</li>
+                </ul>
+              </div>
+
+              <h3 className="font-display text-lg font-semibold text-ink">1. Bienes y Derechos Patrimoniales · Casilla 29</h3>
               <div className={fieldGrid}>
-                <MoneyField label="Obligaciones financieras" casilla={30} year={y} value={d.patrimonio.obligacionesFinancieras} onChange={(n) => patch((x) => (x.patrimonio.obligacionesFinancieras = n))} />
-                <MoneyField label="Cuentas por pagar" year={y} value={d.patrimonio.cuentasPorPagar} onChange={(n) => patch((x) => (x.patrimonio.cuentasPorPagar = n))} />
-                <MoneyField label="Impuestos por pagar" year={y} value={d.patrimonio.impuestosPorPagar} onChange={(n) => patch((x) => (x.patrimonio.impuestosPorPagar = n))} />
-                <MoneyField label="Otras deudas" year={y} value={d.patrimonio.otrasDeudas} onChange={(n) => patch((x) => (x.patrimonio.otrasDeudas = n))} />
-                <MoneyField label="Patrimonio líquido 31/12 del año anterior" year={y} value={d.patrimonio.patrimonioLiquidoAnterior} onChange={(n) => patch((x) => (x.patrimonio.patrimonioLiquidoAnterior = n))} hint="Sirve para comparación patrimonial (arts. 236-239) y renta presuntiva." />
+                <MoneyField
+                  label="Efectivo en caja y moneda extranjera"
+                  casilla={29}
+                  year={y}
+                  value={d.patrimonio.efectivo}
+                  onChange={(n) => patch((x) => (x.patrimonio.efectivo = n))}
+                  source="Arqueo de caja a 31 de diciembre"
+                  hint="Dinero en efectivo en moneda nacional o en divisas valoradas a la TRM del 31 de diciembre."
+                />
+                <MoneyField
+                  label="Cuentas bancarias y depósitos de ahorro"
+                  year={y}
+                  value={d.patrimonio.cuentas}
+                  onChange={(n) => patch((x) => (x.patrimonio.cuentas = n))}
+                  source="Formato 1019 / Certificados tributarios bancarios (ej. Nu, Bancolombia, Davivienda)"
+                  hint="Saldos en cuentas de ahorro, corrientes y depósitos electrónicos a 31 de diciembre (Art. 268 E.T.)."
+                />
+                <MoneyField
+                  label="Saldo en fondos de cesantías a 31 de diciembre"
+                  year={y}
+                  value={d.patrimonio.cesantiasFondos || 0}
+                  onChange={(n) => patch((x) => (x.patrimonio.cesantiasFondos = n))}
+                  source="Arts. 261 y 271 E.T. · Certificado de Cesantías a 31/12 (Colfondos, Porvenir, Protección, FNA)"
+                  hint="Saldo acumulado de cesantías e intereses en el fondo a 31 de diciembre. Es un activo patrimonial de tu propiedad."
+                />
+                <MoneyField
+                  label="Inversiones financieras, CDT y fiducias"
+                  year={y}
+                  value={d.patrimonio.inversiones}
+                  onChange={(n) => patch((x) => (x.patrimonio.inversiones = n))}
+                  source="Formato 1020 / Extractos de CDT y fondos de inversión colectiva"
+                  hint="Certificados de depósito a término (CDT), carteras colectivas y derechos fiduciarios (Art. 271 E.T.)."
+                />
+                <MoneyField
+                  label="Inmuebles (Bienes raíces urbanos y rurales)"
+                  year={y}
+                  value={d.patrimonio.inmuebles}
+                  onChange={(n) => patch((x) => (x.patrimonio.inmuebles = n))}
+                  source="Escrituras públicas / Recibos de impuesto predial unificado"
+                  hint="El mayor entre costo fiscal de adquisición ajustado, avalúo catastral y autoavalúo a 31 de diciembre (Arts. 72 y 277 E.T.)."
+                />
+                <MoneyField
+                  label="De los anteriores: Casa o apartamento de habitación"
+                  year={y}
+                  value={d.patrimonio.viviendaHabitacion}
+                  onChange={(n) => patch((x) => (x.patrimonio.viviendaHabitacion = n))}
+                  source="Art. 189 lit. f E.T."
+                  hint="Valor patrimonial de su vivienda principal (se excluyen hasta 8.000 UVT para el cálculo de renta presuntiva)."
+                />
+                <MoneyField
+                  label="Vehículos automotores y medios de transporte"
+                  year={y}
+                  value={d.patrimonio.vehiculos}
+                  onChange={(n) => patch((x) => (x.patrimonio.vehiculos = n))}
+                  source="Factura de compra / Declaración de renta anterior / Tabla Mintransporte"
+                  hint="Costo fiscal de adquisición del vehículo, motocicleta, embarcación o aeronave (Art. 267 E.T.)."
+                />
+                <MoneyField
+                  label="Muebles, enseres y maquinaria"
+                  year={y}
+                  value={d.patrimonio.muebles}
+                  onChange={(n) => patch((x) => (x.patrimonio.muebles = n))}
+                  hint="Ajuar doméstico, equipos de cómputo, maquinaria y bienes de uso personal o comercial."
+                />
+                <MoneyField
+                  label="Cuentas por cobrar y préstamos a terceros"
+                  year={y}
+                  value={d.patrimonio.cuentasPorCobrar}
+                  onChange={(n) => patch((x) => (x.patrimonio.cuentasPorCobrar = n))}
+                  source="Formato 1008 / Contratos de mutuo / Pagarés / Letras de cambio"
+                  hint="Créditos a favor del contribuyente, préstamos otorgados y anticipos pendientes de cobro (Art. 270 E.T.)."
+                />
+                <MoneyField
+                  label="Criptoactivos y activos digitales"
+                  year={y}
+                  value={d.patrimonio.cripto}
+                  onChange={(n) => patch((x) => (x.patrimonio.cripto = n))}
+                  source="Extractos de exchanges / Billeteras virtuales"
+                  hint="Costo fiscal de adquisición de Bitcoin, Ethereum, USDT y demás criptoactivos (Art. 267 E.T.)."
+                />
+                <MoneyField
+                  label="Otros activos y derechos patrimoniales"
+                  year={y}
+                  value={d.patrimonio.otrosActivos}
+                  onChange={(n) => patch((x) => (x.patrimonio.otrosActivos = n))}
+                  hint="Semovientes, obras de arte, joyas, patentes y otros derechos apreciables en dinero."
+                />
+                <MoneyField
+                  label="Aportes en sociedades nacionales"
+                  year={y}
+                  value={d.patrimonio.aportesSociedadesNacionales}
+                  onChange={(n) => patch((x) => (x.patrimonio.aportesSociedadesNacionales = n))}
+                  source="Formato 1010 / Certificados de composición accionaria"
+                  hint="Acciones o cuotas partes poseídas en empresas colombianas. Se restan de la base de renta presuntiva."
+                />
+              </div>
+
+              <h3 className="font-display text-lg font-semibold text-ink pt-4 border-t border-line">2. Deudas y Obligaciones Financieras · Casilla 30</h3>
+              <div className={fieldGrid}>
+                <MoneyField
+                  label="Obligaciones financieras y bancarias"
+                  casilla={30}
+                  year={y}
+                  value={d.patrimonio.obligacionesFinancieras}
+                  onChange={(n) => patch((x) => (x.patrimonio.obligacionesFinancieras = n))}
+                  source="Formato 1009 / Certificados bancarios anuales de deuda a 31/12"
+                  hint="Saldos pendientes de créditos hipotecarios, de consumo, libranzas y tarjetas de crédito (Art. 283 E.T.)."
+                />
+                <MoneyField
+                  label="Cuentas por pagar comerciales y personales"
+                  year={y}
+                  value={d.patrimonio.cuentasPorPagar}
+                  onChange={(n) => patch((x) => (x.patrimonio.cuentasPorPagar = n))}
+                  source="Facturas pendientes / Documentos de cobro con fecha cierta"
+                  hint="Deudas con proveedores, contratistas o personas naturales respaldadas idóneamente."
+                />
+                <MoneyField
+                  label="Impuestos y gravámenes por pagar"
+                  year={y}
+                  value={d.patrimonio.impuestosPorPagar}
+                  onChange={(n) => patch((x) => (x.patrimonio.impuestosPorPagar = n))}
+                  source="Liquidaciones tributarias oficiales pendientes"
+                  hint="Impuestos liquidados y no cancelados al corte de 31 de diciembre."
+                />
+                <MoneyField
+                  label="Otras deudas y pasivos"
+                  year={y}
+                  value={d.patrimonio.otrasDeudas}
+                  onChange={(n) => patch((x) => (x.patrimonio.otrasDeudas = n))}
+                  hint="Demás obligaciones pasivas demostrables según lo exigido por el Art. 283 del Estatuto Tributario."
+                />
+                <MoneyField
+                  label="Patrimonio líquido 31/12 del año anterior"
+                  year={y}
+                  value={d.patrimonio.patrimonioLiquidoAnterior}
+                  onChange={(n) => patch((x) => (x.patrimonio.patrimonioLiquidoAnterior = n))}
+                  source="Casilla 31 de la declaración de renta del año gravable anterior"
+                  hint="Dato indispensable para la comparación patrimonial (Arts. 236 a 239 E.T.) y renta presuntiva."
+                />
               </div>
             </Card>
           )}
@@ -1250,6 +1389,31 @@ function DeclaracionPage() {
               {/* 2. Ingresos No Constitutivos de Renta */}
               <div className="space-y-3 pt-2 border-t border-line">
                 <h3 className="font-display text-base font-semibold text-ink">2. Ingresos No Constitutivos de Renta (Conceptos No Gravados) · Casilla 59</h3>
+
+                <div className="rounded-xl border border-line bg-mist/60 p-4 text-xs space-y-2 text-ink/80">
+                  <div className="flex items-center gap-2 font-medium text-ink">
+                    <Sparkles className="size-4 text-forest" />
+                    <span>Beneficio legal del Componente Inflacionario (Arts. 38 y 40-1 E.T.):</span>
+                  </div>
+                  <p className="text-muted">
+                    Para personas naturales no obligadas a llevar contabilidad, la porción de los intereses y rendimientos financieros que compensa la inflación del año es un <strong>Ingreso No Constitutivo de Renta ni Ganancia Ocasional (INCRNGO)</strong> y se resta directamente en la <strong>Casilla 59</strong> para no tributar sobre la desvalorización monetaria.
+                  </p>
+                  {d.capital.intereses > 0 && (!d.capital.componenteInflacionario || d.capital.componenteInflacionario === 0) ? (
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-line/60">
+                      <span className="text-forest font-medium">💡 Rendimientos detectados: {formatCOP(d.capital.intereses)}. Sugerencia estimada (~43.6%): {formatCOP(Math.round(d.capital.intereses * 0.436))}</span>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        className="h-7 text-xs border-forest text-forest hover:bg-forest hover:text-white"
+                        onClick={() => patch((x) => (x.capital.componenteInflacionario = Math.round(d.capital.intereses * 0.436)))}
+                      >
+                        Aplicar {formatCOP(Math.round(d.capital.intereses * 0.436))}
+                      </Button>
+                    </div>
+                  ) : null}
+                </div>
+
                 <div className={fieldGrid}>
                   <MoneyField
                     label="Componente inflacionario no gravado de rendimientos financieros (Casilla 59)"
