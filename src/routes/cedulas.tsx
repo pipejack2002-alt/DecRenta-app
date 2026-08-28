@@ -247,42 +247,218 @@ function WhyPanel({ row, year, uvt }: { row: MatrixRow; year: number; uvt: numbe
 function DepuracionPanel() {
   const c = useComputed();
   const d = c.depuracion;
-  const lines: { k: string; v: number; note?: string; accent?: boolean }[] = [
-    { k: "Total ingresos brutos cédula general", v: d.ingresosBrutos },
-    { k: "(−) Total ingresos no constitutivos de renta", v: d.incrngo },
-    { k: "= Subtotal", v: d.subtotal, accent: true },
-    {
-      k: `× 40 %, máx. 1.340 UVT (${formatCOP(d.tope1340)})`,
-      v: d.poolLimit,
-      note: `40 % = ${formatCOP(d.cuarentaPct)}. Se toma el menor.`,
-      accent: true,
-    },
-    { k: "+ Rentas exentas no sometidas a limitante", v: d.ilimitadas, note: "Nums. 1-3 y 6-8 art. 206, primas, CAN." },
-    { k: "+ Deducción 72 UVT por dependiente (casilla 139)", v: d.dependientes72 },
-    { k: "+ Deducción del 1 % de factura electrónica (casilla 28)", v: d.facturaElectronica, note: "Sin la limitante del 40 % ni 1.340 UVT." },
-    { k: "= Rentas exentas y deducciones imputables (casilla 92)", v: d.total92, accent: true },
-  ];
+  const dec = useAppStore((s) => s.declaration);
+  const uvt = c.uvt;
+
+  const cupoDisponible = Math.max(0, d.poolLimit - d.limitedUsed);
+  const pctUsado = d.poolLimit > 0 ? Math.min(100, (d.limitedUsed / d.poolLimit) * 100) : 0;
+
   return (
-    <Card>
-      <CardTitle>Determinación de las rentas exentas y deducciones limitadas</CardTitle>
-      <CardHint>
-        Art. 336 num. 3 y art. 1.2.1.20.4 DUR. Las 72 UVT por dependiente y el 1 % de factura electrónica se suman después del 40 %.
-      </CardHint>
-      <dl className="mt-4 divide-y divide-line">
-        {lines.map((l) => (
-          <div key={l.k} className="flex items-baseline justify-between gap-4 py-2.5 text-sm">
-            <dt className={cn("max-w-[70%]", l.accent ? "font-medium" : "text-ink-soft")}>
-              {l.k}
-              {l.note ? <span className="mt-0.5 block text-[11px] font-normal text-muted">{l.note}</span> : null}
-            </dt>
-            <dd className="tabular-nums">{formatCOP(l.v)}</dd>
+    <div className="space-y-6">
+      {/* Banner de Resumen y Estado del Límite */}
+      <Card className="border-forest/30 bg-gradient-to-br from-forest-mist/40 via-surface to-surface p-6 shadow-sm">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="flex size-7 items-center justify-center rounded-lg bg-forest/20 text-forest">
+                <Scale className="size-4" />
+              </span>
+              <CardTitle className="text-lg">Depuración Integral y Límite Conjunto (40 % / 1.340 UVT)</CardTitle>
+            </div>
+            <CardHint className="text-xs leading-relaxed">
+              Fundamento legal: Art. 336 numeral 3 del E.T. y Art. 1.2.1.20.4 del DUR 1625 de 2016. La ley unifica las 4 subcédulas y aplica el tope del 40 % sobre la base neta general.
+            </CardHint>
           </div>
-        ))}
-      </dl>
-      <p className="mt-3 text-xs text-muted">
-        Cupo del 40 % usado: {formatCOP(d.limitedUsed)} de {formatCOP(d.poolLimit)} ({formatUvt(d.tope1340 ? (d.limitedUsed / (c.uvt || 1)) : 0)}).
-      </p>
-    </Card>
+          <Badge tone={cupoDisponible > 0 ? "ok" : "warn"} className="text-xs px-3 py-1 font-semibold">
+            {cupoDisponible > 0 ? "✅ Dentro del límite legal" : "⚠️ Límite del 40% alcanzado"}
+          </Badge>
+        </div>
+
+        {/* Barra de progreso de uso del 40% */}
+        <div className="mt-5 space-y-2 rounded-xl bg-surface/80 p-4 border border-line">
+          <div className="flex flex-wrap items-center justify-between text-xs gap-2">
+            <span className="font-medium text-ink">
+              Uso del cupo del 40 %: <strong className="text-forest font-mono">{formatCOP(d.limitedUsed)}</strong> de{" "}
+              <strong className="font-mono">{formatCOP(d.poolLimit)}</strong> ({pctUsado.toFixed(1)} %)
+            </span>
+            <span className="text-muted font-mono text-[11px]">
+              Disponible sin agotar: <strong className="text-emerald-700">{formatCOP(cupoDisponible)}</strong>
+            </span>
+          </div>
+          <div className="h-2.5 w-full overflow-hidden rounded-full bg-mist">
+            <div
+              className={cn("h-full transition-all", cupoDisponible > 0 ? "bg-forest" : "bg-amber-600")}
+              style={{ width: `${pctUsado}%` }}
+            />
+          </div>
+        </div>
+      </Card>
+
+      {/* Tarjetas de Proceso Paso a Paso */}
+      <div className="grid gap-4 md:grid-cols-2">
+        {/* Paso 1: Ingresos Brutos de las 4 Subcédulas */}
+        <Card className="p-5 space-y-3">
+          <div className="flex items-center gap-2 border-b border-line pb-2">
+            <span className="flex size-6 items-center justify-center rounded-full bg-blue-100 text-blue-800 text-xs font-bold font-mono">1</span>
+            <h3 className="font-bold text-ink text-sm">Paso 1 · Ingresos Brutos de la Cédula General</h3>
+          </div>
+          <p className="text-xs text-muted leading-relaxed">
+            Sumatoria de los ingresos brutos percibidos en el año por todas las fuentes ordinarias (Art. 335 E.T.):
+          </p>
+          <div className="space-y-1.5 text-xs">
+            <div className="flex justify-between py-1 border-b border-line/50">
+              <span className="text-muted">Rentas de Trabajo (Casilla 32):</span>
+              <span className="font-mono font-semibold text-ink">{formatCOP(c.casillas[32] ?? 0)}</span>
+            </div>
+            <div className="flex justify-between py-1 border-b border-line/50">
+              <span className="text-muted">Rentas de Capital (Casilla 58):</span>
+              <span className="font-mono font-semibold text-ink">{formatCOP(c.casillas[58] ?? 0)}</span>
+            </div>
+            <div className="flex justify-between py-1 border-b border-line/50">
+              <span className="text-muted">Honorarios y Servicios (Casilla 43):</span>
+              <span className="font-mono font-semibold text-ink">{formatCOP(c.casillas[43] ?? 0)}</span>
+            </div>
+            <div className="flex justify-between py-1 border-b border-line/50">
+              <span className="text-muted">Rentas No Laborales (Casilla 74):</span>
+              <span className="font-mono font-semibold text-ink">{formatCOP(c.casillas[74] ?? 0)}</span>
+            </div>
+            <div className="flex justify-between pt-1.5 font-bold text-ink">
+              <span>Total Ingresos Brutos:</span>
+              <span className="font-mono text-forest">{formatCOP(d.ingresosBrutos)}</span>
+            </div>
+          </div>
+        </Card>
+
+        {/* Paso 2: Ingresos No Constitutivos (Salud, Pensión, Inflación) */}
+        <Card className="p-5 space-y-3">
+          <div className="flex items-center gap-2 border-b border-line pb-2">
+            <span className="flex size-6 items-center justify-center rounded-full bg-blue-100 text-blue-800 text-xs font-bold font-mono">2</span>
+            <h3 className="font-bold text-ink text-sm">Paso 2 · Ingresos No Gravados (Seguridad Social e Inflación)</h3>
+          </div>
+          <p className="text-xs text-muted leading-relaxed">
+            Conceptos que por ley no son constitutivos de renta y se restan antes del 40 %:
+          </p>
+          <div className="space-y-1.5 text-xs">
+            <div className="flex justify-between py-1 border-b border-line/50">
+              <span className="text-muted">Salud y Pensión en Trabajo (Casilla 33):</span>
+              <span className="font-mono font-semibold text-ink">-{formatCOP(c.casillas[33] ?? 0)}</span>
+            </div>
+            <div className="flex justify-between py-1 border-b border-line/50">
+              <span className="text-muted">Beneficio Inflación en Capital (Casilla 59):</span>
+              <span className="font-mono font-semibold text-ink">-{formatCOP(c.casillas[59] ?? 0)}</span>
+            </div>
+            <div className="flex justify-between py-1 border-b border-line/50">
+              <span className="text-muted">Aportes en Honorarios y No Laborales:</span>
+              <span className="font-mono font-semibold text-ink">-{formatCOP((c.casillas[44] ?? 0) + (c.casillas[76] ?? 0))}</span>
+            </div>
+            <div className="flex justify-between pt-1.5 font-bold text-ink">
+              <span>Total No Gravado a Restar:</span>
+              <span className="font-mono text-emerald-800">-{formatCOP(d.incrngo)}</span>
+            </div>
+          </div>
+        </Card>
+
+        {/* Paso 3: Subtotal y Límite del 40% */}
+        <Card className="p-5 space-y-3">
+          <div className="flex items-center gap-2 border-b border-line pb-2">
+            <span className="flex size-6 items-center justify-center rounded-full bg-blue-100 text-blue-800 text-xs font-bold font-mono">3</span>
+            <h3 className="font-bold text-ink text-sm">Paso 3 · Base Neta y Límite Conjunto Aplicable</h3>
+          </div>
+          <p className="text-xs text-muted leading-relaxed">
+            Se calcula el 40 % de la base neta y se compara con el tope máximo legal de 1.340 UVT:
+          </p>
+          <div className="space-y-1.5 text-xs">
+            <div className="flex justify-between py-1 border-b border-line/50">
+              <span className="text-muted">Base de cálculo unificada (Subtotal):</span>
+              <span className="font-mono font-bold text-ink">{formatCOP(d.subtotal)}</span>
+            </div>
+            <div className="flex justify-between py-1 border-b border-line/50">
+              <span className="text-muted">40 % de la base neta (Art. 336 E.T.):</span>
+              <span className="font-mono font-bold text-forest">{formatCOP(d.cuarentaPct)}</span>
+            </div>
+            <div className="flex justify-between py-1 border-b border-line/50">
+              <span className="text-muted">Tope legal anual (1.340 UVT × ${formatCOP(uvt)}):</span>
+              <span className="font-mono font-semibold text-muted">{formatCOP(d.tope1340)}</span>
+            </div>
+            <div className="flex justify-between pt-1.5 font-bold text-ink">
+              <span>Límite Máximo Aceptado (Menor valor):</span>
+              <span className="font-mono text-forest text-sm">{formatCOP(d.poolLimit)}</span>
+            </div>
+          </div>
+        </Card>
+
+        {/* Paso 4: Beneficios Imputados Sujetos al 40% */}
+        <Card className="p-5 space-y-3">
+          <div className="flex items-center gap-2 border-b border-line pb-2">
+            <span className="flex size-6 items-center justify-center rounded-full bg-blue-100 text-blue-800 text-xs font-bold font-mono">4</span>
+            <h3 className="font-bold text-ink text-sm">Paso 4 · Asignación de Beneficios dentro del 40%</h3>
+          </div>
+          <p className="text-xs text-muted leading-relaxed">
+            Exenciones y deducciones imputadas a cada subcédula bajo el cupo del 40 %:
+          </p>
+          <div className="space-y-1.5 text-xs">
+            <div className="flex justify-between py-1 border-b border-line/50">
+              <span className="text-muted">Rentas de Trabajo (Casilla 41 - 25% + Dep. 10%):</span>
+              <span className="font-mono font-semibold text-ink">{formatCOP(c.casillas[41] ?? 0)}</span>
+            </div>
+            <div className="flex justify-between py-1 border-b border-line/50">
+              <span className="text-muted">Rentas de Capital (Casilla 69 - 50% GMF):</span>
+              <span className="font-mono font-semibold text-ink">{formatCOP(c.casillas[69] ?? 0)}</span>
+            </div>
+            <div className="flex justify-between py-1 border-b border-line/50">
+              <span className="text-muted">Honorarios (Casilla 53) y No Laborales (Casilla 86):</span>
+              <span className="font-mono font-semibold text-ink">{formatCOP((c.casillas[53] ?? 0) + (c.casillas[86] ?? 0))}</span>
+            </div>
+            <div className="flex justify-between pt-1.5 font-bold text-ink">
+              <span>Total Beneficios del 40 % Usados:</span>
+              <span className="font-mono text-forest">{formatCOP(d.limitedUsed)}</span>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Paso 5: Beneficios Especiales Fuera del 40% y Total Casilla 92 */}
+      <Card className="p-6 bg-surface border-line space-y-4">
+        <div className="flex items-center gap-2 border-b border-line pb-3">
+          <span className="flex size-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold font-mono">5</span>
+          <h3 className="font-bold text-ink text-base">Paso 5 · Beneficios Especiales Sin Límite del 40% (Ley 2277 de 2022)</h3>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2 text-xs">
+          <div className="rounded-xl border border-line bg-mist/40 p-3.5 space-y-1">
+            <span className="font-bold text-ink block">Deducción 72 UVT por dependiente económico (Casilla 139)</span>
+            <p className="text-muted text-[11px]">
+              Art. 336 num. 2 E.T.: {dec.trabajo.dependientes} dependiente(s) × 72 UVT ({formatCOP(uvt * 72)} c/u). Se resta directamente sin estar sujeta al 40 %.
+            </p>
+            <span className="font-mono font-bold text-emerald-800 block text-sm pt-1">
+              +{formatCOP(d.dependientes72)}
+            </span>
+          </div>
+
+          <div className="rounded-xl border border-line bg-mist/40 p-3.5 space-y-1">
+            <span className="font-bold text-ink block">Deducción 1% compras con Factura Electrónica (Casilla 28)</span>
+            <p className="text-muted text-[11px]">
+              Art. 336 num. 5 E.T.: 1% de compras pagadas por medios bancarios. Se suma directamente sin estar sujeta al 40 % ni a las 1.340 UVT.
+            </p>
+            <span className="font-mono font-bold text-emerald-800 block text-sm pt-1">
+              +{formatCOP(d.facturaElectronica)}
+            </span>
+          </div>
+        </div>
+
+        {/* Consolidado Final de la Casilla 92 */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-line rounded-xl bg-forest-mist/30 p-4">
+          <div>
+            <span className="text-[11px] font-semibold text-muted uppercase tracking-wider block">Total Liquidado en Formulario 210</span>
+            <p className="font-bold text-ink text-base">Total Rentas Exentas y Deducciones Imputables (Casilla 92)</p>
+            <p className="text-xs text-muted">
+              Fórmula: Beneficios del 40 % ({formatCOP(d.limitedUsed)}) + Dependientes 72 UVT ({formatCOP(d.dependientes72)}) + Factura Electrónica ({formatCOP(d.facturaElectronica)})
+            </p>
+          </div>
+          <p className="font-mono text-2xl font-bold text-forest-deep">{formatCOP(d.total92)}</p>
+        </div>
+      </Card>
+    </div>
   );
 }
 
