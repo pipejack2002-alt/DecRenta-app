@@ -253,6 +253,67 @@ function DepuracionPanel() {
   const cupoDisponible = Math.max(0, d.poolLimit - d.limitedUsed);
   const pctUsado = d.poolLimit > 0 ? Math.min(100, (d.limitedUsed / d.poolLimit) * 100) : 0;
 
+  // Datos para la tabla matriz unificada de las 4 columnas
+  const matrixData = [
+    {
+      label: "(+) Ingresos Brutos Totales",
+      trabajo: c.casillas[32] ?? 0,
+      honorarios: c.casillas[43] ?? 0,
+      capital: c.casillas[58] ?? 0,
+      noLaborales: c.casillas[74] ?? 0,
+      unificado: d.ingresosBrutos,
+      note: "Suma de ingresos de todas las subcédulas (Art. 335 E.T.)",
+    },
+    {
+      label: "(−) Ingresos No Constitutivos (Salud, Pensión, Inflación)",
+      trabajo: -(c.casillas[33] ?? 0),
+      honorarios: -(c.casillas[45] ?? 0),
+      capital: -(c.casillas[59] ?? 0),
+      noLaborales: -(c.casillas[76] ?? 0),
+      unificado: -d.incrngo,
+      note: "Aportes obligatorios y beneficio componente inflacionario Art. 38",
+      accent: true,
+    },
+    {
+      label: "(=) Ingresos Netos / Base Líquida (Subtotal)",
+      trabajo: c.casillas[34] ?? 0,
+      honorarios: c.casillas[46] ?? 0,
+      capital: c.casillas[61] ?? 0,
+      noLaborales: c.casillas[78] ?? 0,
+      unificado: d.subtotal,
+      isSubtotal: true,
+      note: "Base unificada sobre la cual se calcula el 40 % (Casilla 91)",
+    },
+    {
+      label: "Beneficios Solicitados (Exentas + Deducciones)",
+      trabajo: (c.casillas[37] ?? 0) + (c.casillas[40] ?? 0),
+      honorarios: (c.casillas[49] ?? 0) + (c.casillas[52] ?? 0),
+      capital: (c.casillas[65] ?? 0) + (c.casillas[68] ?? 0),
+      noLaborales: (c.casillas[82] ?? 0) + (c.casillas[85] ?? 0),
+      unificado: (c.casillas[37] ?? 0) + (c.casillas[40] ?? 0) + (c.casillas[49] ?? 0) + (c.casillas[52] ?? 0) + (c.casillas[65] ?? 0) + (c.casillas[68] ?? 0) + (c.casillas[82] ?? 0) + (c.casillas[85] ?? 0),
+      note: "Exención 25% + Dependientes 10% + 50% GMF solicitados",
+    },
+    {
+      label: "Beneficios Imputados dentro del 40 %",
+      trabajo: c.casillas[41] ?? 0,
+      honorarios: c.casillas[53] ?? 0,
+      capital: c.casillas[69] ?? 0,
+      noLaborales: c.casillas[86] ?? 0,
+      unificado: d.limitedUsed,
+      note: `Límite 40 % unificado: ${formatCOP(d.poolLimit)} (Tope 1.340 UVT). Aceptado 100%.`,
+      accent: true,
+    },
+    {
+      label: "Renta Líquida Ordinaria por Subcédula",
+      trabajo: c.casillas[42] ?? 0,
+      honorarios: c.casillas[57] ?? 0,
+      capital: c.casillas[73] ?? 0,
+      noLaborales: c.casillas[90] ?? 0,
+      unificado: (c.casillas[42] ?? 0) + (c.casillas[57] ?? 0) + (c.casillas[73] ?? 0) + (c.casillas[90] ?? 0),
+      note: "Renta líquida ordinaria antes de deducciones especiales (Casilla 93)",
+    },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Banner de Resumen y Estado del Límite */}
@@ -291,6 +352,64 @@ function DepuracionPanel() {
               style={{ width: `${pctUsado}%` }}
             />
           </div>
+        </div>
+      </Card>
+
+      {/* Gran Tabla Matriz Unificada de las 4 Columnas */}
+      <Card className="overflow-hidden p-0 border-line shadow-sm">
+        <div className="border-b border-line bg-mist/60 px-5 py-3">
+          <h3 className="text-sm font-bold text-ink flex items-center gap-2">
+            <span>📊</span> Matriz Comparativa Unificada de las 4 Subcédulas
+          </h3>
+          <p className="text-xs text-muted mt-0.5">
+            Muestra el origen exacto de cada valor en las 4 columnas (Trabajo, Honorarios, Capital y No Laborales) y su consolidación en el Total Unificado.
+          </p>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="border-b border-line bg-forest text-primary-fg">
+                <th className="px-4 py-3 font-semibold min-w-[200px]">Concepto de Depuración</th>
+                <th className="px-3 py-3 text-right font-medium min-w-[110px]">1. Trabajo</th>
+                <th className="px-3 py-3 text-right font-medium min-w-[110px]">2. Honorarios</th>
+                <th className="px-3 py-3 text-right font-medium min-w-[110px]">3. Capital</th>
+                <th className="px-3 py-3 text-right font-medium min-w-[110px]">4. No Laborales</th>
+                <th className="px-4 py-3 text-right font-bold bg-forest-deep text-white min-w-[140px]">TOTAL UNIFICADO</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-line">
+              {matrixData.map((m, idx) => (
+                <tr
+                  key={idx}
+                  className={cn(
+                    "hover:bg-bg-raised/80 transition-colors",
+                    m.isSubtotal ? "bg-emerald-50/70 font-semibold text-ink" : "",
+                    m.accent ? "bg-mist/30" : ""
+                  )}
+                >
+                  <td className="px-4 py-2.5">
+                    <span className="font-medium text-ink block">{m.label}</span>
+                    <span className="text-[10px] text-muted block mt-0.5">{m.note}</span>
+                  </td>
+                  <td className="px-3 py-2.5 text-right font-mono tabular-nums text-ink">
+                    {formatCOP(m.trabajo)}
+                  </td>
+                  <td className="px-3 py-2.5 text-right font-mono tabular-nums text-ink">
+                    {formatCOP(m.honorarios)}
+                  </td>
+                  <td className="px-3 py-2.5 text-right font-mono tabular-nums text-ink">
+                    {formatCOP(m.capital)}
+                  </td>
+                  <td className="px-3 py-2.5 text-right font-mono tabular-nums text-ink">
+                    {formatCOP(m.noLaborales)}
+                  </td>
+                  <td className="px-4 py-2.5 text-right font-mono tabular-nums font-bold bg-forest/10 text-forest-deep text-sm">
+                    {formatCOP(m.unificado)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </Card>
 
@@ -377,7 +496,7 @@ function DepuracionPanel() {
               <span className="font-mono font-bold text-forest">{formatCOP(d.cuarentaPct)}</span>
             </div>
             <div className="flex justify-between py-1 border-b border-line/50">
-              <span className="text-muted">Tope legal anual (1.340 UVT × ${formatCOP(uvt)}):</span>
+              <span className="text-muted">Tope legal anual (1.340 UVT × {formatCOP(uvt)}):</span>
               <span className="font-mono font-semibold text-muted">{formatCOP(d.tope1340)}</span>
             </div>
             <div className="flex justify-between pt-1.5 font-bold text-ink">
