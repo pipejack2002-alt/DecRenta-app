@@ -1,4 +1,5 @@
 import * as XLSX from "xlsx";
+import { getComponenteInflacionario } from "../tax/componente-inflacionario.ts";
 
 export interface ExogenaTerceroItem {
   informanteNit: string;
@@ -343,9 +344,10 @@ export function parseExogenaExcel(bufferOrArray: ArrayBuffer | Uint8Array): Exog
       amountsToApply["topes.compras"] = resumen.comprasTotales;
     }
 
-    // Componente inflacionario sugerido sobre rendimientos financieros (Arts. 38 y 40-1 E.T. - ~43.6% en rendimientos financieros)
+    // Componente inflacionario sugerido sobre rendimientos financieros (Arts. 38 y 40-1 E.T.)
     if (resumen.ingresosCapital > 0 && !amountsToApply["capital.componenteInflacionario"]) {
-      amountsToApply["capital.componenteInflacionario"] = Math.round(resumen.ingresosCapital * 0.436);
+      const ciInfo = getComponenteInflacionario(year || 2025);
+      amountsToApply["capital.componenteInflacionario"] = Math.round(resumen.ingresosCapital * ciInfo.rate);
     }
 
     return {

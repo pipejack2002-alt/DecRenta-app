@@ -13,6 +13,7 @@ import { useAppStore, useComputed } from "@/lib/store";
 import { formatCOP } from "@/lib/tax/format";
 import { CASILLA_LABELS } from "@/lib/tax/engine";
 import { deadlineForNit, daysUntil, isZonaSismo1226 } from "@/lib/tax/calendar";
+import { getComponenteInflacionario } from "@/lib/tax/componente-inflacionario";
 import { type TipoCompensacion } from "@/lib/tax/types";
 import { cn } from "@/lib/utils";
 
@@ -1390,29 +1391,82 @@ function DeclaracionPage() {
               <div className="space-y-3 pt-2 border-t border-line">
                 <h3 className="font-display text-base font-semibold text-ink">2. Ingresos No Constitutivos de Renta (Conceptos No Gravados) · Casilla 59</h3>
 
-                <div className="rounded-xl border border-line bg-mist/60 p-4 text-xs space-y-2 text-ink/80">
-                  <div className="flex items-center gap-2 font-medium text-ink">
-                    <Sparkles className="size-4 text-forest" />
-                    <span>Beneficio legal del Componente Inflacionario (Arts. 38 y 40-1 E.T.):</span>
-                  </div>
-                  <p className="text-muted">
-                    Para personas naturales no obligadas a llevar contabilidad, la porción de los intereses y rendimientos financieros que compensa la inflación del año es un <strong>Ingreso No Constitutivo de Renta ni Ganancia Ocasional (INCRNGO)</strong> y se resta directamente en la <strong>Casilla 59</strong> para no tributar sobre la desvalorización monetaria.
-                  </p>
-                  {d.capital.intereses > 0 && (!d.capital.componenteInflacionario || d.capital.componenteInflacionario === 0) ? (
-                    <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-line/60">
-                      <span className="text-forest font-medium">💡 Rendimientos detectados: {formatCOP(d.capital.intereses)}. Sugerencia estimada (~43.6%): {formatCOP(Math.round(d.capital.intereses * 0.436))}</span>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        className="h-7 text-xs border-forest text-forest hover:bg-forest hover:text-white"
-                        onClick={() => patch((x) => (x.capital.componenteInflacionario = Math.round(d.capital.intereses * 0.436)))}
-                      >
-                        Aplicar {formatCOP(Math.round(d.capital.intereses * 0.436))}
-                      </Button>
+                {(() => {
+                  const ciInfo = getComponenteInflacionario(y);
+                  const suggestedAmount = Math.round(d.capital.intereses * ciInfo.rate);
+                  return (
+                    <div className="rounded-xl border border-line bg-mist/60 p-4 text-xs space-y-3 text-ink/80">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 font-medium text-ink">
+                          <Sparkles className="size-4 text-forest" />
+                          <span>Beneficio legal del Componente Inflacionario (Arts. 38 y 40-1 E.T.):</span>
+                        </div>
+                        <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full bg-forest-mist text-forest border border-forest/30">
+                          {ciInfo.decree} ({ciInfo.percentage}%)
+                        </span>
+                      </div>
+
+                      <p className="text-muted leading-relaxed">
+                        Para personas naturales no obligadas a llevar contabilidad, la porción de los intereses y rendimientos financieros generados por entidades financieras (cuentas de ahorro, CDTs, fiducias y rendimientos en fondos de cesantías) que compensa la inflación del año es un <strong>Ingreso No Constitutivo de Renta ni Ganancia Ocasional (INCRNGO)</strong> y se resta directamente en la <strong>Casilla 59</strong> para no tributar sobre la desvalorización monetaria.
+                      </p>
+
+                      {d.capital.intereses > 0 && (
+                        <div className="rounded-lg bg-surface border border-line p-3 space-y-2">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px]">
+                            <div>
+                              <span className="text-muted block">Base total rendimientos (c.58):</span>
+                              <span className="font-mono font-bold text-ink">{formatCOP(d.capital.intereses)}</span>
+                            </div>
+                            <div>
+                              <span className="text-muted block">Tasa legal aplicable (AG {y}):</span>
+                              <span className="font-mono font-bold text-forest">{ciInfo.percentage}% ({ciInfo.decree})</span>
+                            </div>
+                            <div>
+                              <span className="text-muted block">Monto INCRNGO sugerido (c.59):</span>
+                              <span className="font-mono font-bold text-emerald-700">{formatCOP(suggestedAmount)}</span>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-line/60">
+                            <span className="text-[11px] text-muted">
+                              {d.capital.componenteInflacionario > 0
+                                ? `Valor actual aplicado en Casilla 59: ${formatCOP(d.capital.componenteInflacionario)}`
+                                : "Aún no has aplicado el componente inflacionario en la Casilla 59."}
+                            </span>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                className="h-7 text-xs border-forest text-forest hover:bg-forest hover:text-white font-medium"
+                                onClick={() => patch((x) => (x.capital.componenteInflacionario = suggestedAmount))}
+                              >
+                                Aplicar tasa oficial ({ciInfo.percentage}%: {formatCOP(suggestedAmount)})
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="ghost"
+                                className="h-7 text-xs text-muted hover:text-ink border border-line bg-mist/30"
+                                onClick={() => {
+                                  const custom = window.prompt("Ingrese el porcentaje de componente inflacionario que desea aplicar (%):", String(ciInfo.percentage));
+                                  if (custom !== null) {
+                                    const parsed = parseFloat(custom.replace(",", "."));
+                                    if (!isNaN(parsed) && parsed >= 0 && parsed <= 100) {
+                                      patch((x) => (x.capital.componenteInflacionario = Math.round(d.capital.intereses * (parsed / 100))));
+                                    }
+                                  }
+                                }}
+                              >
+                                Porcentaje personalizado...
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  ) : null}
-                </div>
+                  );
+                })()}
 
                 <div className={fieldGrid}>
                   <MoneyField
