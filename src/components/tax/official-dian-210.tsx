@@ -122,36 +122,12 @@ export function OfficialDian210({
     downloadFile(`formulario-210-ag${d.year}-${id.nit || "dian"}.csv`, csv, "text/csv");
   }
 
-  function VerticalLabel({ text, className = "" }: { text: string; className?: string }) {
-    return (
-      <div className={`w-4 bg-gray-100 border-r border-black flex items-center justify-center shrink-0 select-none overflow-hidden ${className}`}>
-        <svg className="w-3.5 h-full max-h-[120px]" viewBox="0 0 14 100" preserveAspectRatio="xMidYMid meet">
-          <text
-            x="-50"
-            y="9.5"
-            transform="rotate(-90)"
-            textAnchor="middle"
-            fill="#1f2937"
-            fontSize="7.5"
-            fontWeight="bold"
-            fontFamily="Arial, 'Helvetica Neue', Helvetica, sans-serif"
-            letterSpacing="0.2"
-          >
-            {text}
-          </text>
-        </svg>
-      </div>
-    );
-  }
-
   function Cell({
     num,
     className = "",
-    bold = false,
   }: {
     num: number;
     className?: string;
-    bold?: boolean;
   }) {
     const valStr = v(num);
     const highlighted = isMatch(num);
@@ -161,20 +137,18 @@ export function OfficialDian210({
       <div
         onClick={() => setSelectedCasilla(num)}
         title={meta ? `Casilla ${num}: ${meta.label} (${meta.legal})` : `Casilla ${num}`}
-        className={`flex items-center h-full min-h-[18px] cursor-pointer transition-colors select-text ${
+        className={`relative flex items-center justify-end px-1.5 py-0.5 cursor-pointer font-mono text-[11px] leading-none transition-colors select-text ${
           highlighted
             ? "bg-[#ffeb99] ring-2 ring-amber-500 z-10 font-bold"
             : valStr
-            ? "bg-white hover:bg-amber-100/60"
-            : "bg-white hover:bg-amber-50"
+            ? "bg-white text-black font-semibold hover:bg-amber-100/60"
+            : "bg-white text-black hover:bg-amber-50"
         } ${className}`}
       >
-        <span className="w-4 sm:w-5 h-full border-r border-black flex items-center justify-center font-sans text-[6.5px] text-gray-700 select-none pointer-events-none bg-gray-50/60 shrink-0">
+        <span className="absolute left-1 top-0.5 font-sans text-[8px] text-gray-500 select-none pointer-events-none print:text-[6px] print:left-0.5 print:top-0">
           {num}
         </span>
-        <span className={`flex-1 text-right font-mono text-[8.5px] leading-none px-1 tabular-nums truncate ${bold ? "font-bold text-black" : "font-normal text-black"}`}>
-          {valStr || "0"}
-        </span>
+        <span className="tabular-nums text-right w-full pl-3 whitespace-nowrap print:text-[7.5px] print:pl-1.5">{valStr || "0"}</span>
       </div>
     );
   }
@@ -352,59 +326,53 @@ export function OfficialDian210({
               1. ENCABEZADO OFICIAL DIAN (Idéntico a Formulario_210_2024.pdf)
               ——————————————————————————————————————————————————————————— */}
           <div className="grid grid-cols-12 border-b border-black">
-            {/* Col 1-3: Logo DIAN y Casilla 1 */}
+            {/* Logo DIAN y Casilla 1 */}
             <div
-              className={`col-span-3 border-r border-black p-1.5 flex flex-col justify-between cursor-pointer transition-colors ${
+              className={`col-span-3 border-r border-black p-2 flex flex-col justify-between cursor-pointer transition-colors ${
                 selectedCasilla === 1 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
               }`}
               onClick={() => setSelectedCasilla(1)}
               onDoubleClick={() => setIsEditingDeclarante(true)}
-              title="Casilla 1: Año gravable (Art. 596 E.T.)"
+              title="Casilla 1: Año gravable (Art. 596 E.T.) - Clic para instructivo / Doble clic para editar"
             >
-              <div className="flex items-center justify-start pl-1">
+              <div className="flex items-center gap-1.5">
                 {/* Logotipo DIAN oficial */}
-                <div className="font-sans text-xl font-light tracking-[3px] text-black uppercase flex items-baseline">
+                <div className="font-sans text-2xl font-black tracking-tight text-black flex items-baseline uppercase">
                   <span>D</span>
-                  <span className="font-normal text-[#2D6187]">I</span>
+                  <span className="text-[#2D6187]">I</span>
                   <span>AN</span>
                 </div>
               </div>
-              <div className="mt-1 flex items-center gap-1 text-[8.5px]">
-                <span className="font-bold">1. Año</span>
-                <div className="flex border border-black divide-x divide-black bg-white">
-                  {String(d.year).padStart(4, "0").split("").map((digit, idx) => (
-                    <span key={idx} className="w-3.5 h-3.5 flex items-center justify-center font-mono font-bold text-[9px] text-black">
-                      {digit}
-                    </span>
-                  ))}
-                </div>
+              <div className="mt-2 text-[9px] leading-tight">
+                <span className="font-bold">1. Año:</span>
+                <span className="ml-2 font-mono text-sm font-black text-forest-deep">{d.year}</span>
+                <p className="text-[8px] text-gray-500 mt-1">Espacio reservado para la DIAN (Clic para editar)</p>
               </div>
-              <p className="text-[7px] text-gray-500 leading-none mt-0.5">Espacio reservado para la DIAN</p>
             </div>
 
-            {/* Col 4-10: Título Central y Casilla 4 */}
-            <div className="col-span-7 border-r border-black p-1.5 flex flex-col justify-between text-center">
-              <h1 className="font-sans text-[11px] font-bold uppercase tracking-tight leading-tight px-2">
+            {/* Título Central y Casilla 4 */}
+            <div className="col-span-7 border-r border-black p-2 flex flex-col justify-between text-center">
+              <h1 className="font-sans text-[13px] font-bold uppercase tracking-tight leading-snug px-4">
                 Declaración de renta y complementario personas naturales y asimiladas residentes y sucesiones ilíquidas de causantes residentes
               </h1>
               <div
-                className={`mt-1 inline-flex items-center justify-center gap-1.5 text-[8.5px] cursor-pointer rounded px-1 transition-colors self-center ${
+                className={`mt-2 inline-flex items-center justify-center gap-2 text-[10px] cursor-pointer rounded p-1 transition-colors self-center ${
                   selectedCasilla === 4 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
                 }`}
                 onClick={() => setSelectedCasilla(4)}
                 onDoubleClick={() => setIsEditingDeclarante(true)}
-                title="Casilla 4: Número de formulario único (Art. 578 E.T.)"
+                title="Casilla 4: Número de formulario único (Art. 578 E.T.) - Clic para instructivo / Doble clic para editar"
               >
                 <span className="font-bold">4. Número de formulario:</span>
-                <span className="font-mono font-bold text-[9.5px] bg-white px-2 py-0.5 border border-black">
+                <span className="font-mono font-bold text-xs bg-gray-50 px-2 py-0.5 border border-gray-300">
                   {id.numeroFormulario || `210${d.year}000${id.nit ? id.nit.slice(-5) : "41029"}`}
                 </span>
               </div>
             </div>
 
-            {/* Col 11-12: Caja Azul Oficial 210 */}
-            <div className="col-span-2 bg-[#2D6187] text-white flex items-center justify-center p-1 print:!bg-[#2D6187] print:!text-white">
-              <span className="font-sans text-4xl font-black tracking-normal print:!text-white">
+            {/* Caja Azul Oficial 210 */}
+            <div className="col-span-2 bg-[#2D6187] text-white flex items-center justify-center p-2 print:!bg-[#2D6187] print:!text-white">
+              <span className="font-sans text-5xl font-black tracking-normal print:!text-white">
                 210
               </span>
             </div>
@@ -413,177 +381,155 @@ export function OfficialDian210({
           {/* ———————————————————————————————————————————————————————————
               2. DATOS DEL DECLARANTE (Casillas 5 a 28)
               ——————————————————————————————————————————————————————————— */}
-          <div className="border-b border-black text-[8.5px]">
-            {/* Fila 1: NIT, DV, Nombres y Seccional */}
-            <div className="flex border-b border-black items-stretch h-[24px]">
-              <div className="w-5 border-r border-black flex items-center justify-center shrink-0 bg-gray-50 overflow-hidden">
-                <VerticalLabel text="Datos declarante" />
+          <div className="border-b border-black text-[10px]">
+            {/* Fila NIT, DV, Nombres y Seccional */}
+            <div className="flex border-b border-black">
+              <div className="w-5 bg-gray-200 border-r border-black flex items-center justify-center">
+                <span className="[writing-mode:vertical-lr] rotate-180 font-sans text-[7.5px] font-bold tracking-tight text-gray-700 py-1">
+                  Datos del declarante
+                </span>
               </div>
 
-              <div className="flex-1 grid grid-cols-12 divide-x divide-black items-center h-full">
-                {/* 5. NIT con cajitas individuales */}
+              <div className="flex-1 grid grid-cols-12 divide-x divide-black">
                 <div
-                  className={`col-span-3 px-1 h-full flex items-center justify-between cursor-pointer transition-colors ${
-                    selectedCasilla === 5 ? "bg-[#ffeb99]" : "hover:bg-amber-50"
+                  className={`col-span-2 p-1 cursor-pointer transition-colors ${
+                    selectedCasilla === 5 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
                   }`}
                   onClick={() => setSelectedCasilla(5)}
                   onDoubleClick={() => setIsEditingDeclarante(true)}
-                  title="Casilla 5: Número de Identificación Tributaria (NIT)"
+                  title="Casilla 5: Número de Identificación Tributaria (NIT) - Clic para instructivo / Doble clic para editar"
                 >
-                  <span className="text-[7.5px] text-gray-700 leading-none whitespace-nowrap">5. NIT</span>
-                  <div className="flex border border-black divide-x divide-black bg-white">
-                    {((id.nit || "").padEnd(10, " ")).slice(0, 10).split("").map((ch, idx) => (
-                      <span key={idx} className="w-2.5 h-3.5 flex items-center justify-center font-mono font-bold text-[8px] text-black">
-                        {ch.trim()}
-                      </span>
-                    ))}
-                  </div>
+                  <span className="block text-[8px] text-gray-600">5. Número de Identificación Tributaria (NIT)</span>
+                  <span className="font-mono font-bold text-xs">{id.nit || "—"}</span>
                 </div>
-
-                {/* 6. DV */}
                 <div
-                  className={`col-span-1 px-1 h-full flex items-center justify-center gap-1 cursor-pointer transition-colors ${
-                    selectedCasilla === 6 ? "bg-[#ffeb99]" : "hover:bg-amber-50"
+                  className={`col-span-1 p-1 text-center cursor-pointer transition-colors ${
+                    selectedCasilla === 6 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
                   }`}
                   onClick={() => setSelectedCasilla(6)}
                   onDoubleClick={() => setIsEditingDeclarante(true)}
-                  title="Casilla 6: Dígito de Verificación (DV)"
+                  title="Casilla 6: Dígito de Verificación (DV) - Clic para instructivo / Doble clic para editar"
                 >
-                  <span className="text-[7.5px] text-gray-700 leading-none">6.DV</span>
-                  <span className="w-3.5 h-3.5 border border-black flex items-center justify-center font-mono font-bold text-[8.5px] bg-white">
-                    {id.dv || "0"}
-                  </span>
+                  <span className="block text-[8px] text-gray-600">6.DV</span>
+                  <span className="font-mono font-bold text-xs">{id.dv || "0"}</span>
                 </div>
-
-                {/* 7. Primer apellido */}
                 <div
-                  className={`col-span-2 px-1 h-full flex flex-col justify-center cursor-pointer transition-colors ${
-                    selectedCasilla === 7 ? "bg-[#ffeb99]" : "hover:bg-amber-50"
+                  className={`col-span-2 p-1 cursor-pointer transition-colors ${
+                    selectedCasilla === 7 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
                   }`}
                   onClick={() => setSelectedCasilla(7)}
                   onDoubleClick={() => setIsEditingDeclarante(true)}
+                  title="Casilla 7: Primer apellido - Clic para instructivo / Doble clic para editar"
                 >
-                  <span className="text-[7px] text-gray-600 leading-none">7. Primer apellido</span>
-                  <span className="font-semibold uppercase text-[8.5px] leading-tight truncate">{id.primerApellido || "—"}</span>
+                  <span className="block text-[8px] text-gray-600">7. Primer apellido</span>
+                  <span className="font-semibold uppercase text-[11px] whitespace-nowrap block">{id.primerApellido || "—"}</span>
                 </div>
-
-                {/* 8. Segundo apellido */}
                 <div
-                  className={`col-span-2 px-1 h-full flex flex-col justify-center cursor-pointer transition-colors ${
-                    selectedCasilla === 8 ? "bg-[#ffeb99]" : "hover:bg-amber-50"
+                  className={`col-span-2 p-1 cursor-pointer transition-colors ${
+                    selectedCasilla === 8 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
                   }`}
                   onClick={() => setSelectedCasilla(8)}
                   onDoubleClick={() => setIsEditingDeclarante(true)}
+                  title="Casilla 8: Segundo apellido - Clic para instructivo / Doble clic para editar"
                 >
-                  <span className="text-[7px] text-gray-600 leading-none">8. Segundo apellido</span>
-                  <span className="font-semibold uppercase text-[8.5px] leading-tight truncate">{id.segundoApellido || "—"}</span>
+                  <span className="block text-[8px] text-gray-600">8. Segundo apellido</span>
+                  <span className="font-semibold uppercase text-[11px] whitespace-nowrap block">{id.segundoApellido || "—"}</span>
                 </div>
-
-                {/* 9. Primer nombre */}
                 <div
-                  className={`col-span-2 px-1 h-full flex flex-col justify-center cursor-pointer transition-colors ${
-                    selectedCasilla === 9 ? "bg-[#ffeb99]" : "hover:bg-amber-50"
+                  className={`col-span-2 p-1 cursor-pointer transition-colors ${
+                    selectedCasilla === 9 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
                   }`}
                   onClick={() => setSelectedCasilla(9)}
                   onDoubleClick={() => setIsEditingDeclarante(true)}
+                  title="Casilla 9: Primer nombre - Clic para instructivo / Doble clic para editar"
                 >
-                  <span className="text-[7px] text-gray-600 leading-none">9. Primer nombre</span>
-                  <span className="font-semibold uppercase text-[8.5px] leading-tight truncate">{id.primerNombre || "—"}</span>
+                  <span className="block text-[8px] text-gray-600">9. Primer nombre</span>
+                  <span className="font-semibold uppercase text-[11px] whitespace-nowrap block">{id.primerNombre || "—"}</span>
                 </div>
-
-                {/* 10. Otros nombres */}
                 <div
-                  className={`col-span-1 px-1 h-full flex flex-col justify-center cursor-pointer transition-colors ${
-                    selectedCasilla === 10 ? "bg-[#ffeb99]" : "hover:bg-amber-50"
+                  className={`col-span-2 p-1 cursor-pointer transition-colors ${
+                    selectedCasilla === 10 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
                   }`}
                   onClick={() => setSelectedCasilla(10)}
                   onDoubleClick={() => setIsEditingDeclarante(true)}
+                  title="Casilla 10: Otros nombres - Clic para instructivo / Doble clic para editar"
                 >
-                  <span className="text-[7px] text-gray-600 leading-none">10. Otros</span>
-                  <span className="font-semibold uppercase text-[8.5px] leading-tight truncate">{id.otrosNombres || "—"}</span>
+                  <span className="block text-[8px] text-gray-600">10. Otros nombres</span>
+                  <span className="font-semibold uppercase text-[11px] whitespace-nowrap block">{id.otrosNombres || "—"}</span>
                 </div>
-
-                {/* 12. Cód. Dirección seccional */}
                 <div
-                  className={`col-span-1 px-1 h-full flex flex-col justify-center text-center cursor-pointer transition-colors ${
-                    selectedCasilla === 12 ? "bg-[#ffeb99]" : "hover:bg-amber-50"
+                  className={`col-span-1 p-1 text-center cursor-pointer transition-colors ${
+                    selectedCasilla === 12 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
                   }`}
                   onClick={() => setSelectedCasilla(12)}
                   onDoubleClick={() => setIsEditingDeclarante(true)}
+                  title="Casilla 12: Código Dirección Seccional DIAN - Clic para instructivo / Doble clic para editar"
                 >
-                  <span className="text-[6.5px] text-gray-600 leading-none">12.Cod.Secc</span>
-                  <span className="font-mono font-bold text-[8.5px] leading-tight">{id.dirSeccional || "02"}</span>
+                  <span className="block text-[7.5px] text-gray-600 leading-none">12.Cód.Secc</span>
+                  <span className="font-mono font-bold text-xs">{id.dirSeccional || "03"}</span>
                 </div>
               </div>
             </div>
 
-            {/* Fila 2: Actividad CIIU, Correcciones y Casilla 28 */}
-            <div className="flex items-stretch h-[22px] bg-[#f8fafc]">
-              <div className="w-5 border-r border-black shrink-0 bg-gray-100" />
-              <div className="flex-1 grid grid-cols-12 divide-x divide-black items-center h-full">
-                {/* 24. Actividad CIIU */}
+            {/* Fila Actividad CIIU, Correcciones y Casilla 28 */}
+            <div className="flex bg-[#f4f7f9]">
+              <div className="w-5 bg-gray-200 border-r border-black flex items-center justify-center shrink-0" />
+              <div className="flex-1 grid grid-cols-12 divide-x divide-black">
                 <div
-                  className={`col-span-3 px-1 h-full flex items-center justify-between cursor-pointer transition-colors ${
-                    selectedCasilla === 24 ? "bg-[#ffeb99]" : "hover:bg-amber-50"
+                  className={`col-span-2 p-1 cursor-pointer transition-colors ${
+                    selectedCasilla === 24 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
                   }`}
                   onClick={() => setSelectedCasilla(24)}
                   onDoubleClick={() => setIsEditingDeclarante(true)}
+                  title="Casilla 24: Actividad económica principal CIIU - Clic para instructivo / Doble clic para editar"
                 >
-                  <span className="text-[7px] text-gray-700 leading-none">24. Actividad ppal</span>
-                  <div className="flex border border-black divide-x divide-black bg-white">
-                    {((id.actividadCiiu || "0010").padStart(4, "0")).slice(0, 4).split("").map((ch, idx) => (
-                      <span key={idx} className="w-2.5 h-3.5 flex items-center justify-center font-mono font-bold text-[8px] text-black">
-                        {ch}
-                      </span>
-                    ))}
-                  </div>
+                  <span className="block text-[8px] text-gray-600">24. Actividad económica principal</span>
+                  <span className="font-mono font-bold text-xs">{id.actividadCiiu || "0010"}</span>
                 </div>
-
-                {/* 25. Cód. Corrección */}
                 <div
-                  className={`col-span-1 px-1 h-full flex items-center justify-center gap-1 cursor-pointer transition-colors ${
-                    selectedCasilla === 25 ? "bg-[#ffeb99]" : "hover:bg-amber-50"
+                  className={`col-span-1 p-1 text-center cursor-pointer transition-colors ${
+                    selectedCasilla === 25 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
                   }`}
                   onClick={() => setSelectedCasilla(25)}
                   onDoubleClick={() => setIsEditingDeclarante(true)}
+                  title="Casilla 25: Código de corrección (1, 2, 3) - Clic para instructivo / Doble clic para editar"
                 >
-                  <span className="text-[7px] text-gray-600 leading-none">25.Cód</span>
-                  <span className="font-mono text-[8px]">{id.esCorreccion ? (id.codCorreccion || "1") : "—"}</span>
+                  <span className="block text-[7.5px] text-gray-600 leading-none">25. Cód</span>
+                  <span className="font-mono font-bold text-xs">{id.esCorreccion ? (id.codCorreccion || "1") : "—"}</span>
                 </div>
-
-                {/* 26. No. Formulario anterior */}
                 <div
-                  className={`col-span-2 px-1 h-full flex items-center justify-between cursor-pointer transition-colors ${
-                    selectedCasilla === 26 ? "bg-[#ffeb99]" : "hover:bg-amber-50"
+                  className={`col-span-2 p-1 cursor-pointer transition-colors ${
+                    selectedCasilla === 26 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
                   }`}
                   onClick={() => setSelectedCasilla(26)}
                   onDoubleClick={() => setIsEditingDeclarante(true)}
+                  title="Casilla 26: Número de formulario anterior - Clic para instructivo / Doble clic para editar"
                 >
-                  <span className="text-[7px] text-gray-600 leading-none">26. Form. anterior</span>
-                  <span className="font-mono text-[8px]">{id.esCorreccion ? (id.formAnterior || "—") : "—"}</span>
+                  <span className="block text-[8px] text-gray-600">26. No. Formulario anterior</span>
+                  <span className="font-mono text-xs">{id.esCorreccion ? (id.formAnterior || "—") : "—"}</span>
                 </div>
-
-                {/* 27. Fracción año gravable siguiente */}
                 <div
-                  className={`col-span-2 px-1 h-full flex items-center justify-center gap-1 cursor-pointer transition-colors ${
-                    selectedCasilla === 27 ? "bg-[#ffeb99]" : "hover:bg-amber-50"
+                  className={`col-span-2 p-1 text-center cursor-pointer transition-colors ${
+                    selectedCasilla === 27 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
                   }`}
                   onClick={() => setSelectedCasilla(27)}
                   onDoubleClick={() => setIsEditingDeclarante(true)}
+                  title="Casilla 27: Fracción año gravable siguiente - Clic para instructivo / Doble clic para editar"
                 >
-                  <span className="text-[7px] text-gray-600 leading-none">27. Fracción sig.</span>
-                  <span className="font-bold text-[8px]">{id.fraccionAnioSiguiente ? "SÍ" : "NO"}</span>
+                  <span className="block text-[7.5px] text-gray-600 leading-none">27. Fracción año gravable sig.</span>
+                  <span className="font-semibold text-xs">{id.fraccionAnioSiguiente ? "SÍ" : "NO"}</span>
                 </div>
-
-                {/* 28. 1% Factura electrónica */}
                 <div
-                  className={`col-span-4 px-1.5 h-full bg-white flex items-center justify-between cursor-pointer ${
-                    selectedCasilla === 28 ? "bg-[#ffeb99]" : "hover:bg-amber-50"
+                  className={`col-span-5 p-1 bg-white flex items-center justify-between gap-1.5 cursor-pointer px-2 ${
+                    selectedCasilla === 28 ? "bg-[#ffeb99] ring-2 ring-amber-500" : ""
                   }`}
                   onClick={() => setSelectedCasilla(28)}
+                  title="Casilla 28: 1% compras factura electrónica (Tope 240 UVT) - Clic para ver instructivo"
                 >
-                  <span className="text-[7px] text-gray-700 leading-tight">28. 1% compras factura electrónica</span>
-                  <Cell num={28} className="w-20 border border-gray-300 h-4" />
+                  <span className="text-[7.5px] text-gray-700 leading-tight">
+                    28. Uno por ciento (1%) de compras con factura electrónica
+                  </span>
+                  <Cell num={28} className="w-28 shrink-0 border border-gray-300" />
                 </div>
               </div>
             </div>
@@ -592,22 +538,24 @@ export function OfficialDian210({
           {/* ———————————————————————————————————————————————————————————
               3. SECCIÓN PATRIMONIO (Casillas 29 a 31)
               ——————————————————————————————————————————————————————————— */}
-          <div className="border-b border-black text-[8.5px] h-[22px] flex items-center bg-[#e8eef3]">
-            <div className="w-24 px-2 font-bold text-[8.5px] border-r border-black h-full flex items-center">
-              Patrimonio
+          <div className="flex border-b border-black bg-[#dbe7f0] text-[10px] font-bold">
+            <div className="w-5 bg-gray-200 border-r border-black flex items-center justify-center shrink-0">
+              <span className="[writing-mode:vertical-lr] rotate-180 font-sans text-[7px] font-bold uppercase tracking-tight text-gray-700 py-1">
+                Patrimonio
+              </span>
             </div>
-            <div className="flex-1 grid grid-cols-12 divide-x divide-black h-full items-center">
-              <div className="col-span-4 flex items-center justify-between px-2 h-full bg-white">
-                <span className="text-[8px]">Total patrimonio bruto</span>
-                <Cell num={29} className="w-24 border border-gray-300 h-4" />
+            <div className="flex-1 grid grid-cols-12 divide-x divide-black items-center">
+              <div className="col-span-4 flex items-center justify-between px-2 py-0.5 bg-white">
+                <span className="text-[9px] font-normal">Total patrimonio bruto</span>
+                <Cell num={29} className="w-28 border border-gray-300" />
               </div>
-              <div className="col-span-4 flex items-center justify-between px-2 h-full bg-white">
-                <span className="text-[8px]">Deudas</span>
-                <Cell num={30} className="w-24 border border-gray-300 h-4" />
+              <div className="col-span-4 flex items-center justify-between px-2 py-0.5 bg-white">
+                <span className="text-[9px] font-normal">Deudas</span>
+                <Cell num={30} className="w-28 border border-gray-300" />
               </div>
-              <div className="col-span-4 flex items-center justify-between px-2 h-full bg-[#dce7f0]">
-                <span className="text-[8px] font-bold">Total patrimonio líquido</span>
-                <Cell num={31} className="w-24 border border-black font-bold h-4" />
+              <div className="col-span-4 flex items-center justify-between px-2 py-0.5 bg-[#eaf1f7]">
+                <span className="text-[9px] font-bold">Total patrimonio líquido</span>
+                <Cell num={31} className="w-32 border border-black font-bold" />
               </div>
             </div>
           </div>
@@ -615,201 +563,184 @@ export function OfficialDian210({
           {/* ———————————————————————————————————————————————————————————
               4. CÉDULA GENERAL: TABLA MULTICOLUMNA (32 a 90)
               ——————————————————————————————————————————————————————————— */}
-          <div className="border-b border-black text-[8.5px]">
+          <div className="border-b border-black text-[9.5px]">
             <div className="flex">
               {/* Etiqueta vertical izquierda: Cédula General */}
-              <VerticalLabel text="Cédula general" className="w-5" />
+              <div className="w-5 bg-gray-200 border-r border-black flex items-center justify-center">
+                <span className="[writing-mode:vertical-lr] rotate-180 font-sans text-[8px] font-bold uppercase tracking-wider text-gray-800 py-4">
+                  Cédula general
+                </span>
+              </div>
 
               {/* Contenedor de la Matriz Cedular */}
               <div className="flex-1">
                 {/* Cabecera de Columnas */}
-                <div className="grid grid-cols-12 border-b border-black bg-white text-[8px] font-bold text-center divide-x divide-black">
-                  <div className="col-span-4 p-1 text-center font-normal">Conceptos/rentas</div>
+                <div className="grid grid-cols-12 border-b border-black bg-[#dbe7f0] text-[9px] font-bold text-center divide-x divide-black">
+                  <div className="col-span-4 p-1 text-left pl-2">Conceptos/rentas</div>
                   <div className="col-span-2 p-1">Rentas de trabajo</div>
-                  <div className="col-span-2 p-0.5 text-[7px] leading-tight flex items-center justify-center">
-                    Rentas de trabajo que no provengan de una relación laboral o legal y reglamentaria
+                  <div className="col-span-2 p-1 leading-tight">
+                    Rentas de trabajo que no provengan de una relación laboral
                   </div>
                   <div className="col-span-2 p-1">Rentas de capital</div>
                   <div className="col-span-2 p-1">Rentas no laborales</div>
                 </div>
 
                 {/* Filas de la Cédula General */}
-                <div className="divide-y divide-black">
-                  {/* 1. Ingresos brutos */}
-                  <div className="grid grid-cols-12 divide-x divide-black h-[18px]">
-                    <div className="col-span-4 px-1.5 flex items-center bg-white">Ingresos brutos</div>
+                <div className="divide-y divide-gray-300">
+                  {/* Ingresos brutos */}
+                  <div className="grid grid-cols-12 divide-x divide-black">
+                    <div className="col-span-4 px-2 py-0.5 bg-[#f9fbfd]">Ingresos brutos</div>
                     <Cell num={32} className="col-span-2" />
                     <Cell num={43} className="col-span-2" />
                     <Cell num={58} className="col-span-2" />
                     <Cell num={74} className="col-span-2" />
                   </div>
 
-                  {/* 2. Devoluciones, rebajas y descuentos */}
-                  <div className="grid grid-cols-12 divide-x divide-black h-[18px]">
-                    <div className="col-span-4 px-1.5 flex items-center bg-white text-[7.5px] leading-tight">Devoluciones, rebajas y descuentos</div>
-                    <div className="col-span-6 bg-[#c8d7e6]" />
+                  {/* Devoluciones, rebajas y descuentos (Bloque continuo deshabilitado en Trabajo, Honorarios y Capital) */}
+                  <div className="grid grid-cols-12 divide-x divide-black">
+                    <div className="col-span-4 px-2 py-0.5 bg-[#f9fbfd]">Devoluciones, rebajas y descuentos</div>
+                    <div className="col-span-6 bg-[#b4c6d4]" />
                     <Cell num={75} className="col-span-2" />
                   </div>
 
-                  {/* 3. Ingresos no constitutivos de renta */}
-                  <div className="grid grid-cols-12 divide-x divide-black h-[18px]">
-                    <div className="col-span-4 px-1.5 flex items-center bg-white text-[7.5px] leading-tight">Ingresos no constitutivos de renta</div>
+                  {/* Ingresos no constitutivos de renta */}
+                  <div className="grid grid-cols-12 divide-x divide-black">
+                    <div className="col-span-4 px-2 py-0.5 bg-[#f9fbfd]">Ingresos no constitutivos de renta</div>
                     <Cell num={33} className="col-span-2" />
                     <Cell num={44} className="col-span-2" />
                     <Cell num={59} className="col-span-2" />
                     <Cell num={76} className="col-span-2" />
                   </div>
 
-                  {/* 4. Costos y deducciones procedentes */}
-                  <div className="grid grid-cols-12 divide-x divide-black h-[18px]">
-                    <div className="col-span-4 px-1.5 flex items-center bg-white text-[7.5px] leading-tight">Costos y deducciones procedentes</div>
-                    <div className="col-span-2 bg-[#c8d7e6]" />
+                  {/* Costos y deducciones procedentes (Deshabilitado en Trabajo) */}
+                  <div className="grid grid-cols-12 divide-x divide-black">
+                    <div className="col-span-4 px-2 py-0.5 bg-[#f9fbfd]">Costos y deducciones procedentes</div>
+                    <div className="col-span-2 bg-[#b4c6d4]" />
                     <Cell num={45} className="col-span-2" />
                     <Cell num={60} className="col-span-2" />
                     <Cell num={77} className="col-span-2" />
                   </div>
 
-                  {/* 5. Renta líquida */}
-                  <div className="grid grid-cols-12 divide-x divide-black h-[18px] font-bold bg-[#f4f7fa]">
-                    <div className="col-span-4 px-1.5 flex items-center">Renta líquida</div>
-                    <Cell num={34} className="col-span-2" bold />
-                    <Cell num={46} className="col-span-2" bold />
-                    <Cell num={61} className="col-span-2" bold />
-                    <Cell num={78} className="col-span-2" bold />
+                  {/* Renta líquida */}
+                  <div className="grid grid-cols-12 divide-x divide-black bg-[#eef4f8] font-semibold">
+                    <div className="col-span-4 px-2 py-0.5">Renta líquida</div>
+                    <Cell num={34} className="col-span-2 font-bold" />
+                    <Cell num={46} className="col-span-2 font-bold" />
+                    <Cell num={61} className="col-span-2 font-bold" />
+                    <Cell num={78} className="col-span-2 font-bold" />
                   </div>
 
-                  {/* 6. Rentas líquidas pasivas - ECE */}
-                  <div className="grid grid-cols-12 divide-x divide-black h-[18px]">
-                    <div className="col-span-4 px-1.5 flex items-center bg-white text-[7.5px] leading-tight">Rentas líquidas pasivas - ECE</div>
-                    <div className="col-span-4 bg-[#c8d7e6]" />
+                  {/* Rentas líquidas pasivas - ECE (Bloque continuo deshabilitado en Trabajo y Honorarios) */}
+                  <div className="grid grid-cols-12 divide-x divide-black">
+                    <div className="col-span-4 px-2 py-0.5 bg-[#f9fbfd]">Rentas líquidas pasivas - ECE</div>
+                    <div className="col-span-4 bg-[#b4c6d4]" />
                     <Cell num={62} className="col-span-2" />
                     <Cell num={79} className="col-span-2" />
                   </div>
 
-                  {/* 7 y 8. Bloque Rentas Exentas (con etiqueta vertical interna) */}
+                  {/* Bloque Rentas Exentas */}
                   <div className="grid grid-cols-12 divide-x divide-black">
-                    <div className="col-span-4 flex divide-x divide-black">
-                      <div className="w-4 bg-gray-50 flex items-center justify-center shrink-0">
-                        <span className="[writing-mode:vertical-lr] rotate-180 text-[6.5px] text-gray-700 tracking-tight text-center">
-                          Rentas exentas
-                        </span>
-                      </div>
-                      <div className="flex-1 divide-y divide-black">
-                        <div className="h-[18px] px-1 flex items-center text-[7.5px] leading-tight">Aportes voluntarios AFC, FVP y AVC</div>
-                        <div className="h-[18px] px-1 flex items-center text-[7.5px] leading-tight">Otras rentas exentas</div>
-                      </div>
+                    <div className="col-span-4 px-2 py-0.5 bg-[#f9fbfd] pl-4 italic">
+                      • Aportes voluntarios AFC, FVP y AVC
                     </div>
-                    <div className="col-span-2 divide-y divide-black">
-                      <Cell num={35} />
-                      <Cell num={36} />
-                    </div>
-                    <div className="col-span-2 divide-y divide-black">
-                      <Cell num={47} />
-                      <Cell num={48} />
-                    </div>
-                    <div className="col-span-2 divide-y divide-black">
-                      <Cell num={63} />
-                      <Cell num={64} />
-                    </div>
-                    <div className="col-span-2 divide-y divide-black">
-                      <Cell num={80} />
-                      <Cell num={81} />
-                    </div>
+                    <Cell num={35} className="col-span-2" />
+                    <Cell num={47} className="col-span-2" />
+                    <Cell num={63} className="col-span-2" />
+                    <Cell num={80} className="col-span-2" />
                   </div>
 
-                  {/* 9. Total rentas exentas */}
-                  <div className="grid grid-cols-12 divide-x divide-black h-[18px] font-bold bg-[#f4f7fa]">
-                    <div className="col-span-4 px-1.5 flex items-center">Total rentas exentas</div>
-                    <Cell num={37} className="col-span-2" bold />
-                    <Cell num={49} className="col-span-2" bold />
-                    <Cell num={65} className="col-span-2" bold />
-                    <Cell num={82} className="col-span-2" bold />
-                  </div>
-
-                  {/* 10 y 11. Bloque Deducciones Imputables (con etiqueta vertical interna) */}
                   <div className="grid grid-cols-12 divide-x divide-black">
-                    <div className="col-span-4 flex divide-x divide-black">
-                      <div className="w-4 bg-gray-50 flex items-center justify-center shrink-0">
-                        <span className="[writing-mode:vertical-lr] rotate-180 text-[6.5px] text-gray-700 tracking-tight text-center">
-                          Deducciones imputables
-                        </span>
-                      </div>
-                      <div className="flex-1 divide-y divide-black">
-                        <div className="h-[18px] px-1 flex items-center text-[7.5px] leading-tight">Intereses de vivienda</div>
-                        <div className="h-[18px] px-1 flex items-center text-[7.5px] leading-tight">Otras deducciones imputables</div>
-                      </div>
+                    <div className="col-span-4 px-2 py-0.5 bg-[#f9fbfd] pl-4 italic">
+                      • Otras rentas exentas
                     </div>
-                    <div className="col-span-2 divide-y divide-black">
-                      <Cell num={38} />
-                      <Cell num={39} />
-                    </div>
-                    <div className="col-span-2 divide-y divide-black">
-                      <Cell num={50} />
-                      <Cell num={51} />
-                    </div>
-                    <div className="col-span-2 divide-y divide-black">
-                      <Cell num={66} />
-                      <Cell num={67} />
-                    </div>
-                    <div className="col-span-2 divide-y divide-black">
-                      <Cell num={83} />
-                      <Cell num={84} />
-                    </div>
+                    <Cell num={36} className="col-span-2" />
+                    <Cell num={48} className="col-span-2" />
+                    <Cell num={64} className="col-span-2" />
+                    <Cell num={81} className="col-span-2" />
                   </div>
 
-                  {/* 12. Total deducciones imputables */}
-                  <div className="grid grid-cols-12 divide-x divide-black h-[18px] font-bold bg-[#f4f7fa]">
-                    <div className="col-span-4 px-1.5 flex items-center">Total deducciones imputables</div>
-                    <Cell num={40} className="col-span-2" bold />
-                    <Cell num={52} className="col-span-2" bold />
-                    <Cell num={68} className="col-span-2" bold />
-                    <Cell num={85} className="col-span-2" bold />
+                  <div className="grid grid-cols-12 divide-x divide-black bg-[#f0f5f9] font-medium">
+                    <div className="col-span-4 px-2 py-0.5 pl-2 font-semibold">Total rentas exentas</div>
+                    <Cell num={37} className="col-span-2" />
+                    <Cell num={49} className="col-span-2" />
+                    <Cell num={65} className="col-span-2" />
+                    <Cell num={82} className="col-span-2" />
                   </div>
 
-                  {/* 13. Rentas exentas y/o deduc. imputables (Limitadas) */}
-                  <div className="grid grid-cols-12 divide-x divide-black h-[18px] font-bold bg-white">
-                    <div className="col-span-4 px-1.5 flex items-center text-[7.5px] leading-tight">
+                  {/* Bloque Deducciones Imputables */}
+                  <div className="grid grid-cols-12 divide-x divide-black">
+                    <div className="col-span-4 px-2 py-0.5 bg-[#f9fbfd] pl-4 italic">
+                      • Intereses de vivienda
+                    </div>
+                    <Cell num={38} className="col-span-2" />
+                    <Cell num={50} className="col-span-2" />
+                    <Cell num={66} className="col-span-2" />
+                    <Cell num={83} className="col-span-2" />
+                  </div>
+
+                  <div className="grid grid-cols-12 divide-x divide-black">
+                    <div className="col-span-4 px-2 py-0.5 bg-[#f9fbfd] pl-4 italic">
+                      • Otras deducciones imputables
+                    </div>
+                    <Cell num={39} className="col-span-2" />
+                    <Cell num={51} className="col-span-2" />
+                    <Cell num={67} className="col-span-2" />
+                    <Cell num={84} className="col-span-2" />
+                  </div>
+
+                  <div className="grid grid-cols-12 divide-x divide-black bg-[#f0f5f9] font-medium">
+                    <div className="col-span-4 px-2 py-0.5 pl-2 font-semibold">Total deducciones imputables</div>
+                    <Cell num={40} className="col-span-2" />
+                    <Cell num={52} className="col-span-2" />
+                    <Cell num={68} className="col-span-2" />
+                    <Cell num={85} className="col-span-2" />
+                  </div>
+
+                  {/* Rentas exentas y/o deduc. imputables (Limitadas) */}
+                  <div className="grid grid-cols-12 divide-x divide-black bg-[#e9f0f6] font-semibold">
+                    <div className="col-span-4 px-2 py-0.5">
                       Rentas exentas y/o deduc. imputables (Limitadas)
                     </div>
-                    <Cell num={41} className="col-span-2" bold />
-                    <Cell num={53} className="col-span-2" bold />
-                    <Cell num={69} className="col-span-2" bold />
-                    <Cell num={86} className="col-span-2" bold />
+                    <Cell num={41} className="col-span-2" />
+                    <Cell num={53} className="col-span-2" />
+                    <Cell num={69} className="col-span-2" />
+                    <Cell num={86} className="col-span-2" />
                   </div>
 
-                  {/* 14, 15, 16. Bloque de 3 filas con Trabajo sombreado continuo */}
+                  {/* Bloque de 3 filas con columna de trabajo unificada continua (sin líneas divisorias interiores) */}
                   <div className="grid grid-cols-12 divide-x divide-black">
-                    <div className="col-span-4 divide-y divide-black">
-                      <div className="h-[18px] px-1.5 flex items-center text-[7.5px] leading-tight font-bold">Renta líquida ordinaria del ejercicio</div>
-                      <div className="h-[18px] px-1.5 flex items-center text-[7.5px] leading-tight font-bold">Pérdida líquida del ejercicio</div>
-                      <div className="h-[18px] px-1.5 flex items-center text-[7.5px] leading-tight">Compensaciones por pérdidas</div>
+                    <div className="col-span-4 divide-y divide-gray-300">
+                      <div className="px-2 py-0.5 bg-[#f9fbfd]">Renta líquida ordinaria del ejercicio</div>
+                      <div className="px-2 py-0.5 bg-[#f9fbfd]">Pérdida líquida del ejercicio</div>
+                      <div className="px-2 py-0.5 bg-[#f9fbfd]">Compensaciones por pérdidas</div>
                     </div>
-                    {/* Trabajo bloqueado 100% continuo */}
-                    <div className="col-span-2 bg-[#c8d7e6]" />
-                    <div className="col-span-2 divide-y divide-black">
+                    {/* Columna Rentas de Trabajo bloqueada 100% continua */}
+                    <div className="col-span-2 bg-[#b4c6d4]" />
+                    {/* Columnas Honorarios, Capital y No Laborales con sus casillas */}
+                    <div className="col-span-2 divide-y divide-gray-300">
                       <Cell num={54} />
                       <Cell num={55} />
                       <Cell num={56} />
                     </div>
-                    <div className="col-span-2 divide-y divide-black">
+                    <div className="col-span-2 divide-y divide-gray-300">
                       <Cell num={70} />
                       <Cell num={71} />
                       <Cell num={72} />
                     </div>
-                    <div className="col-span-2 divide-y divide-black">
+                    <div className="col-span-2 divide-y divide-gray-300">
                       <Cell num={87} />
                       <Cell num={88} />
                       <Cell num={89} />
                     </div>
                   </div>
 
-                  {/* 17. Renta líquida ordinaria */}
-                  <div className="grid grid-cols-12 divide-x divide-black h-[18px] font-bold bg-[#e8eef3]">
-                    <div className="col-span-4 px-1.5 flex items-center">Renta líquida ordinaria</div>
-                    <Cell num={42} className="col-span-2" bold />
-                    <Cell num={57} className="col-span-2" bold />
-                    <Cell num={73} className="col-span-2" bold />
-                    <Cell num={90} className="col-span-2" bold />
+                  {/* Renta líquida ordinaria */}
+                  <div className="grid grid-cols-12 divide-x divide-black bg-[#dbe7f0] font-bold">
+                    <div className="col-span-4 px-2 py-0.5">Renta líquida ordinaria</div>
+                    <Cell num={42} className="col-span-2 font-bold" />
+                    <Cell num={57} className="col-span-2 font-bold" />
+                    <Cell num={73} className="col-span-2 font-bold" />
+                    <Cell num={90} className="col-span-2 font-bold" />
                   </div>
                 </div>
               </div>
@@ -819,42 +750,49 @@ export function OfficialDian210({
           {/* ———————————————————————————————————————————————————————————
               5. DEPURACIÓN CÉDULA GENERAL (Casillas 91 a 98)
               ——————————————————————————————————————————————————————————— */}
-          <div className="border-b border-black text-[8px] bg-white">
-            <div className="grid grid-cols-12 divide-x divide-black border-b border-black h-[20px]">
-              <div className="col-span-3 flex items-center justify-between px-1">
-                <span className="text-[7.5px] leading-tight">Ren. líquida céd. gen.</span>
-                <Cell num={91} className="w-24 border border-black h-[18px]" />
-              </div>
-              <div className="col-span-3 flex items-center justify-between px-1">
-                <span className="text-[7.5px] leading-tight">Ren. ex. y ded. imp. li.</span>
-                <Cell num={92} className="w-24 border border-black h-[18px]" />
-              </div>
-              <div className="col-span-3 flex items-center justify-between px-1 font-bold">
-                <span className="text-[7.5px] leading-tight">R. líq. ord. cédula gen.</span>
-                <Cell num={93} className="w-24 border border-black h-[18px]" bold />
-              </div>
-              <div className="col-span-3 flex items-center justify-between px-1">
-                <span className="text-[7.5px] leading-tight">Comp. pérdidas año 2018 y ant.</span>
-                <Cell num={94} className="w-24 border border-black h-[18px]" />
-              </div>
+          <div className="flex border-b border-black bg-[#eef4f8] text-[9px]">
+            <div className="w-5 bg-gray-200 border-r border-black flex items-center justify-center shrink-0">
+              <span className="[writing-mode:vertical-lr] rotate-180 font-sans text-[6.5px] font-bold uppercase tracking-tight text-gray-700 py-1">
+                Depuración
+              </span>
             </div>
+            <div className="flex-1">
+              <div className="grid grid-cols-12 divide-x divide-black border-b border-gray-300">
+                <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5">
+                  <span>Ren. líquida céd. gen.</span>
+                  <Cell num={91} className="w-24 border border-gray-300" />
+                </div>
+                <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5">
+                  <span>Ren. ex. y ded. imp. li.</span>
+                  <Cell num={92} className="w-24 border border-gray-300" />
+                </div>
+                <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5 font-bold">
+                  <span>R. líq. ord. cédula gen.</span>
+                  <Cell num={93} className="w-24 border border-gray-300 font-bold" />
+                </div>
+                <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5">
+                  <span>Comp. pérdidas año 2018 y ant.</span>
+                  <Cell num={94} className="w-24 border border-gray-300" />
+                </div>
+              </div>
 
-            <div className="grid grid-cols-12 divide-x divide-black h-[20px]">
-              <div className="col-span-3 flex items-center justify-between px-1">
-                <span className="text-[7.5px] leading-tight">Comp. exc. ren. presuntiva</span>
-                <Cell num={95} className="w-24 border border-black h-[18px]" />
-              </div>
-              <div className="col-span-3 flex items-center justify-between px-1">
-                <span className="text-[7.5px] leading-tight">Rentas gravables</span>
-                <Cell num={96} className="w-24 border border-black h-[18px]" />
-              </div>
-              <div className="col-span-3 flex items-center justify-between px-1 font-bold">
-                <span className="text-[7.5px] leading-tight">R. líq. grav. cédula gen.</span>
-                <Cell num={97} className="w-24 border border-black h-[18px]" bold />
-              </div>
-              <div className="col-span-3 flex items-center justify-between px-1">
-                <span className="text-[7.5px] leading-tight">Renta presuntiva</span>
-                <Cell num={98} className="w-24 border border-black h-[18px]" />
+              <div className="grid grid-cols-12 divide-x divide-black">
+                <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5">
+                  <span>Comp. exc. ren. presuntiva</span>
+                  <Cell num={95} className="w-24 border border-gray-300" />
+                </div>
+                <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5">
+                  <span>Rentas gravables</span>
+                  <Cell num={96} className="w-24 border border-gray-300" />
+                </div>
+                <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5 bg-[#dbe7f0] font-black">
+                  <span>R. líq. grav. cédula gen.</span>
+                  <Cell num={97} className="w-24 border border-black font-black" />
+                </div>
+                <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5">
+                  <span>Renta presuntiva</span>
+                  <Cell num={98} className="w-24 border border-gray-300" />
+                </div>
               </div>
             </div>
           </div>
@@ -862,96 +800,114 @@ export function OfficialDian210({
           {/* ———————————————————————————————————————————————————————————
               6. DIVISIÓN INFERIOR EN 2 COLUMNAS (PENSIONES/DIVIDENDOS/GO + LIQUIDACIÓN)
               ——————————————————————————————————————————————————————————— */}
-          <div className="grid grid-cols-12 divide-x divide-black border-b border-black text-[8px]">
+          <div className="grid grid-cols-12 divide-x divide-black border-b border-black text-[9px]">
             {/* ==================== COLUMNA IZQUIERDA ==================== */}
-            <div className="col-span-6 flex flex-col justify-between divide-y divide-black">
+            <div className="col-span-6 flex flex-col justify-between">
               {/* CÉDULA DE PENSIONES (99 a 103) */}
-              <div className="flex">
-                <VerticalLabel text="Cédula de pensiones" className="w-5" />
-                <div className="flex-1 divide-y divide-black">
-                  <div className="flex items-center justify-between px-1.5 h-[18px]">
-                    <span className="text-[7.5px] leading-tight">Ingresos brutos por rentas de pensiones del país y del exterior</span>
-                    <Cell num={99} className="w-24 border border-black" />
+              <div className="border-b border-black">
+                <div className="flex">
+                  <div className="w-5 bg-gray-200 border-r border-black flex items-center justify-center">
+                    <span className="[writing-mode:vertical-lr] rotate-180 font-sans text-[7.5px] font-bold uppercase text-gray-700 py-1">
+                      Cédula de pensiones
+                    </span>
                   </div>
-                  <div className="flex items-center justify-between px-1.5 h-[18px]">
-                    <span className="text-[7.5px] leading-tight">Ingresos no constitutivos de renta</span>
-                    <Cell num={100} className="w-24 border border-black" />
-                  </div>
-                  <div className="flex items-center justify-between px-1.5 h-[18px] font-bold">
-                    <span className="text-[7.5px] leading-tight">Renta líquida</span>
-                    <Cell num={101} className="w-24 border border-black" bold />
-                  </div>
-                  <div className="flex items-center justify-between px-1.5 h-[18px]">
-                    <span className="text-[7.5px] leading-tight">Rentas exentas de pensiones</span>
-                    <Cell num={102} className="w-24 border border-black" />
-                  </div>
-                  <div className="flex items-center justify-between px-1.5 h-[18px] font-bold bg-[#f4f7fa]">
-                    <span className="text-[7.5px] leading-tight">Renta líquida gravable cédula de pensiones</span>
-                    <Cell num={103} className="w-24 border border-black" bold />
+                  <div className="flex-1 divide-y divide-gray-300">
+                    <div className="flex items-center justify-between px-2 py-0.5">
+                      <span>Ingresos brutos por rentas de pensiones del país y del exterior</span>
+                      <Cell num={99} className="w-24 border border-gray-300" />
+                    </div>
+                    <div className="flex items-center justify-between px-2 py-0.5">
+                      <span>Ingresos no constitutivos de renta</span>
+                      <Cell num={100} className="w-24 border border-gray-300" />
+                    </div>
+                    <div className="flex items-center justify-between px-2 py-0.5 bg-[#f4f7f9]">
+                      <span>Renta líquida</span>
+                      <Cell num={101} className="w-24 border border-gray-300" />
+                    </div>
+                    <div className="flex items-center justify-between px-2 py-0.5">
+                      <span>Rentas exentas de pensiones</span>
+                      <Cell num={102} className="w-24 border border-gray-300" />
+                    </div>
+                    <div className="flex items-center justify-between px-2 py-0.5 bg-[#dbe7f0] font-bold">
+                      <span>Renta líquida gravable cédula de pensiones</span>
+                      <Cell num={103} className="w-24 border border-black font-bold" />
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* CÉDULA DE DIVIDENDOS Y PARTICIPACIONES (104 a 111) */}
-              <div className="flex">
-                <VerticalLabel text="Cédula de dividendos y/o participaciones" className="w-5" />
-                <div className="flex-1 divide-y divide-black">
-                  <div className="flex items-center justify-between px-1.5 h-[18px]">
-                    <span className="text-[7.5px] leading-tight">Dividendos y participaciones 2016 y anteriores, y otros</span>
-                    <Cell num={104} className="w-24 border border-black" />
-                  </div>
-                  <div className="flex items-center justify-between px-1.5 h-[18px]">
-                    <span className="text-[7.5px] leading-tight">Ingresos no constitutivos de renta</span>
-                    <Cell num={105} className="w-24 border border-black" />
-                  </div>
-                  <div className="flex items-center justify-between px-1.5 h-[18px] font-bold">
-                    <span className="text-[7.5px] leading-tight">Renta líquida ordinaria año 2016 y anteriores</span>
-                    <Cell num={106} className="w-24 border border-black" bold />
-                  </div>
-                  <div className="flex items-center justify-between px-1.5 h-[18px]">
-                    <span className="text-[7px] leading-tight">1a. Subcédula años 2017 y siguientes numeral 3 art. 49 del E.T.</span>
-                    <Cell num={107} className="w-24 border border-black" />
-                  </div>
-                  <div className="flex items-center justify-between px-1.5 h-[18px]">
-                    <span className="text-[7px] leading-tight">2a. Subcédula años 2017 y siguientes parágrafo 2 art. 49 del E.T.</span>
-                    <Cell num={108} className="w-24 border border-black" />
-                  </div>
-                  <div className="flex items-center justify-between px-1.5 h-[18px]">
-                    <span className="text-[7.5px] leading-tight">Dividendos y participaciones recibidas del exterior</span>
-                    <Cell num={109} className="w-24 border border-black" />
-                  </div>
-                  <div className="flex items-center justify-between px-1.5 h-[18px]">
-                    <span className="text-[7.5px] leading-tight">Rentas exentas de la casilla 109</span>
-                    <Cell num={110} className="w-24 border border-black" />
-                  </div>
-                  <div className="flex items-center justify-between px-1.5 h-[20px] font-bold bg-[#f4f7fa]">
-                    <span className="text-[7px] leading-none">
-                      Renta líquida gravable (Cédula general o renta presuntiva, de pensiones y de dividendos y participaciones, art. 241 E.T.)
+              <div className="border-b border-black">
+                <div className="flex">
+                  <div className="w-5 bg-gray-200 border-r border-black flex items-center justify-center">
+                    <span className="[writing-mode:vertical-lr] rotate-180 font-sans text-[7px] font-bold uppercase text-gray-700 py-2">
+                      Cédula de dividendos y/o participaciones
                     </span>
-                    <Cell num={111} className="w-24 border border-black" bold />
+                  </div>
+                  <div className="flex-1 divide-y divide-gray-300">
+                    <div className="flex items-center justify-between px-2 py-0.5">
+                      <span>Dividendos y participaciones año 2016 y anteriores, y otros</span>
+                      <Cell num={104} className="w-24 border border-gray-300" />
+                    </div>
+                    <div className="flex items-center justify-between px-2 py-0.5">
+                      <span>Ingresos no constitutivos de renta</span>
+                      <Cell num={105} className="w-24 border border-gray-300" />
+                    </div>
+                    <div className="flex items-center justify-between px-2 py-0.5 bg-[#f4f7f9]">
+                      <span>Renta líquida ordinaria año 2016 y anteriores</span>
+                      <Cell num={106} className="w-24 border border-gray-300" />
+                    </div>
+                    <div className="flex items-center justify-between px-2 py-0.5">
+                      <span>1a. Subcédula años 2017 y siguientes numeral 3 art. 49 del E.T.</span>
+                      <Cell num={107} className="w-24 border border-gray-300" />
+                    </div>
+                    <div className="flex items-center justify-between px-2 py-0.5">
+                      <span>2a. Subcédula años 2017 y siguientes parágrafo 2 art. 49 del E.T.</span>
+                      <Cell num={108} className="w-24 border border-gray-300" />
+                    </div>
+                    <div className="flex items-center justify-between px-2 py-0.5">
+                      <span>Dividendos y participaciones recibidas del exterior</span>
+                      <Cell num={109} className="w-24 border border-gray-300" />
+                    </div>
+                    <div className="flex items-center justify-between px-2 py-0.5">
+                      <span>Rentas exentas de la casilla 109</span>
+                      <Cell num={110} className="w-24 border border-gray-300" />
+                    </div>
+                    <div className="flex items-center justify-between px-2 py-0.5 bg-[#dbe7f0] font-bold">
+                      <span className="text-[8px] leading-tight">
+                        Renta líquida gravable (Cédula general o Renta presuntiva, pensiones y dividendos art. 241)
+                      </span>
+                      <Cell num={111} className="w-24 border border-black font-bold" />
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* GANANCIAS OCASIONALES (112 a 115) */}
-              <div className="flex">
-                <VerticalLabel text="Ganancias ocasionales" className="w-5" />
-                <div className="flex-1 divide-y divide-black">
-                  <div className="flex items-center justify-between px-1.5 h-[18px]">
-                    <span className="text-[7.5px] leading-tight">Ingresos por ganancias ocasionales del país y del exterior</span>
-                    <Cell num={112} className="w-24 border border-black" />
+              <div>
+                <div className="flex">
+                  <div className="w-5 bg-gray-200 border-r border-black flex items-center justify-center">
+                    <span className="[writing-mode:vertical-lr] rotate-180 font-sans text-[7px] font-bold uppercase text-gray-700 py-1">
+                      Ganancias ocasionales
+                    </span>
                   </div>
-                  <div className="flex items-center justify-between px-1.5 h-[18px]">
-                    <span className="text-[7.5px] leading-tight">Costos por ganancias ocasionales</span>
-                    <Cell num={113} className="w-24 border border-black" />
-                  </div>
-                  <div className="flex items-center justify-between px-1.5 h-[18px]">
-                    <span className="text-[7.5px] leading-tight">Ganancias ocasionales no gravadas y exentas</span>
-                    <Cell num={114} className="w-24 border border-black" />
-                  </div>
-                  <div className="flex items-center justify-between px-1.5 h-[18px] font-bold bg-[#f4f7fa]">
-                    <span className="text-[7.5px] leading-tight">Ganancias ocasionales gravables</span>
-                    <Cell num={115} className="w-24 border border-black" bold />
+                  <div className="flex-1 divide-y divide-gray-300">
+                    <div className="flex items-center justify-between px-2 py-0.5">
+                      <span>Ingresos por ganancias ocasionales del país y del exterior</span>
+                      <Cell num={112} className="w-24 border border-gray-300" />
+                    </div>
+                    <div className="flex items-center justify-between px-2 py-0.5">
+                      <span>Costos por ganancias ocasionales</span>
+                      <Cell num={113} className="w-24 border border-gray-300" />
+                    </div>
+                    <div className="flex items-center justify-between px-2 py-0.5">
+                      <span>Ganancias ocasionales no gravadas y exentas</span>
+                      <Cell num={114} className="w-24 border border-gray-300" />
+                    </div>
+                    <div className="flex items-center justify-between px-2 py-0.5 bg-[#dbe7f0] font-bold">
+                      <span>Ganancias ocasionales gravables</span>
+                      <Cell num={115} className="w-24 border border-black font-bold" />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -959,107 +915,93 @@ export function OfficialDian210({
 
             {/* ==================== COLUMNA DERECHA: LIQUIDACIÓN PRIVADA ==================== */}
             <div className="col-span-6 flex">
-              <VerticalLabel text="Liquidación privada" className="w-5" />
+              <div className="w-5 bg-gray-200 border-r border-black flex items-center justify-center">
+                <span className="[writing-mode:vertical-lr] rotate-180 font-sans text-[8px] font-bold uppercase tracking-wider text-gray-800 py-4">
+                  Liquidación privada
+                </span>
+              </div>
 
-              <div className="flex-1 divide-y divide-black flex flex-col justify-between">
-                {/* Sub-bloque Impuesto con etiqueta vertical interna */}
-                <div className="flex divide-x divide-black">
-                  <div className="w-4 bg-gray-50 flex items-center justify-center shrink-0">
-                    <span className="[writing-mode:vertical-lr] rotate-180 text-[6px] text-gray-700 tracking-tighter text-center leading-none">
-                      Impuesto sobre las rentas líquidas gravables
-                    </span>
-                  </div>
-                  <div className="flex-1 divide-y divide-black">
-                    <div className="flex items-center justify-between px-1.5 h-[18px]">
-                      <span className="text-[7px] leading-tight">Cédula general, de pensiones y de dividendos y participaciones</span>
-                      <Cell num={116} className="w-20 border border-black" />
-                    </div>
-                    <div className="flex items-center justify-between px-1.5 h-[18px]">
-                      <span className="text-[7px] leading-tight">Renta presuntiva, de pensiones y de dividendos y participaciones</span>
-                      <Cell num={117} className="w-20 border border-black" />
-                    </div>
-                    <div className="flex items-center justify-between px-1.5 h-[18px]">
-                      <span className="text-[6.5px] leading-tight">Por dividendos y participaciones año 2017 y siguientes, 2a subcédula (Art. 240 E.T.)</span>
-                      <Cell num={118} className="w-20 border border-black" />
-                    </div>
-                    <div className="flex items-center justify-between px-1.5 h-[18px]">
-                      <span className="text-[7px] leading-tight">Por dividendos y participaciones año 2016</span>
-                      <Cell num={119} className="w-20 border border-black" />
-                    </div>
-                    <div className="flex items-center justify-between px-1.5 h-[18px]">
-                      <span className="text-[7px] leading-tight">Por dividendos y participaciones recibidas del exterior</span>
-                      <Cell num={120} className="w-20 border border-black" />
-                    </div>
-                    <div className="flex items-center justify-between px-1.5 h-[18px] font-bold bg-[#f4f7fa]">
-                      <span className="text-[7.5px] leading-tight">Total impuesto sobre las rentas líquidas gravables</span>
-                      <Cell num={121} className="w-20 border border-black" bold />
-                    </div>
-                  </div>
+              <div className="flex-1 divide-y divide-gray-300 flex flex-col justify-between">
+                {/* Sub-bloque Impuesto */}
+                <div className="flex items-center justify-between px-2 py-0.5">
+                  <span>Cédula general, de pensiones y de dividendos y participaciones</span>
+                  <Cell num={116} className="w-24 border border-gray-300" />
+                </div>
+                <div className="flex items-center justify-between px-2 py-0.5">
+                  <span>Renta presuntiva, de pensiones y de dividendos y participaciones</span>
+                  <Cell num={117} className="w-24 border border-gray-300" />
+                </div>
+                <div className="flex items-center justify-between px-2 py-0.5">
+                  <span>Por dividendos y participaciones año 2017 y siguientes, 2a subcédula (Art. 240)</span>
+                  <Cell num={118} className="w-24 border border-gray-300" />
+                </div>
+                <div className="flex items-center justify-between px-2 py-0.5">
+                  <span>Por dividendos y participaciones año 2016</span>
+                  <Cell num={119} className="w-24 border border-gray-300" />
+                </div>
+                <div className="flex items-center justify-between px-2 py-0.5">
+                  <span>Por dividendos y participaciones recibidas del exterior</span>
+                  <Cell num={120} className="w-24 border border-gray-300" />
+                </div>
+                <div className="flex items-center justify-between px-2 py-0.5 bg-[#eef4f8] font-bold">
+                  <span>Total impuesto sobre las rentas líquidas gravables</span>
+                  <Cell num={121} className="w-24 border border-black font-bold" />
                 </div>
 
-                {/* Sub-bloque Descuentos con etiqueta vertical interna */}
-                <div className="flex divide-x divide-black">
-                  <div className="w-4 bg-gray-50 flex items-center justify-center shrink-0">
-                    <span className="[writing-mode:vertical-lr] rotate-180 text-[6px] text-gray-700 tracking-tight text-center leading-none">
-                      Descuentos tributarios
-                    </span>
+                {/* Sub-bloque Descuentos */}
+                <div className="grid grid-cols-2 divide-x divide-black border-y border-black bg-[#f9fbfd]">
+                  <div className="flex items-center justify-between px-1.5 py-0.5">
+                    <span className="text-[8px]">Imp. pagados exterior</span>
+                    <Cell num={122} className="w-16 border border-gray-300" />
                   </div>
-                  <div className="flex-1 divide-y divide-black">
-                    <div className="grid grid-cols-2 divide-x divide-black h-[18px]">
-                      <div className="flex items-center justify-between px-1">
-                        <span className="text-[6.5px] leading-none">Imp. pagados en el exterior</span>
-                        <Cell num={122} className="w-14 border border-black" />
-                      </div>
-                      <div className="flex items-center justify-between px-1">
-                        <span className="text-[6.5px] leading-none">Donaciones</span>
-                        <Cell num={123} className="w-14 border border-black" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 divide-x divide-black h-[18px]">
-                      <div className="flex items-center justify-between px-1">
-                        <span className="text-[6.5px] leading-none">Dividendos, particip. y otros</span>
-                        <Cell num={124} className="w-14 border border-black" />
-                      </div>
-                      <div className="flex items-center justify-between px-1 font-bold bg-[#f4f7fa]">
-                        <span className="text-[6.5px] leading-none">Total desctos trib.</span>
-                        <Cell num={125} className="w-14 border border-black" bold />
-                      </div>
-                    </div>
+                  <div className="flex items-center justify-between px-1.5 py-0.5">
+                    <span className="text-[8px]">Donaciones</span>
+                    <Cell num={123} className="w-16 border border-gray-300" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 divide-x divide-black border-b border-black bg-[#f9fbfd]">
+                  <div className="flex items-center justify-between px-1.5 py-0.5">
+                    <span className="text-[8px]">Dividendos, partic. y otros</span>
+                    <Cell num={124} className="w-16 border border-gray-300" />
+                  </div>
+                  <div className="flex items-center justify-between px-1.5 py-0.5 bg-[#eef4f8] font-bold">
+                    <span className="text-[8px]">Total desctos trib.</span>
+                    <Cell num={125} className="w-16 border border-black font-bold" />
                   </div>
                 </div>
 
                 {/* Totales y Liquidación Final */}
-                <div className="flex items-center justify-between px-1.5 h-[18px] font-bold">
-                  <span className="text-[7.5px] leading-tight">Impuesto neto de renta</span>
-                  <Cell num={126} className="w-20 border border-black" bold />
+                <div className="flex items-center justify-between px-2 py-0.5 font-semibold bg-[#f4f7f9]">
+                  <span>Impuesto neto de renta</span>
+                  <Cell num={126} className="w-24 border border-gray-300 font-bold" />
                 </div>
-                <div className="flex items-center justify-between px-1.5 h-[18px] font-bold">
-                  <span className="text-[7.5px] leading-tight">Impuesto de ganancias ocasionales</span>
-                  <Cell num={127} className="w-20 border border-black" bold />
+                <div className="flex items-center justify-between px-2 py-0.5">
+                  <span>Impuesto de ganancias ocasionales</span>
+                  <Cell num={127} className="w-24 border border-gray-300" />
                 </div>
-                <div className="flex items-center justify-between px-1.5 h-[18px]">
-                  <span className="text-[7px] leading-tight">Descuento por impuestos pagados en el exterior por ganancias ocasionales</span>
-                  <Cell num={128} className="w-20 border border-black" />
+                <div className="flex items-center justify-between px-2 py-0.5">
+                  <span>Descuento por impuestos pagados en el exterior por ganancias ocasionales</span>
+                  <Cell num={128} className="w-24 border border-gray-300" />
                 </div>
-                <div className="flex items-center justify-between px-1.5 h-[18px] font-bold bg-[#f4f7fa]">
-                  <span className="text-[7.5px] leading-tight">Total impuesto a cargo</span>
-                  <Cell num={129} className="w-20 border border-black" bold />
+                <div className="flex items-center justify-between px-2 py-0.5 bg-[#dbe7f0] font-black">
+                  <span>Total impuesto a cargo</span>
+                  <Cell num={129} className="w-24 border border-black font-black" />
                 </div>
-                <div className="flex items-center justify-between px-1.5 h-[18px]">
-                  <span className="text-[7px] leading-tight">Anticipo renta liquidado año gravable anterior</span>
-                  <Cell num={130} className="w-20 border border-black" />
+                <div className="flex items-center justify-between px-2 py-0.5">
+                  <span>Anticipo renta liquidado año gravable anterior</span>
+                  <Cell num={130} className="w-24 border border-gray-300" />
                 </div>
-                <div className="flex items-center justify-between px-1.5 h-[18px]">
-                  <span className="text-[6.5px] leading-tight">Saldo a favor del año gravable anterior sin solicitud de devolución y/o compensación</span>
-                  <Cell num={131} className="w-20 border border-black" />
+                <div className="flex items-center justify-between px-2 py-0.5">
+                  <span>Saldo a favor del año gravable anterior sin solicitud de devolución/compensación</span>
+                  <Cell num={131} className="w-24 border border-gray-300" />
                 </div>
-                <div className="flex items-center justify-between px-1.5 h-[18px]">
-                  <span className="text-[7px] leading-tight">Retenciones año gravable a declarar</span>
-                  <Cell num={132} className="w-20 border border-black" />
+                <div className="flex items-center justify-between px-2 py-0.5">
+                  <span>Retenciones año gravable a declarar</span>
+                  <Cell num={132} className="w-24 border border-gray-300" />
                 </div>
-                <div className="flex items-center justify-between px-1.5 h-[18px]">
-                  <span className="text-[7px] leading-tight">Anticipo renta para el año gravable siguiente</span>
-                  <Cell num={133} className="w-20 border border-black" />
+                <div className="flex items-center justify-between px-2 py-0.5">
+                  <span>Anticipo renta para el año gravable siguiente</span>
+                  <Cell num={133} className="w-24 border border-gray-300" />
                 </div>
               </div>
             </div>
@@ -1068,44 +1010,44 @@ export function OfficialDian210({
           {/* ———————————————————————————————————————————————————————————
               7. TOTALES DE SALDO Y DATOS INFORMATIVOS (134 a 141)
               ——————————————————————————————————————————————————————————— */}
-          <div className="border-b border-black text-[8px]">
+          <div className="border-b border-black text-[9.5px]">
             {/* Saldos y Sanciones */}
-            <div className="grid grid-cols-12 divide-x divide-black border-b border-black h-[20px]">
-              <div className="col-span-3 flex items-center justify-between px-1.5">
-                <span className="text-[7.5px] leading-tight">Saldo a pagar por impuesto</span>
-                <Cell num={134} className="w-20 border border-black h-[18px]" />
+            <div className="grid grid-cols-12 divide-x divide-black border-b border-black bg-[#f4f7f9]">
+              <div className="col-span-3 flex items-center justify-between px-2 py-1">
+                <span className="text-[9px]">Saldo a pagar por impuesto</span>
+                <Cell num={134} className="w-24 border border-gray-300" />
               </div>
-              <div className="col-span-3 flex items-center justify-between px-1.5">
-                <span className="text-[7.5px] leading-tight">Sanciones</span>
-                <Cell num={135} className="w-20 border border-black h-[18px]" />
+              <div className="col-span-3 flex items-center justify-between px-2 py-1">
+                <span className="text-[9px]">Sanciones</span>
+                <Cell num={135} className="w-24 border border-gray-300" />
               </div>
-              <div className="col-span-3 flex items-center justify-between px-1.5 font-bold">
-                <span className="text-[7.5px] leading-tight">Total saldo a pagar</span>
-                <Cell num={136} className="w-20 border border-black h-[18px]" bold />
+              <div className="col-span-3 flex items-center justify-between px-2 py-1 bg-[#fbeae8] font-black text-red-900">
+                <span className="text-[9px]">Total saldo a pagar</span>
+                <Cell num={136} className="w-24 border border-red-800 font-black text-red-950" />
               </div>
-              <div className="col-span-3 flex items-center justify-between px-1.5 font-bold">
-                <span className="text-[7.5px] leading-tight">Total saldo a favor</span>
-                <Cell num={137} className="w-20 border border-black h-[18px]" bold />
+              <div className="col-span-3 flex items-center justify-between px-2 py-1 bg-[#eaf4ee] font-black text-[#00573F]">
+                <span className="text-[9px]">Total saldo a favor</span>
+                <Cell num={137} className="w-24 border border-[#00573F] font-black text-[#00573F]" />
               </div>
             </div>
 
             {/* Datos Informativos (138 a 141) */}
-            <div className="grid grid-cols-12 divide-x divide-black h-[20px]">
-              <div className="col-span-3 flex items-center justify-between px-1.5">
-                <span className="text-[7px] leading-tight">Número de dependientes económicos</span>
-                <Cell num={138} className="w-14 border border-black h-[18px] text-center" />
+            <div className="grid grid-cols-12 divide-x divide-black bg-white">
+              <div className="col-span-3 flex items-center justify-between px-2 py-1">
+                <span className="text-[8.5px]">Número de dependientes económicos</span>
+                <Cell num={138} className="w-16 border border-gray-300 text-center" />
               </div>
-              <div className="col-span-3 flex items-center justify-between px-1.5">
-                <span className="text-[7px] leading-tight">Adición por dependientes a la casilla 92</span>
-                <Cell num={139} className="w-20 border border-black h-[18px]" />
+              <div className="col-span-3 flex items-center justify-between px-2 py-1">
+                <span className="text-[8.5px]">Adición dependientes a casilla 92</span>
+                <Cell num={139} className="w-24 border border-gray-300" />
               </div>
-              <div className="col-span-3 flex items-center justify-between px-1.5">
-                <span className="text-[6.5px] leading-tight">Ud. superó tope indicativo art. 336-1 del E.T., marque X</span>
-                <Cell num={140} className="w-10 border border-black h-[18px] text-center font-bold" />
+              <div className="col-span-3 flex items-center justify-between px-2 py-1">
+                <span className="text-[8px] leading-tight">Ud. superó tope indicativo art. 336-1 E.T., marque X</span>
+                <Cell num={140} className="w-12 border border-gray-300 text-center font-bold" />
               </div>
-              <div className="col-span-3 flex items-center justify-between px-1.5">
-                <span className="text-[7px] leading-tight">Aporte voluntario</span>
-                <Cell num={141} className="w-20 border border-black h-[18px]" />
+              <div className="col-span-3 flex items-center justify-between px-2 py-1">
+                <span className="text-[8.5px]">Aporte voluntario</span>
+                <Cell num={141} className="w-24 border border-gray-300" />
               </div>
             </div>
           </div>
@@ -1113,35 +1055,32 @@ export function OfficialDian210({
           {/* ———————————————————————————————————————————————————————————
               8. SECCIÓN DE FIRMAS Y RECAUDO OFICIAL (980 a 997)
               ——————————————————————————————————————————————————————————— */}
-          <div className="grid grid-cols-12 divide-x divide-black text-[8px] bg-white">
+          <div className="grid grid-cols-12 divide-x divide-black text-[9px] bg-white">
             {/* Firmas Declarante y Contador */}
             <div className="col-span-5 flex flex-col justify-between divide-y divide-black">
               {/* Representación y Firma Declarante */}
-              <div className="p-1 space-y-0.5">
-                <div className="flex items-center justify-between text-[7px] text-gray-700">
+              <div className="p-1.5 space-y-1">
+                <div className="flex items-center justify-between text-[8px] text-gray-700">
                   <span>981. Cód. Representación</span>
-                  <div className="flex border border-black divide-x divide-black">
-                    <span className="w-3.5 h-3.5 flex items-center justify-center font-mono text-[7px]">0</span>
-                    <span className="w-3.5 h-3.5 flex items-center justify-center font-mono text-[7px]">0</span>
-                  </div>
+                  <span className="border border-black px-2 py-0.5 font-mono font-bold">0</span>
                 </div>
-                <div className="h-7 border border-dashed border-gray-400 bg-gray-50/50 flex items-center justify-center text-[7.5px] text-gray-500 italic">
+                <div className="h-9 border border-dashed border-gray-400 bg-gray-50 flex items-center justify-center text-[8.5px] text-gray-500 italic">
                   Firma del declarante o de quien lo representa: {fullName}
                 </div>
               </div>
 
               {/* Firma Contador */}
-              <div className="p-1 space-y-0.5">
-                <div className="flex items-center justify-between text-[7px] text-gray-700">
-                  <span>982. Cód. Contador: <strong className="ml-1 border border-black px-1 py-0.2">{requiereContador ? "1" : "0"}</strong></span>
+              <div className="p-1.5 space-y-1">
+                <div className="flex items-center justify-between text-[8px] text-gray-700">
+                  <span>982. Cód. Contador: <strong className="ml-1 border border-black px-1.5 py-0.2">{requiereContador ? "1" : "0"}</strong></span>
                   <span>994. Con salvedades: <strong className="ml-1 border border-black px-1.5 py-0.2"> </strong></span>
                 </div>
-                <div className="h-7 border border-dashed border-gray-400 bg-gray-50/50 flex items-center justify-center text-[7px] text-gray-500 italic text-center">
+                <div className="h-9 border border-dashed border-gray-400 bg-gray-50 flex items-center justify-center text-[8px] text-gray-500 italic text-center">
                   {requiereContador
                     ? "Firma de Contador Público obligatoria (Art. 596 E.T.)"
                     : "Firma de contador no requerida por topes legales"}
                 </div>
-                <div className="text-[7px] text-gray-700">
+                <div className="text-[8px] text-gray-700">
                   983. No. Tarjeta profesional: <span className="font-mono">__________-T</span>
                 </div>
               </div>
@@ -1149,23 +1088,23 @@ export function OfficialDian210({
 
             {/* Espacio Sello Recaudadora y Pago Total (980) */}
             <div className="col-span-7 flex flex-col justify-between">
-              <div className="p-1.5 text-center text-gray-600 flex-1 flex flex-col justify-center border-b border-black bg-gray-50/30">
-                <p className="text-[7.5px] font-bold text-gray-800">
+              <div className="p-2 text-center text-gray-600 flex-1 flex flex-col justify-center border-b border-black bg-gray-50/50">
+                <p className="text-[8.5px] font-bold text-gray-800">
                   997. Espacio exclusivo para el sello de la entidad recaudadora
                 </p>
-                <p className="text-[6.5px] text-gray-500 mt-0.5">
+                <p className="text-[7.5px] text-gray-500 mt-1">
                   (Fecha de presentación y sello oficial de la entidad recaudadora / Certificación MUISCA)
                 </p>
               </div>
 
-              <div className="grid grid-cols-12 divide-x divide-black bg-[#f4f7fa]">
-                <div className="col-span-7 p-1 flex items-center justify-between">
-                  <span className="font-bold text-[8.5px]">980. Pago total $</span>
-                  <span className="font-mono text-[11px] font-black tabular-nums bg-white px-2 py-0.5 border border-black">
+              <div className="grid grid-cols-12 divide-x divide-black bg-[#eaf1f7]">
+                <div className="col-span-7 p-1.5 flex items-center justify-between">
+                  <span className="font-bold text-[10px]">980. Pago total $</span>
+                  <span className="font-mono text-sm font-black tabular-nums bg-white px-2 py-0.5 border border-black">
                     {c.saldoPagar > 0 ? formatNumber(Math.round(c.saldoPagar)) : "0"}
                   </span>
                 </div>
-                <div className="col-span-5 p-1 text-[6.5px] text-gray-600 flex items-center justify-center text-center">
+                <div className="col-span-5 p-1 text-[7.5px] text-gray-600 flex items-center justify-center text-center">
                   996. Espacio para el número interno de la DIAN/ Adhesivo
                 </div>
               </div>
