@@ -16,6 +16,10 @@ import {
   parseDonacionesText,
   parsePensionJubilacionText,
   parseForm210AnteriorText,
+  parseVehiculoText,
+  parseFacturaElectronicaText,
+  parseCertDependientesText,
+  parseCertRetencionGeneralText,
 } from "./pdf-extractor";
 import type { DocKind } from "./types";
 
@@ -36,6 +40,7 @@ export interface ClientParsedDocResult {
 
 /**
  * Parsea un archivo directamente en el navegador del cliente (sin depender de red ni límites de servidor)
+ * Soporta: PDF (vectorial y escaneado), Imágenes (OCR con Tesseract en español), Excel (.xlsx/.xls/.csv), Word (.docx) y Texto (.txt/.xml)
  */
 export async function parseDocumentInBrowser(
   buffer: ArrayBuffer,
@@ -64,13 +69,36 @@ export async function parseDocumentInBrowser(
             .join(" ");
           pageTexts.push(pageText);
         }
-        fullText = pageTexts.join("\n");
+        fullText = pageTexts.join("\n").trim();
       } catch (pdfErr: any) {
         const decoder = new TextDecoder("utf-8");
         fullText = decoder.decode(buffer);
       }
     }
-    // 2. Si es Excel (.xlsx, .xls, .csv)
+    // 2. Si es Imagen (PNG, JPG, JPEG, WEBP, BMP, TIFF) -> OCR Tesseract en español
+    else if (["png", "jpg", "jpeg", "webp", "bmp", "tiff"].includes(ext)) {
+      try {
+        const { createWorker } = await import("tesseract.js");
+        const worker = await createWorker("spa");
+        const blob = new Blob([buffer]);
+        const ocrRes = await worker.recognize(blob);
+        fullText = (ocrRes.data?.text || "").trim();
+        await worker.terminate();
+      } catch (ocrErr: any) {
+        fullText = "";
+      }
+    }
+    // 3. Si es Word (.docx)
+    else if (["docx"].includes(ext)) {
+      try {
+        const mammoth = await import("mammoth");
+        const wordRes = await mammoth.extractRawText({ arrayBuffer: buffer });
+        fullText = (wordRes.value || "").trim();
+      } catch {
+        fullText = "";
+      }
+    }
+    // 4. Si es Excel (.xlsx, .xls, .csv)
     else if (["xlsx", "xls", "csv"].includes(ext)) {
       try {
         const XLSX = await import("xlsx");
@@ -88,7 +116,7 @@ export async function parseDocumentInBrowser(
         fullText = "";
       }
     }
-    // 3. Si es texto plano o XML
+    // 5. Si es texto plano o XML
     else {
       const decoder = new TextDecoder("utf-8");
       fullText = decoder.decode(buffer);
@@ -146,7 +174,7 @@ export async function parseDocumentInBrowser(
     else if (/\bafc\b|\bavc\b|pensi[oó]n\s*voluntaria|\bfvp\b|ahorro\s*para\s*el\s*fomento/i.test(fullText)) {
       detectedKind = "certAfc";
     }
-    // 7. Intereses de Vivienda / Hipoteca
+    // 7. Intereses de Vivienda / Hipoteca / Leasing Habitacional
     else if (/cr[eé]dito\s*hipotecario|intereses\s*de\s*vivienda|leasing\s*habitacional/i.test(fullText)) {
       detectedKind = "interesesHipoteca";
     }
@@ -174,23 +202,31 @@ export async function parseDocumentInBrowser(
     else if (/aval[uú]o\s*catastral|impuesto\s*predial|matr[ií]cula\s*inmobiliaria/i.test(fullText)) {
       detectedKind = "avaluoCatastral";
     }
-    // 14. ICETEX
+    // 14. Vehículos / Tarjeta de Propiedad
+    else if (/tarjeta\s*de\s*propiedad|licencia\s*de\s*tr[aá]nsito|impuesto\s*(?:sobre\s*)?veh[ií]culos?|placa\s*veh[ií]culo|\brunt\b/i.test(fullText) || /vehiculo|transito|tarjeta.*propiedad/i.test(fileName)) {
+      detectedKind = "avaluoCatastral";
+    }
+    // 15. Factura Electrónica
+    else if (/factura\s*electr[oó]nica\s*de\s*venta|\bcufe\b|\bcude\b|validaci[oó]n\s*previa\s*dian/i.test(fullText) || /factura|fe_|\bcufe\b/i.test(fileName)) {
+      detectedKind = "facturaElectronica";
+    }
+    // 16. ICETEX
     else if (/\bicetex\b|cr[eé]dito\s*educativo/i.test(fullText) || /icetex/i.test(fileName)) {
       detectedKind = "icetex";
     }
-    // 15. Donaciones
+    // 17. Donaciones
     else if (/certificado\s*de\s*donaci[oó]n|donante|donataria/i.test(fullText)) {
       detectedKind = "donaciones";
     }
-    // 16. Pensiones
+    // 18. Pensiones
     else if (/mesada\s*pensional|resoluci[oó]n\s*de\s*pensi[oó]n|\bcolpensiones\b/i.test(fullText)) {
       detectedKind = "pensionJubilacion";
     }
-    // 17. Declaración 210 anterior
+    // 19. Declaración 210 anterior
     else if (/formulario\s*210|declaraci[oó]n\s*de\s*renta/i.test(fullText) && /2024|2023|2022/i.test(fullText)) {
       detectedKind = "form210Anterior";
     }
-    // 18. Certificado general de Retención
+    // 20. Certificado general de Retención
     else if (/certificado\s*de\s*retenci[oó]n|retenci[oó]n\s*en\s*la\s*fuente/i.test(fullText) || /retencion/i.test(fileName)) {
       detectedKind = "certRetencion";
     }
@@ -238,35 +274,43 @@ export async function parseDocumentInBrowser(
     else if (detectedKind === "certHonorarios" || /honorario/i.test(fileName)) {
       parsedData = parseCertHonorariosText(fullText);
     }
-    // 10. Avalúo / Predial
+    // 10. Avalúo / Predial / Inmuebles
     else if (["avaluoCatastral", "predial", "certTradicion"].includes(detectedKind) || /avaluo|predial|catastral|tradicion/i.test(fileName)) {
       parsedData = parseAvaluoPredialText(fullText);
     }
-    // 11. ICETEX
+    // 11. Factura Electrónica
+    else if (detectedKind === "facturaElectronica" || /factura|fe_|cufe/i.test(fileName)) {
+      parsedData = parseFacturaElectronicaText(fullText);
+    }
+    // 12. ICETEX
     else if (detectedKind === "icetex" || /icetex/i.test(fileName)) {
       parsedData = parseIcetexText(fullText);
     }
-    // 12. Donaciones
+    // 13. Donaciones
     else if (detectedKind === "donaciones" || /donaci/i.test(fileName)) {
       parsedData = parseDonacionesText(fullText);
     }
-    // 13. Pensiones
+    // 14. Pensiones
     else if (detectedKind === "pensionJubilacion" || /pension/i.test(fileName)) {
       parsedData = parsePensionJubilacionText(fullText);
     }
-    // 14. Declaración 210 anterior
+    // 15. Declaración 210 anterior
     else if (detectedKind === "form210Anterior" || /210.*anterior|renta.*anterior/i.test(fileName)) {
       parsedData = parseForm210AnteriorText(fullText);
     }
-    // 15. Bancario / Extracto / Rendimientos / GMF / Retención
+    // 16. Certificado de Retención
+    else if (detectedKind === "certRetencion" || /retencion/i.test(fileName)) {
+      parsedData = parseCertRetencionGeneralText(fullText);
+    }
+    // 17. Bancario / Extracto / Rendimientos / GMF / Retención
     else if (
-      ["extractoBanco", "saldoCuentas", "certGmf", "certRendimientos", "certRetencion"].includes(detectedKind) ||
-      /extracto|cuenta|banco|costos|nu|nequi|bogota|retencion|rendimiento/i.test(fileName) ||
+      ["extractoBanco", "saldoCuentas", "certGmf", "certRendimientos"].includes(detectedKind) ||
+      /extracto|cuenta|banco|costos|nu|nequi|bogota|rendimiento/i.test(fileName) ||
       /cuenta\s*de\s*ahorros?|rendimientos|gravamen|4x1000|saldo\s*cuenta|bancolombia|nu\s*colombia/i.test(fullText)
     ) {
       parsedData = parseCertificadoBancarioText(fullText);
     }
-    // 16. RUT / Cédula
+    // 18. RUT / Cédula
     else if (detectedKind === "rut" || /rut|cedula/i.test(fileName)) {
       const nitMatch = fullText.match(/(?:NIT|N[uú]mero\s*de\s*Identificaci[oó]n)[^\d]*(\d{7,12})/i);
       const nameMatch = fullText.match(/([A-Z]{2,}(?:\s+[A-Z]{2,}){1,3})\s*(?:CL|CR|KR|AV|TV|DG|CQ|\d{2})/i);

@@ -50,13 +50,39 @@ export function auditExpediente(d: Declaration, c: ComputedDeclaration, docs: Va
     }
   }
 
-  if (t.dependientes > 0) {
+  if (t.dependientes > 0 && !has(docs, "certDependientes")) {
     out.push({
       id: "dep-soporte",
       level: "warn",
       title: "Dependientes sin soporte en el expediente",
       detail: `Declaró ${t.dependientes} dependiente(s). Conserve: registro civil o documento de identidad; certificado de estudio si tiene 18-23 años; certificado de Medicina Legal o de un médico si hay dependencia física/psicológica; certificación de contador si el cónyuge/padre/hermano no tiene ingresos o tiene ingresos menores a 260 UVT. Un mismo dependiente no se duplica (DUR 1.2.1.20.3).`,
       source: "Art. 387 E.T. · art. 1.2.1.20.3 DUR 1625/2016",
+      askFrom: "Cliente / Notaría / Institución Educativa",
+      docKind: "certDependientes",
+    });
+  }
+
+  if (t.medicinaPrepagada > 0 && !has(docs, "medicinaPrepagada")) {
+    out.push({
+      id: "prep-soporte",
+      level: "warn",
+      title: "Medicina prepagada sin certificado en el expediente",
+      detail: "Declaró deducción de medicina prepagada o seguros de salud. Solicite el certificado a la entidad vigilada para soportar hasta 16 UVT mensuales.",
+      source: "Art. 387 E.T.",
+      askFrom: "Compañía de medicina prepagada / seguros de salud",
+      docKind: "medicinaPrepagada",
+    });
+  }
+
+  if (t.interesesVivienda > 0 && !has(docs, "interesesHipoteca")) {
+    out.push({
+      id: "hip-soporte",
+      level: "warn",
+      title: "Intereses de crédito hipotecario sin certificado en el expediente",
+      detail: "Declaró deducción de intereses de crédito de vivienda o leasing habitacional. Descargue el certificado tributario de la entidad financiera.",
+      source: "Art. 119 E.T.",
+      askFrom: "Banco / Entidad financiera acreedora",
+      docKind: "interesesHipoteca",
     });
   }
 

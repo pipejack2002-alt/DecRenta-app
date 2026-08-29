@@ -648,6 +648,92 @@ export function parseForm210AnteriorText(text: string): { amounts: Record<string
 }
 
 /**
+ * Parsea Tarjetas de Propiedad e Impuesto sobre Vehículos
+ */
+export function parseVehiculoText(text: string): { amounts: Record<string, number>; notes: string } {
+  const amounts: Record<string, number> = {};
+  const notesLines: string[] = [];
+
+  function extractPattern(regex: RegExp): number {
+    const match = text.match(regex);
+    if (match && match[1]) {
+      const num = cleanCurrency(match[1]);
+      if (num > 0 && num !== 2024 && num !== 2025 && num !== 2026) return num;
+    }
+    return 0;
+  }
+
+  const valVehiculo = extractPattern(/(?:aval[uú]o\s*comercial|base\s*gravable|precio\s*de\s*compra|valor\s*comercial)[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i) ||
+    extractPattern(/Total\s*Aval[uú]o[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i);
+  if (valVehiculo > 0) {
+    amounts["patrimonio.vehiculos"] = valVehiculo;
+    notesLines.push(`Valor fiscal vehículo: $${valVehiculo.toLocaleString("es-CO")}`);
+  }
+
+  return { amounts, notes: notesLines.join(" | ") || "Soporte de vehículo registrado." };
+}
+
+/**
+ * Parsea Facturas Electrónicas de Venta (1% Deducción compras Art. 336 o Costos procedentes)
+ */
+export function parseFacturaElectronicaText(text: string): { amounts: Record<string, number>; notes: string } {
+  const amounts: Record<string, number> = {};
+  const notesLines: string[] = [];
+
+  function extractPattern(regex: RegExp): number {
+    const match = text.match(regex);
+    if (match && match[1]) {
+      const num = cleanCurrency(match[1]);
+      if (num > 0 && num !== 2024 && num !== 2025 && num !== 2026) return num;
+    }
+    return 0;
+  }
+
+  const totalFactura = extractPattern(/(?:total\s*a\s*pagar|total\s*factura|valor\s*total)[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i) ||
+    extractPattern(/TOTAL\s+CO?P\s+\$?\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i);
+  if (totalFactura > 0) {
+    amounts["trabajo.comprasFacturaElectronica"] = totalFactura;
+    notesLines.push(`Compra con Factura Electrónica (Base 1%): $${totalFactura.toLocaleString("es-CO")}`);
+  }
+
+  return { amounts, notes: notesLines.join(" | ") || "Factura electrónica registrada." };
+}
+
+/**
+ * Parsea Certificados de Dependientes Económicos (Certificado de estudio, registro civil)
+ */
+export function parseCertDependientesText(text: string): { amounts: Record<string, number>; notes: string } {
+  const amounts: Record<string, number> = { "trabajo.dependientes": 1 };
+  const notes = "Dependiente económico certificado acreditado (Registro civil / Certificado de estudio).";
+  return { amounts, notes };
+}
+
+/**
+ * Parsea Certificados de Retención en la Fuente Generales (Art. 381 E.T.)
+ */
+export function parseCertRetencionGeneralText(text: string): { amounts: Record<string, number>; notes: string } {
+  const amounts: Record<string, number> = {};
+  const notesLines: string[] = [];
+
+  function extractPattern(regex: RegExp): number {
+    const match = text.match(regex);
+    if (match && match[1]) {
+      const num = cleanCurrency(match[1]);
+      if (num > 0 && num !== 2024 && num !== 2025 && num !== 2026) return num;
+    }
+    return 0;
+  }
+
+  const ret = extractPattern(/(?:total\s*retenci[oó]n|valor\s*retenido|retenci[oó]n\s*practicada|total\s*retenido)[\s\S]{0,40}?\$\s*([0-9]{1,3}(?:[\.,][0-9]{3})*(?:[\.,]\d{2})?)/i);
+  if (ret > 0) {
+    amounts["extra.retenciones"] = ret;
+    notesLines.push(`Retención en la fuente practicada: $${ret.toLocaleString("es-CO")}`);
+  }
+
+  return { amounts, notes: notesLines.join(" | ") || "Certificado de retención en la fuente registrado." };
+}
+
+/**
  * Server Function para extraer texto completo y cifras de un PDF codificado en Base64
  */
 export const extractPdfServerFn = createServerFn({ method: "POST" })
