@@ -68,7 +68,7 @@ export function GeminiAsistenteModal({
     (typeof window !== "undefined" ? localStorage.getItem("tributoapp_gemini_api_key") || "" : "");
 
   const [inputKey, setInputKey] = useState(savedKey);
-  const [selectedModel, setSelectedModel] = useState<string>(aiSettings.geminiModel || "gemini-1.5-flash");
+  const [selectedModel, setSelectedModel] = useState<string>(aiSettings.geminiModel || "gemini-2.0-flash");
   const [showKeyText, setShowKeyText] = useState(false);
   const [keySaved, setKeySaved] = useState(false);
   const [testStatus, setTestStatus] = useState<"idle" | "testing" | "ok" | "error">("idle");
@@ -93,7 +93,7 @@ export function GeminiAsistenteModal({
         aiSettings.geminiApiKey ||
         (typeof window !== "undefined" ? localStorage.getItem("tributoapp_gemini_api_key") || "" : "");
       setInputKey(currentKey);
-      setSelectedModel(aiSettings.geminiModel || "gemini-1.5-flash");
+      setSelectedModel(aiSettings.geminiModel || "gemini-2.0-flash");
       setTestStatus(currentKey ? "ok" : "idle");
       setTestError(null);
     }

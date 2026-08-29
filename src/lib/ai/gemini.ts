@@ -3,16 +3,22 @@ import { etMapForPrompt } from "@/lib/legal/estatuto-index";
 
 export const GEMINI_MODELS = [
   {
-    id: "gemini-1.5-flash",
-    label: "Gemini 1.5 Flash (Recomendado)",
-    desc: "Máxima velocidad, 100% estable y compatible con todas las claves de Google",
+    id: "gemini-2.0-flash",
+    label: "Gemini 2.0 Flash (Recomendado)",
+    desc: "Última generación 2.0: ultra rápida, precisa y compatible con todas las claves de Google AI Studio",
     badge: "Recomendado",
   },
   {
-    id: "gemini-2.0-flash",
-    label: "Gemini 2.0 Flash",
-    desc: "Nueva generación 2.0 de alta velocidad y precisión tributaria",
-    badge: "Nuevo 2.0",
+    id: "gemini-1.5-flash-latest",
+    label: "Gemini 1.5 Flash (Latest)",
+    desc: "Versión 1.5 Flash actualizada de alta velocidad y estabilidad",
+    badge: "Estable",
+  },
+  {
+    id: "gemini-2.5-flash",
+    label: "Gemini 2.5 Flash",
+    desc: "Nueva versión 2.5 optimizada para análisis documental avanzado",
+    badge: "Nuevo 2.5",
   },
   {
     id: "gemini-1.5-pro",
@@ -23,12 +29,27 @@ export const GEMINI_MODELS = [
   {
     id: "gemini-2.0-flash-lite",
     label: "Gemini 2.0 Flash Lite",
-    desc: "Modo ultra ligero optimizado para bajo consumo de cuota",
+    desc: "Modo ultra ligero optimizado para mínimo consumo de cuota",
     badge: "Ligero",
+  },
+  {
+    id: "gemini-1.5-flash",
+    label: "Gemini 1.5 Flash (Legacy)",
+    desc: "Versión clásica 1.5 Flash",
+    badge: "Legacy",
   },
 ] as const;
 
 export type GeminiModelId = (typeof GEMINI_MODELS)[number]["id"];
+
+const CANDIDATE_MODELS: string[] = [
+  "gemini-2.0-flash",
+  "gemini-1.5-flash-latest",
+  "gemini-2.5-flash",
+  "gemini-1.5-pro",
+  "gemini-2.0-flash-lite",
+  "gemini-1.5-flash",
+];
 
 const CORPUS = ARTICLES.map(
   (a) => `[${a.citation}] ${a.title}\n${a.text}\nFuente: ${a.url}`,
@@ -38,7 +59,7 @@ const ET_MAP = etMapForPrompt();
 
 export async function callGeminiApi({
   apiKey,
-  model = "gemini-1.5-flash",
+  model = "gemini-2.0-flash",
   systemPrompt,
   userPrompt,
   jsonMode = false,
@@ -57,74 +78,80 @@ export async function callGeminiApi({
     };
   }
 
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+  // Lista ordenada de modelos a probar (iniciando por el modelo solicitado)
+  const modelsToTry = [model, ...CANDIDATE_MODELS.filter((m) => m !== model)];
+  let lastErrorMsg = "Error en la API de Google Gemini";
 
-  const payload: Record<string, unknown> = {
-    contents: [
-      {
-        role: "user",
-        parts: [{ text: userPrompt }],
+  for (let i = 0; i < modelsToTry.length; i++) {
+    const currentModel = modelsToTry[i];
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${key}`;
+
+    const payload: Record<string, unknown> = {
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: userPrompt }],
+        },
+      ],
+      generationConfig: {
+        temperature: 0.2,
+        maxOutputTokens: 8192,
+        ...(jsonMode ? { responseMimeType: "application/json" } : {}),
       },
-    ],
-    generationConfig: {
-      temperature: 0.2,
-      maxOutputTokens: 8192,
-      ...(jsonMode ? { responseMimeType: "application/json" } : {}),
-    },
-  };
-
-  if (systemPrompt) {
-    payload.systemInstruction = {
-      parts: [{ text: systemPrompt }],
     };
-  }
 
-  try {
-    const res = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!res.ok) {
-      // Si el modelo específico falla o no está disponible en la cuenta del usuario,
-      // reintentamos automáticamente con gemini-1.5-flash que es universal
-      if (model !== "gemini-1.5-flash") {
-        return callGeminiApi({
-          apiKey: key,
-          model: "gemini-1.5-flash",
-          systemPrompt,
-          userPrompt,
-          jsonMode,
-        });
-      }
-
-      const errBody = await res.json().catch(() => ({}));
-      const msg =
-        (errBody as { error?: { message?: string } })?.error?.message ||
-        `Error en la API de Gemini (${res.status})`;
-      return { ok: false, error: msg };
+    if (systemPrompt) {
+      payload.systemInstruction = {
+        parts: [{ text: systemPrompt }],
+      };
     }
 
-    const data = (await res.json()) as {
-      candidates?: { content?: { parts?: { text?: string }[] } }[];
-    };
+    try {
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
 
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-    return { ok: true, text };
-  } catch (err) {
-    return {
-      ok: false,
-      error: err instanceof Error ? err.message : "Error de red al conectar con Google Gemini.",
-    };
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        const msg =
+          (errBody as { error?: { message?: string } })?.error?.message ||
+          `Error en la API de Gemini (${res.status})`;
+        lastErrorMsg = msg;
+
+        // Si el modelo específico no existe o no está habilitado para esta cuenta en v1beta, reintentamos con el siguiente candidato
+        if (
+          res.status === 404 ||
+          msg.includes("not found") ||
+          msg.includes("not supported")
+        ) {
+          console.warn(`[Gemini Fallback] ${currentModel} no disponible (${msg}), probando siguiente modelo...`);
+          continue;
+        }
+
+        return { ok: false, error: msg };
+      }
+
+      const data = (await res.json()) as {
+        candidates?: { content?: { parts?: { text?: string }[] } }[];
+      };
+
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+      return { ok: true, text };
+    } catch (err) {
+      lastErrorMsg = err instanceof Error ? err.message : "Error de red al conectar con Google Gemini.";
+    }
   }
+
+  return { ok: false, error: lastErrorMsg };
 }
 
 export async function testGeminiKey(
   apiKey: string,
-  model = "gemini-1.5-flash",
+  model = "gemini-2.0-flash",
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const res = await callGeminiApi({
     apiKey,
@@ -137,7 +164,7 @@ export async function testGeminiKey(
 
 export async function askGeminiTributario({
   apiKey,
-  model = "gemini-1.5-flash",
+  model = "gemini-2.0-flash",
   question,
   context,
   normas,
@@ -189,7 +216,7 @@ ${normas ? `Normas aportadas al expediente:\n${normas}` : ""}`;
 
 export async function extractDocumentWithGemini({
   apiKey,
-  model = "gemini-1.5-flash",
+  model = "gemini-2.0-flash",
   kind,
   text,
 }: {
