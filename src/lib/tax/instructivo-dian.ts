@@ -33,8 +33,8 @@ export const FORMULAS_EXPLICADAS_210: Record<number, FormulaExplicada> = {
     casillasInvolucradas: [38, 39],
   },
   41: {
-    formula: "Mínimo entre: (Casilla 37 Total exentas + Casilla 40 Total deducciones) y (Límite legal del 40% de ingresos netos o 1.340 UVT)",
-    descripcion: "La ley tributaria (Art. 336 E.T.) te permite restar tus beneficios y deducciones de trabajo hasta un tope máximo del 40% de tus ingresos netos o 1.340 UVT anuales. Aquí se toma el valor exacto aceptado por la ley.",
+    formula: "Mínimo entre: (Casilla 37 Total exentas + Casilla 40 Total deducciones) y el límite conjunto del 40% de ingresos netos de la Cédula General (tope máximo 1.340 UVT)",
+    descripcion: "Paso a paso legal (Art. 336 E.T.): 1. Sumas tus rentas exentas (Casilla 37) y deducciones (Casilla 40). 2. Calculas el 40% sobre los ingresos netos de la Cédula General (máximo 1.340 UVT). 3. Si tus beneficios solicitados son menores a dicho límite, la ley te acepta el 100% sin ningún recorte.",
     casillasInvolucradas: [34, 37, 40],
   },
   42: {

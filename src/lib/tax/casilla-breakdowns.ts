@@ -465,6 +465,82 @@ export function getCasillaItemizedBreakdown(
       };
     }
 
+    case 41: {
+      const exentasTrabajo = c.casillas[37] ?? 0;
+      const deducTrabajo = c.casillas[40] ?? 0;
+      const totalBeneficiosSolicitados = exentasTrabajo + deducTrabajo;
+
+      const ingresosCedula =
+        (c.casillas[32] ?? 0) +
+        (c.casillas[43] ?? 0) +
+        (c.casillas[58] ?? 0) +
+        (c.casillas[62] ?? 0) +
+        (c.casillas[74] ?? 0) +
+        (c.casillas[79] ?? 0);
+      const incrngoCedula =
+        (c.casillas[33] ?? 0) +
+        (c.casillas[44] ?? 0) +
+        (c.casillas[59] ?? 0) +
+        (c.casillas[76] ?? 0);
+      const base40Cedula = Math.max(0, ingresosCedula - incrngoCedula);
+      const limite40Valor = base40Cedula * 0.4;
+      const topeUvt1340 = uvt * 1340;
+      const limiteMaximoAplicable = Math.min(limite40Valor, topeUvt1340);
+
+      const aceptado = c.casillas[41] ?? 0;
+      const superaLimite = totalBeneficiosSolicitados > limiteMaximoAplicable;
+
+      return {
+        title: "Liquidación y Control de Límites del 40% y 1.340 UVT (Casilla 41)",
+        description:
+          "El Art. 336 numeral 3 del Estatuto Tributario establece que la suma de rentas exentas y deducciones no puede superar el 40% de los ingresos netos de la Cédula General ni 1.340 UVT anuales:",
+        items: [
+          {
+            label: "Paso 1: Rentas exentas de trabajo solicitadas (Casilla 37)",
+            value: formatCOP(exentasTrabajo),
+            source: "Suma de aportes AFC/FVP (Casilla 35) + 25% exención laboral y cesantías (Casilla 36)",
+          },
+          {
+            label: "Paso 1: Deducciones imputables de trabajo solicitadas (Casilla 40)",
+            value: formatCOP(deducTrabajo),
+            source: "Suma de intereses de vivienda (Casilla 38) + medicina, GMF, dependientes e ICETEX (Casilla 39)",
+          },
+          {
+            label: "Total beneficios y deducciones solicitados en Trabajo",
+            value: formatCOP(totalBeneficiosSolicitados),
+            legal: `Casilla 37 ($${formatNumber(exentasTrabajo)}) + Casilla 40 ($${formatNumber(deducTrabajo)}) = $${formatNumber(totalBeneficiosSolicitados)}`,
+            highlight: true,
+          },
+          {
+            label: "Paso 2: Base unificada Cédula General (Ingresos brutos - INCRNGO)",
+            value: formatCOP(base40Cedula),
+            source: `Ingresos Cédula General ($${formatNumber(ingresosCedula)}) - Salud/Pensión ($${formatNumber(incrngoCedula)}) = $${formatNumber(base40Cedula)}`,
+          },
+          {
+            label: "Límite legal del 40% sobre la base de la Cédula General",
+            value: formatCOP(limite40Valor),
+            legal: `40% × $${formatNumber(base40Cedula)} = $${formatNumber(limite40Valor)}`,
+          },
+          {
+            label: "Tope máximo legal absoluto en UVT (1.340 UVT)",
+            value: formatCOP(topeUvt1340),
+            legal: `1.340 UVT × $${formatNumber(uvt)} = $${formatNumber(topeUvt1340)}`,
+          },
+          {
+            label: "Límite legal aplicable (Menor entre 40% y 1.340 UVT)",
+            value: formatCOP(limiteMaximoAplicable),
+            legal: "Art. 336 numeral 3 E.T. (Ley 2277 de 2022)",
+            highlight: true,
+          },
+        ],
+        totalLabel: "Valor Aceptado e Imputable en Casilla 41",
+        totalValue: aceptado,
+        footnote: superaLimite
+          ? `Tus beneficios solicitados ($${formatNumber(totalBeneficiosSolicitados)}) superaron el límite legal ($${formatNumber(limiteMaximoAplicable)}). Por mandato del Art. 336 E.T., se restringen exactamente a $${formatNumber(aceptado)} en la Casilla 41.`
+          : `Tus beneficios solicitados ($${formatNumber(totalBeneficiosSolicitados)}) son MENORES a tu límite legal del 40% ($${formatNumber(limiteMaximoAplicable)}). Por lo tanto, la ley te permite imputar el 100% de tus beneficios ($${formatNumber(aceptado)}) sin ningún recorte.`,
+      };
+    }
+
     // -------------------------------------------------------------------------
     // HONORARIOS Y SERVICIOS PERSONALES
     // -------------------------------------------------------------------------
@@ -654,6 +730,65 @@ export function getCasillaItemizedBreakdown(
         items,
         totalLabel: "Total Otras Deducciones (Casilla 51)",
         totalValue: c.casillas[51] ?? 0,
+      };
+    }
+
+    case 53: {
+      const exentasH = c.casillas[49] ?? 0;
+      const deducH = c.casillas[52] ?? 0;
+      const totalBeneficiosH = exentasH + deducH;
+      const aceptadoH = c.casillas[53] ?? 0;
+
+      const ingresosCedula =
+        (c.casillas[32] ?? 0) +
+        (c.casillas[43] ?? 0) +
+        (c.casillas[58] ?? 0) +
+        (c.casillas[62] ?? 0) +
+        (c.casillas[74] ?? 0) +
+        (c.casillas[79] ?? 0);
+      const incrngoCedula =
+        (c.casillas[33] ?? 0) +
+        (c.casillas[44] ?? 0) +
+        (c.casillas[59] ?? 0) +
+        (c.casillas[76] ?? 0);
+      const base40Cedula = Math.max(0, ingresosCedula - incrngoCedula);
+      const limite40Valor = base40Cedula * 0.4;
+      const topeUvt1340 = uvt * 1340;
+      const limiteMaximoAplicable = Math.min(limite40Valor, topeUvt1340);
+
+      return {
+        title: "Control de Límites del 40% y 1.340 UVT en Honorarios (Casilla 53)",
+        description:
+          "Rentas exentas y deducciones aceptadas en honorarios y servicios personales (Art. 336 numeral 3 del Estatuto Tributario):",
+        items: [
+          {
+            label: "Rentas exentas solicitadas en honorarios (Casilla 49)",
+            value: formatCOP(exentasH),
+            source: "Aportes AFC/FVP (Casilla 47) + 25% exención laboral (Casilla 48)",
+          },
+          {
+            label: "Deducciones imputables solicitadas en honorarios (Casilla 52)",
+            value: formatCOP(deducH),
+            source: "Intereses vivienda (Casilla 50) + medicina prepagada, GMF, dependientes (Casilla 51)",
+          },
+          {
+            label: "Total beneficios solicitados en honorarios",
+            value: formatCOP(totalBeneficiosH),
+            highlight: true,
+          },
+          {
+            label: "Límite legal del 40% de la Cédula General",
+            value: formatCOP(limite40Valor),
+            legal: `40% × base Cédula General ($${formatNumber(base40Cedula)})`,
+          },
+          {
+            label: "Tope máximo legal anual (1.340 UVT)",
+            value: formatCOP(topeUvt1340),
+            legal: `1.340 UVT × $${formatNumber(uvt)}`,
+          },
+        ],
+        totalLabel: "Valor Aceptado en Casilla 53",
+        totalValue: aceptadoH,
       };
     }
 
@@ -897,6 +1032,64 @@ export function getCasillaItemizedBreakdown(
         items,
         totalLabel: "Total Otras Deducciones Capital (Casilla 67)",
         totalValue: c.casillas[67] ?? 0,
+      };
+    }
+
+    case 69: {
+      const exentasK = c.casillas[65] ?? 0;
+      const deducK = c.casillas[68] ?? 0;
+      const totalBeneficiosK = exentasK + deducK;
+      const aceptadoK = c.casillas[69] ?? 0;
+
+      const ingresosCedula =
+        (c.casillas[32] ?? 0) +
+        (c.casillas[43] ?? 0) +
+        (c.casillas[58] ?? 0) +
+        (c.casillas[62] ?? 0) +
+        (c.casillas[74] ?? 0) +
+        (c.casillas[79] ?? 0);
+      const incrngoCedula =
+        (c.casillas[33] ?? 0) +
+        (c.casillas[44] ?? 0) +
+        (c.casillas[59] ?? 0) +
+        (c.casillas[76] ?? 0);
+      const base40Cedula = Math.max(0, ingresosCedula - incrngoCedula);
+      const limite40Valor = base40Cedula * 0.4;
+      const topeUvt1340 = uvt * 1340;
+
+      return {
+        title: "Control de Límites del 40% y 1.340 UVT en Rentas de Capital (Casilla 69)",
+        description:
+          "Rentas exentas y deducciones aceptadas en rentas de capital (Art. 336 numeral 3 del Estatuto Tributario):",
+        items: [
+          {
+            label: "Rentas exentas solicitadas en capital (Casilla 65)",
+            value: formatCOP(exentasK),
+            source: "Aportes AFC/FVP (Casilla 63) + Otras exentas (Casilla 64)",
+          },
+          {
+            label: "Deducciones imputables solicitadas en capital (Casilla 68)",
+            value: formatCOP(deducK),
+            source: "Intereses vivienda (Casilla 66) + 50% GMF, cesantías e ICETEX (Casilla 67)",
+          },
+          {
+            label: "Total beneficios solicitados en capital",
+            value: formatCOP(totalBeneficiosK),
+            highlight: true,
+          },
+          {
+            label: "Límite legal del 40% de la Cédula General",
+            value: formatCOP(limite40Valor),
+            legal: `40% × base Cédula General ($${formatNumber(base40Cedula)})`,
+          },
+          {
+            label: "Tope máximo legal anual (1.340 UVT)",
+            value: formatCOP(topeUvt1340),
+            legal: `1.340 UVT × $${formatNumber(uvt)}`,
+          },
+        ],
+        totalLabel: "Valor Aceptado en Casilla 69",
+        totalValue: aceptadoK,
       };
     }
 
@@ -1149,6 +1342,64 @@ export function getCasillaItemizedBreakdown(
       };
     }
 
+    case 86: {
+      const exentasNL = c.casillas[82] ?? 0;
+      const deducNL = c.casillas[85] ?? 0;
+      const totalBeneficiosNL = exentasNL + deducNL;
+      const aceptadoNL = c.casillas[86] ?? 0;
+
+      const ingresosCedula =
+        (c.casillas[32] ?? 0) +
+        (c.casillas[43] ?? 0) +
+        (c.casillas[58] ?? 0) +
+        (c.casillas[62] ?? 0) +
+        (c.casillas[74] ?? 0) +
+        (c.casillas[79] ?? 0);
+      const incrngoCedula =
+        (c.casillas[33] ?? 0) +
+        (c.casillas[44] ?? 0) +
+        (c.casillas[59] ?? 0) +
+        (c.casillas[76] ?? 0);
+      const base40Cedula = Math.max(0, ingresosCedula - incrngoCedula);
+      const limite40Valor = base40Cedula * 0.4;
+      const topeUvt1340 = uvt * 1340;
+
+      return {
+        title: "Control de Límites del 40% y 1.340 UVT en Rentas No Laborales (Casilla 86)",
+        description:
+          "Rentas exentas y deducciones aceptadas en actividades comerciales y no laborales (Art. 336 numeral 3 del Estatuto Tributario):",
+        items: [
+          {
+            label: "Rentas exentas solicitadas en no laborales (Casilla 82)",
+            value: formatCOP(exentasNL),
+            source: "Aportes AFC/FVP (Casilla 80) + Otras exentas (Casilla 81)",
+          },
+          {
+            label: "Deducciones imputables solicitadas en no laborales (Casilla 85)",
+            value: formatCOP(deducNL),
+            source: "Intereses vivienda (Casilla 83) + 50% GMF, cesantías e ICETEX (Casilla 84)",
+          },
+          {
+            label: "Total beneficios solicitados en no laborales",
+            value: formatCOP(totalBeneficiosNL),
+            highlight: true,
+          },
+          {
+            label: "Límite legal del 40% de la Cédula General",
+            value: formatCOP(limite40Valor),
+            legal: `40% × base Cédula General ($${formatNumber(base40Cedula)})`,
+          },
+          {
+            label: "Tope máximo legal anual (1.340 UVT)",
+            value: formatCOP(topeUvt1340),
+            legal: `1.340 UVT × $${formatNumber(uvt)}`,
+          },
+        ],
+        totalLabel: "Valor Aceptado en Casilla 86",
+        totalValue: aceptadoNL,
+      };
+    }
+
     case 89: {
       return {
         title: "Compensación de Pérdidas Fiscales No Laborales (Casilla 89)",
@@ -1162,6 +1413,149 @@ export function getCasillaItemizedBreakdown(
         ],
         totalLabel: "Total Pérdidas Compensadas No Laborales (Casilla 89)",
         totalValue: c.casillas[89] ?? 0,
+      };
+    }
+
+    // -------------------------------------------------------------------------
+    // DEPURACIÓN CÉDULA GENERAL (Casillas 91 a 98)
+    // -------------------------------------------------------------------------
+    case 91: {
+      return {
+        title: "Renta Líquida Total de la Cédula General (Casilla 91)",
+        description:
+          "Suma consolidada de las ganancias netas líquidas obtenidas en las subcédulas de Trabajo, Honorarios, Capital y No Laborales (Art. 336 numeral 1 y 2 E.T.):",
+        items: [
+          {
+            label: "Renta líquida de trabajo (Casilla 34)",
+            value: formatCOP(c.casillas[34] ?? 0),
+            source: "Ingresos laborales menos aportes a salud y pensión",
+          },
+          {
+            label: "Renta líquida de honorarios y servicios (Casilla 46)",
+            value: formatCOP(c.casillas[46] ?? 0),
+            source: "Honorarios cobrados menos salud y pensión",
+          },
+          {
+            label: "Renta líquida de capital (Casilla 61 + 62 ECE)",
+            value: formatCOP((c.casillas[61] ?? 0) + (c.casillas[62] ?? 0)),
+            source: "Rendimientos financieros y arriendos menos costos",
+          },
+          {
+            label: "Renta líquida no laboral (Casilla 78 + 79 ECE)",
+            value: formatCOP((c.casillas[78] ?? 0) + (c.casillas[79] ?? 0)),
+            source: "Comercio y actividades no laborales menos costos",
+          },
+        ],
+        totalLabel: "Total Renta Líquida Cédula General (Casilla 91)",
+        totalValue: c.casillas[91] ?? 0,
+        footnote:
+          "Esta suma representa el 100% de la base neta de ingresos del declarante antes de restar beneficios tributarios y deducciones.",
+      };
+    }
+
+    case 92: {
+      const items: ItemBreakdown[] = [
+        {
+          label: "Rentas exentas y deducciones de trabajo (Casilla 41)",
+          value: formatCOP(c.casillas[41] ?? 0),
+          source: "Beneficios de trabajo aceptados bajo el límite del 40%",
+        },
+        {
+          label: "Rentas exentas y deducciones de honorarios (Casilla 53)",
+          value: formatCOP(c.casillas[53] ?? 0),
+          source: "Beneficios de honorarios aceptados bajo el límite del 40%",
+        },
+        {
+          label: "Rentas exentas y deducciones de capital (Casilla 69)",
+          value: formatCOP(c.casillas[69] ?? 0),
+          source: "Beneficios de capital aceptados bajo el límite del 40%",
+        },
+        {
+          label: "Rentas exentas y deducciones no laborales (Casilla 86)",
+          value: formatCOP(c.casillas[86] ?? 0),
+          source: "Beneficios no laborales aceptados bajo el límite del 40%",
+        },
+      ];
+
+      if ((c.casillas[28] ?? 0) > 0) {
+        items.push({
+          label: "Deducción del 1% por compras con factura electrónica (Casilla 28)",
+          value: formatCOP(c.casillas[28] ?? 0),
+          legal: "Art. 336 numeral 5 E.T. (Fuera del límite del 40%)",
+          highlight: true,
+        });
+      }
+
+      if ((c.casillas[139] ?? 0) > 0) {
+        items.push({
+          label: "Deducción adicional 72 UVT por dependientes (Casilla 139)",
+          value: formatCOP(c.casillas[139] ?? 0),
+          legal: `Art. 336 inciso 2 E.T. (${d.trabajo.dependientes || 0} dependiente(s) × 72 UVT = ${formatCOP(c.casillas[139] ?? 0)}) - Fuera del 40%`,
+          highlight: true,
+        });
+      }
+
+      return {
+        title: "Total Rentas Exentas y Deducciones Imputables (Casilla 92)",
+        description:
+          "Consolidado de todas las rentas exentas y deducciones aceptadas por ley que disminuyen directamente el impuesto de renta de la Cédula General (Art. 336 E.T.):",
+        items,
+        totalLabel: "Total Beneficios Restables (Casilla 92)",
+        totalValue: c.casillas[92] ?? 0,
+        footnote:
+          "Incluye los beneficios del 40% más los beneficios especiales otorgados por la Ley 2277 (1% de compras electrónicas y los 72 UVT por cada dependiente económico).",
+      };
+    }
+
+    case 93: {
+      return {
+        title: "Renta Líquida Ordinaria de la Cédula General (Casilla 93)",
+        description:
+          "Resultado neto de restar todos los beneficios tributarios y deducciones permitidas a la renta líquida total de la Cédula General (Fórmula oficial DIAN: Casilla 91 - Casilla 92):",
+        items: [
+          {
+            label: "Renta líquida total de la Cédula General (Casilla 91)",
+            value: formatCOP(c.casillas[91] ?? 0),
+            source: "Ingresos netos consolidados de todas las subcédulas",
+          },
+          {
+            label: "Total rentas exentas y deducciones aplicadas (Casilla 92)",
+            value: formatCOP(c.casillas[92] ?? 0),
+            source: "Total de beneficios, deducciones, 1% compras y dependientes 72 UVT",
+          },
+        ],
+        totalLabel: "Renta Líquida Ordinaria (Casilla 93)",
+        totalValue: c.casillas[93] ?? 0,
+        footnote: `Cálculo oficial: Casilla 91 ($${formatNumber(c.casillas[91] ?? 0)}) - Casilla 92 ($${formatNumber(c.casillas[92] ?? 0)}) = $${formatNumber(c.casillas[93] ?? 0)}. Sobre este valor se aplica la tabla de tarifas del impuesto.`,
+      };
+    }
+
+    case 97: {
+      return {
+        title: "Renta Líquida Gravable de la Cédula General (Casilla 97)",
+        description:
+          "Base definitiva sobre la cual se calcula el impuesto de renta según la tabla progresiva del Art. 241 del Estatuto Tributario:",
+        items: [
+          {
+            label: "Renta líquida ordinaria de la Cédula General (Casilla 93)",
+            value: formatCOP(c.casillas[93] ?? 0),
+          },
+          {
+            label: "Compensación de pérdidas de 2018 y anteriores (Casilla 94)",
+            value: formatCOP(c.casillas[94] ?? 0),
+          },
+          {
+            label: "Compensación por exceso de renta presuntiva (Casilla 95)",
+            value: formatCOP(c.casillas[95] ?? 0),
+          },
+          {
+            label: "Rentas gravables especiales adicionadas (Casilla 96)",
+            value: formatCOP(c.casillas[96] ?? 0),
+          },
+        ],
+        totalLabel: "Base Gravable Final (Casilla 97)",
+        totalValue: c.casillas[97] ?? 0,
+        footnote: `Esta es la base neta de tu declaración (${formatCOP(c.casillas[97] ?? 0)} = ${(c.uvt > 0 ? (c.casillas[97] / c.uvt).toFixed(1) : 0)} UVT). Si es menor a 1.090 UVT ($${formatNumber(uvt * 1090)}), la tarifa de impuesto es 0%.`,
       };
     }
 
