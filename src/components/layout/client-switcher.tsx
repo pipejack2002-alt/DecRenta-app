@@ -240,13 +240,13 @@ export function ClientSwitcher() {
                           onChange={(e) => setNewClientYearStr(e.target.value)}
                           className="h-8 rounded-lg border border-line bg-surface px-2.5 text-xs font-semibold text-ink shadow-xs cursor-pointer focus:outline-none focus:ring-1 focus:ring-emerald-700"
                         >
-                          <option value="2026">AG 2026 (Declarar en 2027)</option>
-                          <option value="2025">AG 2025 (Declarar en 2026) · Oficial Vigente</option>
-                          <option value="2024">AG 2024 (Declarar en 2025)</option>
-                          <option value="2023">AG 2023</option>
-                          <option value="2022">AG 2022</option>
-                          <option value="2021">AG 2021</option>
-                          <option value="2020">AG 2020</option>
+                          <option value="2025">2025 (Declara en 2026)</option>
+                          <option value="2026">2026 (Declara en 2027)</option>
+                          <option value="2024">2024 (Declara en 2025)</option>
+                          <option value="2023">2023</option>
+                          <option value="2022">2022</option>
+                          <option value="2021">2021</option>
+                          <option value="2020">2020</option>
                         </select>
                       </div>
                       <div className="flex items-center gap-2">

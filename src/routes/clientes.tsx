@@ -582,17 +582,17 @@ function ClientesRoute() {
           ========================================================================= */}
       {showCreateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-          <div className="w-full max-w-md rounded-2xl border border-line bg-surface p-6 shadow-2xl animate-in zoom-in-95 space-y-5">
+          <div className="w-full max-w-lg rounded-2xl border border-line bg-surface p-6 shadow-2xl animate-in zoom-in-95 space-y-5">
             <div className="flex items-center justify-between border-b border-line pb-3">
               <div className="flex items-center gap-2">
-                <span className="flex size-8 items-center justify-center rounded-lg bg-forest-mist text-forest">
+                <span className="flex size-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-800">
                   <UserPlus className="size-4" />
                 </span>
                 <h3 className="text-base font-bold text-ink">Nueva Declaración / Cliente</h3>
               </div>
               <button
                 onClick={() => setShowCreateModal(false)}
-                className="rounded-lg p-1 text-muted hover:bg-forest-mist hover:text-ink"
+                className="rounded-lg p-1 text-muted hover:bg-forest-mist hover:text-ink cursor-pointer"
               >
                 ✕
               </button>
@@ -609,12 +609,12 @@ function ClientesRoute() {
                   placeholder="Ej: MARÍA FERNANDA PÉREZ GÓMEZ"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
-                  className="text-xs"
+                  className="h-10 text-xs bg-bg"
                   autoFocus
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label htmlFor="new-nit" className="text-xs font-semibold text-ink">
                     NIT / Cédula (Sin DV)
@@ -625,27 +625,27 @@ function ClientesRoute() {
                     placeholder="Ej: 1044608716"
                     value={newNit}
                     onChange={(e) => setNewNit(e.target.value)}
-                    className="font-mono text-xs"
+                    className="h-10 font-mono text-xs bg-bg"
                   />
                 </div>
 
                 <div className="space-y-1.5">
                   <Label htmlFor="new-year" className="text-xs font-semibold text-ink">
-                    Año Gravable (Formulario 210)
+                    Año Gravable
                   </Label>
                   <select
                     id="new-year"
                     value={newYearStr}
                     onChange={(e) => setNewYearStr(e.target.value)}
-                    className="w-full h-9 rounded-lg border border-line bg-bg px-2.5 text-xs text-ink focus:outline-none focus:ring-1 focus:ring-emerald-700 font-semibold cursor-pointer shadow-2xs"
+                    className="w-full h-10 rounded-lg border border-line bg-bg px-3 text-xs text-ink focus:outline-none focus:ring-1 focus:ring-emerald-700 font-semibold cursor-pointer shadow-2xs"
                   >
-                    <option value="2026">AG 2026 (Declarar en 2027)</option>
-                    <option value="2025">AG 2025 (Declarar en 2026) · Oficial Vigente</option>
-                    <option value="2024">AG 2024 (Declarar en 2025)</option>
-                    <option value="2023">AG 2023</option>
-                    <option value="2022">AG 2022</option>
-                    <option value="2021">AG 2021</option>
-                    <option value="2020">AG 2020</option>
+                    <option value="2025">2025 (Declara en 2026)</option>
+                    <option value="2026">2026 (Declara en 2027)</option>
+                    <option value="2024">2024 (Declara en 2025)</option>
+                    <option value="2023">2023</option>
+                    <option value="2022">2022</option>
+                    <option value="2021">2021</option>
+                    <option value="2020">2020</option>
                   </select>
                 </div>
               </div>
