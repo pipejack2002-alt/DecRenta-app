@@ -45,6 +45,17 @@ export const Route = createRootRoute({
           </AppShell>
         </AuthProvider>
         <Scripts />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function(regs) {
+                  for (var i = 0; i < regs.length; i++) { regs[i].unregister(); }
+                });
+              }
+            `,
+          }}
+        />
       </body>
     </html>
   ),
