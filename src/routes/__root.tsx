@@ -4,7 +4,7 @@ import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { AppShell } from "@/components/layout/app-shell";
 import appCss from "../styles.css?url";
 
-const APP_NAME = "TributoApp · Declaración de Renta 210";
+const APP_NAME = "DeclaraPro · Declaración de Renta 210";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -21,7 +21,7 @@ export const Route = createRootRoute({
     ],
     links: [
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
-      { rel: "stylesheet", href: `${appCss}?v=20260829_v4_commercial` },
+      { rel: "stylesheet", href: `${appCss}?v=20260829_v5_declarapro` },
       { rel: "manifest", href: "/__grok/manifest.webmanifest" },
       { rel: "apple-touch-icon", href: "/__grok/icon-180.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },

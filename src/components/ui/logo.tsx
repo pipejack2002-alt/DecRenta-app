@@ -36,7 +36,7 @@ export function Logo({
 
   return (
     <div className={cn("inline-flex items-center gap-2.5 select-none", className)}>
-      {/* Icono Isotipo HD */}
+      {/* Icono Isotipo HD DeclaraPro */}
       <div className={cn("relative shrink-0 flex items-center justify-center", iconSizes[size])}>
         <svg
           viewBox="0 0 48 48"
@@ -46,27 +46,27 @@ export function Logo({
         >
           <defs>
             {/* Gradiente principal Esmeralda Profundo */}
-            <linearGradient id="tributoEmerald" x1="0%" y1="0%" x2="100%" y2="100%">
+            <linearGradient id="declaraEmerald" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#064E3B" />
               <stop offset="50%" stopColor="#0F766E" />
               <stop offset="100%" stopColor="#042F2E" />
             </linearGradient>
 
             {/* Gradiente Oro Financiero Premium */}
-            <linearGradient id="tributoGold" x1="0%" y1="0%" x2="100%" y2="100%">
+            <linearGradient id="declaraGold" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#FDE68A" />
               <stop offset="45%" stopColor="#F59E0B" />
               <stop offset="100%" stopColor="#D97706" />
             </linearGradient>
 
             {/* Gradiente de brillo reflectante */}
-            <linearGradient id="tributoShine" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.4" />
+            <linearGradient id="declaraShine" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.35" />
               <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0.0" />
             </linearGradient>
 
             {/* Sombra suave interna */}
-            <filter id="logoShadow" x="-10%" y="-10%" width="120%" height="120%">
+            <filter id="declaraShadow" x="-10%" y="-10%" width="120%" height="120%">
               <feDropShadow dx="0" dy="2" stdDeviation="2" floodColor="#000000" floodOpacity="0.35" />
             </filter>
           </defs>
@@ -78,8 +78,8 @@ export function Logo({
             width="44"
             height="44"
             rx="12"
-            fill="url(#tributoEmerald)"
-            stroke="url(#tributoGold)"
+            fill="url(#declaraEmerald)"
+            stroke="url(#declaraGold)"
             strokeWidth="1.5"
           />
 
@@ -90,41 +90,39 @@ export function Logo({
             width="42"
             height="21"
             rx="10"
-            fill="url(#tributoShine)"
+            fill="url(#declaraShine)"
           />
 
-          {/* Emblema 'T' Estilizada y Balanza Fiscal */}
-          <g filter="url(#logoShadow)">
-            {/* Barra horizontal superior de la T (Hoja / Pliegue Tributario) */}
+          {/* Emblema 'D' Estilizada y Balanza Fiscal */}
+          <g filter="url(#declaraShadow)">
+            {/* Trazo vertical de la D */}
             <path
-              d="M11 14C11 12.8954 11.8954 12 13 12H35C36.1046 12 37 12.8954 37 14V17C37 17.5523 36.5523 18 36 18H12C11.4477 18 11 17.5523 11 17V14Z"
-              fill="#F8FAFC"
-            />
-            {/* Acento dorado en el ala derecha de la T */}
-            <path
-              d="M31 12H35C36.1046 12 37 12.8954 37 14V18H31V12Z"
-              fill="url(#tributoGold)"
+              d="M13 13C13 12.4477 13.4477 12 14 12H24C31.1797 12 37 17.8203 37 25C37 32.1797 31.1797 38 24 38H14C13.4477 38 13 37.5523 13 37V13Z"
+              fill="none"
+              stroke="#F8FAFC"
+              strokeWidth="3.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             />
 
-            {/* Columna / Tronco central de la T (Pilar de Solidez) */}
+            {/* Arco dorado de aceleración */}
             <path
-              d="M20.5 18H27.5V33C27.5 34.6569 26.1569 36 24.5 36H23.5C21.8431 36 20.5 34.6569 20.5 33V18Z"
-              fill="#F8FAFC"
+              d="M24 12C31.1797 12 37 17.8203 37 25"
+              fill="none"
+              stroke="url(#declaraGold)"
+              strokeWidth="3.5"
+              strokeLinecap="round"
             />
 
             {/* Balanza / Casillas de verificación en verde neón */}
-            <circle cx="15.5" cy="24.5" r="2.2" fill="url(#tributoGold)" />
-            <circle cx="32.5" cy="24.5" r="2.2" fill="url(#tributoGold)" />
+            <circle cx="21" cy="24" r="2.2" fill="url(#declaraGold)" />
+            <circle cx="29" cy="24" r="2.2" fill="url(#declaraGold)" />
             
-            {/* Micro-líneas de soporte de balanza */}
-            <line x1="15.5" y1="18" x2="15.5" y2="22.5" stroke="#34D399" strokeWidth="1.2" strokeLinecap="round" />
-            <line x1="32.5" y1="18" x2="32.5" y2="22.5" stroke="#34D399" strokeWidth="1.2" strokeLinecap="round" />
-
             {/* Checkmark central en el pilar */}
             <path
-              d="M22 26.5L23.5 28L26 24.5"
-              stroke="#064E3B"
-              strokeWidth="1.5"
+              d="M20 28.5L23.5 32L31 22.5"
+              stroke="#34D399"
+              strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
@@ -145,10 +143,10 @@ export function Logo({
                   : "text-forest-deep"
               )}
             >
-              Tributo<span className="text-emerald-600">App</span>
+              Declara<span className="text-emerald-600">Pro</span>
             </span>
-            <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-800 border border-amber-500/30">
-              Pro
+            <span className="rounded bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-800 border border-emerald-500/30">
+              210
             </span>
           </div>
           <span
@@ -158,7 +156,7 @@ export function Logo({
               variant === "light" ? "text-emerald-200/80" : "text-muted"
             )}
           >
-            Renta 210 · DIAN
+            Renta Persona Natural · DIAN
           </span>
         </div>
       )}

@@ -189,51 +189,35 @@ function DeclaracionPage() {
 
                   {/* Año gravable y Número de formulario */}
                   <div className={cn("grid gap-4 p-4 bg-muted-mist/40 rounded-xl border border-line", splitScreen ? "grid-cols-1" : "md:grid-cols-2")}>
-                    <div className="space-y-2 min-w-0">
+                    <div className="space-y-1.5 min-w-0">
                       <div className="flex items-center justify-between gap-2">
-                        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink">1. Año gravable</p>
-                        <span className="text-xs font-mono font-bold text-forest-deep px-2 py-0.5 bg-forest-mist rounded-md">AG {d.year} (Presentación en {d.year + 1})</span>
+                        <label className="text-xs font-semibold uppercase tracking-[0.14em] text-ink block">
+                          1. Año Gravable (Formulario 210)
+                        </label>
+                        <span className="text-[11px] font-mono font-bold text-forest-deep px-2 py-0.5 bg-forest-mist rounded-md">
+                          Presentación en {d.year + 1}
+                        </span>
                       </div>
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        {([2026, 2025, 2024, 2023] as const).map((yr) => (
-                          <button
-                            key={yr}
-                            type="button"
-                            onClick={() => patch((x) => (x.year = yr))}
-                            className={cn(
-                              "h-9 px-3 rounded-lg border text-xs font-mono font-bold transition-colors",
-                              d.year === yr ? "border-forest bg-forest text-white shadow-xs" : "border-line bg-surface text-ink-soft hover:bg-forest-mist",
-                            )}
-                          >
-                            {yr}
-                          </button>
-                        ))}
-                        <div className="flex items-center gap-1.5 ml-auto">
-                          <span className="text-xs text-muted">Otro:</span>
-                          <input
-                            type="text"
-                            maxLength={4}
-                            placeholder="2030"
-                            className="w-16 h-9 font-mono text-xs font-bold text-center rounded-lg border border-line bg-white shadow-2xs"
-                            value={declYearInput}
-                            onChange={(e) => {
-                              const val = e.target.value.replace(/\D/g, "").slice(0, 4);
-                              setDeclYearInput(val);
-                              const y = Number(val);
-                              if (y >= 1990 && y <= 2100) patch((x) => (x.year = y));
-                            }}
-                            onBlur={() => {
-                              const y = Number(declYearInput);
-                              if (y >= 1990 && y <= 2100) {
-                                patch((x) => (x.year = y));
-                              } else {
-                                setDeclYearInput(String(d.year));
-                              }
-                            }}
-                            title="Digita cualquier año"
-                          />
-                        </div>
-                      </div>
+                      <select
+                        value={d.year}
+                        onChange={(e) => {
+                          const yr = Number(e.target.value);
+                          patch((x) => (x.year = yr));
+                          setDeclYearInput(String(yr));
+                        }}
+                        className="h-10 w-full rounded-xl border border-line bg-surface px-3 text-xs font-bold text-ink focus:border-forest focus:ring-1 focus:ring-forest cursor-pointer shadow-2xs"
+                      >
+                        <option value={2026}>AG 2026 (Declarar en 2027)</option>
+                        <option value={2025}>AG 2025 (Declarar en 2026) · Oficial Vigente</option>
+                        <option value={2024}>AG 2024 (Declarar en 2025)</option>
+                        <option value={2023}>AG 2023</option>
+                        <option value={2022}>AG 2022</option>
+                        <option value={2021}>AG 2021</option>
+                        <option value={2020}>AG 2020</option>
+                      </select>
+                      <p className="text-[10.5px] text-muted">
+                        Aplica automáticamente la UVT ({formatCOP(computed.uvt)}) y topes oficiales de la Ley 2277.
+                      </p>
                     </div>
                     <TextField
                       label="4. Número de formulario (Autogenerado o Manual)"

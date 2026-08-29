@@ -233,41 +233,21 @@ export function ClientSwitcher() {
                     </div>
 
                     <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-forest/20">
-                      <div className="flex flex-wrap items-center gap-2">
+                      <div className="flex items-center gap-2">
                         <Label className="text-xs font-semibold text-forest">Año Gravable:</Label>
                         <select
-                          value={["2027", "2026", "2025", "2024", "2023", "2022", "2021", "2020", "2019", "2018"].includes(newClientYearStr) ? newClientYearStr : "custom"}
-                          onChange={(e) => {
-                            if (e.target.value !== "custom") setNewClientYearStr(e.target.value);
-                          }}
-                          className="rounded-lg border border-line bg-surface px-2.5 py-1 text-xs font-semibold text-ink shadow-sm cursor-pointer"
+                          value={newClientYearStr}
+                          onChange={(e) => setNewClientYearStr(e.target.value)}
+                          className="h-8 rounded-lg border border-line bg-surface px-2.5 text-xs font-semibold text-ink shadow-xs cursor-pointer focus:outline-none focus:ring-1 focus:ring-emerald-700"
                         >
-                          <option value="2027">AG 2027 (Declarar en 2028)</option>
                           <option value="2026">AG 2026 (Declarar en 2027)</option>
-                          <option value="2025">AG 2025 (Declarar en 2026)</option>
+                          <option value="2025">AG 2025 (Declarar en 2026) · Oficial Vigente</option>
                           <option value="2024">AG 2024 (Declarar en 2025)</option>
                           <option value="2023">AG 2023</option>
                           <option value="2022">AG 2022</option>
                           <option value="2021">AG 2021</option>
                           <option value="2020">AG 2020</option>
-                          <option value="2019">AG 2019</option>
-                          <option value="2018">AG 2018</option>
-                          {!["2027", "2026", "2025", "2024", "2023", "2022", "2021", "2020", "2019", "2018"].includes(newClientYearStr) && newClientYearStr && (
-                            <option value={newClientYearStr}>AG {newClientYearStr}</option>
-                          )}
                         </select>
-                        <Input
-                          type="text"
-                          maxLength={4}
-                          placeholder="2025"
-                          value={newClientYearStr}
-                          onChange={(e) => {
-                            const val = e.target.value.replace(/\D/g, "").slice(0, 4);
-                            setNewClientYearStr(val);
-                          }}
-                          className="w-20 h-8 text-xs font-mono font-bold text-center border-line bg-surface"
-                          title="Digita cualquier año gravable libremente"
-                        />
                       </div>
                       <div className="flex items-center gap-2">
                         <Button size="sm" variant="ghost" onClick={() => setShowCreateForm(false)} className="text-xs">

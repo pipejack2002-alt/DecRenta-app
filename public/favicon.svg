@@ -27,24 +27,17 @@
   <!-- Brillo superior -->
   <path d="M4 16C4 9.37258 9.37258 4 16 4H48C54.6274 4 60 9.37258 60 16V28C48 30 16 30 4 28V16Z" fill="#FFFFFF" fill-opacity="0.08"/>
 
-  <!-- Símbolo T y Balanza Tributaria -->
+  <!-- Símbolo 'D' de DeclaraPro y Balanza Tributaria -->
   <g filter="url(#favGlow)">
-    <!-- Barra superior T -->
-    <path d="M14 17C14 15.3431 15.3431 14 17 14H47C48.6569 14 50 15.3431 50 17V21C50 21.5523 49.5523 22 49 22H15C14.4477 22 14 21.5523 14 21V17Z" fill="#F8FAFC"/>
-    
-    <!-- Acento Dorado ala derecha -->
-    <path d="M40 14H47C48.6569 14 50 15.3431 50 17V22H40V14Z" fill="url(#favGold)"/>
+    <!-- Letra D -->
+    <path d="M18 16H32C41.9411 16 50 23.1634 50 32C50 40.8366 41.9411 48 32 48H18V16Z" fill="none" stroke="#F8FAFC" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M32 16C41.9411 16 50 23.1634 50 32" fill="none" stroke="url(#favGold)" stroke-width="4.5" stroke-linecap="round"/>
 
-    <!-- Pilar Vertical T -->
-    <path d="M27 22H37V45C37 47.2091 35.2091 49 33 49H31C28.7909 49 27 47.2091 27 45V22Z" fill="#F8FAFC"/>
+    <!-- Puntos de Balanza -->
+    <circle cx="28" cy="30" r="3" fill="url(#favGold)"/>
+    <circle cx="39" cy="30" r="3" fill="url(#favGold)"/>
 
-    <!-- Platillos de la balanza fiscal / Checks -->
-    <circle cx="20" cy="31" r="3" fill="url(#favGold)"/>
-    <circle cx="44" cy="31" r="3" fill="url(#favGold)"/>
-    <line x1="20" y1="22" x2="20" y2="28" stroke="#34D399" stroke-width="1.8" stroke-linecap="round"/>
-    <line x1="44" y1="22" x2="44" y2="28" stroke="#34D399" stroke-width="1.8" stroke-linecap="round"/>
-
-    <!-- Checkmark central de precisión fiscal -->
-    <path d="M29 34L31 36L35 31" stroke="#064E3B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Checkmark de precisión fiscal -->
+    <path d="M26 36L31 41L42 27" stroke="#34D399" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
   </g>
 </svg>

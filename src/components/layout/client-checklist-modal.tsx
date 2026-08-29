@@ -237,7 +237,7 @@ export function ClientChecklistModal({
 
         {/* Footer */}
         <div className="border-t border-line bg-bg/40 px-6 py-3.5 flex items-center justify-between text-xs text-muted">
-          <span>TributoApp · Checklist Profesional para Personas Naturales</span>
+          <span>DeclaraPro · Checklist Profesional para Personas Naturales</span>
           <Button variant="ghost" size="sm" onClick={onClose}>
             Cerrar
           </Button>

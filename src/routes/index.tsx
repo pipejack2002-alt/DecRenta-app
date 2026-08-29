@@ -619,7 +619,7 @@ function Home() {
           <span>Privacidad y Fuentes Oficiales Garantizadas</span>
         </div>
         <p>
-          <strong>TributoApp</strong> opera como un sistema profesional de liquidación y orientación tributaria basado en la estructura oficial del Formulario 210 de la DIAN (Resolución 000044 de 2024 y Resolución 000227 de 2025), el Estatuto Tributario compilado y el Decreto 1625 de 2016. Valores de UVT parametrizados: <strong>2025 = $49.799</strong> y <strong>2026 = $52.374</strong> (Res. 000238 de 2025). Calendario oficial del 12 de agosto al 26 de octubre de 2026.
+          <strong>DeclaraPro</strong> opera como un sistema profesional de liquidación y orientación tributaria basado en la estructura oficial del Formulario 210 de la DIAN (Resolución 000044 de 2024 y Resolución 000227 de 2025), el Estatuto Tributario compilado y el Decreto 1625 de 2016. Valores de UVT parametrizados: <strong>2025 = $49.799</strong> y <strong>2026 = $52.374</strong> (Res. 000238 de 2025). Calendario oficial del 12 de agosto al 26 de octubre de 2026.
         </p>
       </section>
     </div>
