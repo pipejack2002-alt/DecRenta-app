@@ -109,6 +109,7 @@ type AppState = {
   patch: (fn: (d: Declaration) => void) => void;
   reset: () => void;
   loadExample: () => void;
+  loadAndresBernal: () => void;
   addDoc: (doc: VaultDoc) => void;
   updateDoc: (id: string, patch: Partial<VaultDoc>) => void;
   removeDoc: (id: string) => void;
@@ -185,7 +186,7 @@ function syncCurrentProfile(s: AppState, nextDecl?: Declaration, nextDocs?: Vaul
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
-      declaration: emptyDeclaration(2025),
+      declaration: andresBernalDeclaration(),
       docs: [],
       normas: [],
       aiSettings: {
@@ -237,6 +238,12 @@ export const useAppStore = create<AppState>()(
       loadExample: () =>
         set((s) => {
           const nextDecl = exampleDeclaration();
+          const nextProfiles = syncCurrentProfile(s, nextDecl);
+          return { declaration: nextDecl, profiles: nextProfiles };
+        }),
+      loadAndresBernal: () =>
+        set((s) => {
+          const nextDecl = andresBernalDeclaration();
           const nextProfiles = syncCurrentProfile(s, nextDecl);
           return { declaration: nextDecl, profiles: nextProfiles };
         }),
@@ -775,3 +782,34 @@ export function exampleDeclaration(): Declaration {
   };
   return d;
 }
+
+export function andresBernalDeclaration(): Declaration {
+  const d = emptyDeclaration(2025);
+  d.identity = {
+    ...d.identity,
+    tipoDocumento: "13",
+    nit: "1001880133",
+    dv: "7",
+    primerApellido: "BERNAL",
+    segundoApellido: "OSORIO",
+    primerNombre: "ANDRES",
+    otrosNombres: "FELIPE",
+    dirSeccional: "32",
+    actividadCiiu: "0010",
+    aniosDeclarando: 2,
+    responsableIva: false,
+    residente: true,
+  };
+  d.topes = {
+    ...d.topes,
+    ingresosBrutos: 27331800,
+  };
+  d.trabajo = {
+    ...d.trabajo,
+    salarios: 27331800,
+    aportesPensionObligatorios: 1093272,
+    aportesSaludObligatorios: 1093272,
+  };
+  return d;
+}
+

@@ -53,6 +53,7 @@ function Home() {
   const d = useAppStore((s) => s.declaration);
   const docs = useAppStore((s) => s.docs);
   const loadExample = useAppStore((s) => s.loadExample);
+  const loadAndresBernal = useAppStore((s) => s.loadAndresBernal);
   const reset = useAppStore((s) => s.reset);
   const computed = useComputed();
   const findings = auditExpediente(d, computed, docs);
@@ -130,6 +131,17 @@ function Home() {
               >
                 <FileSpreadsheet className="size-4 text-emerald-300" />
                 <span>Importar Exógena (Excel)</span>
+              </Button>
+
+              <Button
+                onClick={loadAndresBernal}
+                variant="outline"
+                size="sm"
+                className="border-emerald-400/30 bg-emerald-950/40 text-emerald-100 hover:bg-emerald-900/60 hover:text-white gap-1.5 text-xs font-semibold"
+                title="Cargar expediente de Andrés Felipe Bernal (NIT 1001880133)"
+              >
+                <Users className="size-3.5 text-emerald-300" />
+                <span>Expediente Andrés Bernal</span>
               </Button>
 
               <Button
