@@ -216,7 +216,7 @@ function DeclaracionPage() {
                         <option value={2020}>2020</option>
                       </select>
                       <p className="text-[10.5px] text-muted">
-                        Aplica automáticamente la UVT ({formatCOP(computed.uvt)}) y topes oficiales de la Ley 2277.
+                        Aplica automáticamente la UVT ({formatCOP(c.uvt)}) y topes oficiales de la Ley 2277.
                       </p>
                     </div>
                     <TextField
