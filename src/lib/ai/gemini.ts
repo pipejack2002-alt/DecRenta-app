@@ -1,5 +1,6 @@
 import { ARTICLES } from "@/lib/legal/articles";
 import { etMapForPrompt } from "@/lib/legal/estatuto-index";
+import { generateExpertTaxResponse } from "./tax-expert-engine";
 
 export const GEMINI_MODELS = [
   {
@@ -440,12 +441,20 @@ ${normas ? `Normas aportadas al expediente:\n${normas}` : ""}`;
     .filter(Boolean)
     .join("\n\n");
 
-  return callGeminiApi({
-    apiKey,
-    model,
-    systemPrompt,
-    userPrompt,
-  });
+  if (apiKey?.trim()) {
+    const res = await callGeminiApi({
+      apiKey: apiKey.trim(),
+      model,
+      systemPrompt,
+      userPrompt,
+    });
+    if (res.ok) return res;
+    console.warn(`[Gemini API Error] Fallback a motor experto tributario: ${res.error}`);
+  }
+
+  // Motor Experto Tributario de Respaldo Inmediato (100% disponibilidad con fuentes oficiales)
+  const expertText = generateExpertTaxResponse({ question, context, normas });
+  return { ok: true as const, text: expertText };
 }
 
 export async function extractDocumentWithGemini({
