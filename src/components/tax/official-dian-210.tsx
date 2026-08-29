@@ -1702,21 +1702,51 @@ function CasillaInspectorModal({
                     {formulaInfo.casillasInvolucradas.map((cn: number) => {
                       const clearLabel = CASILLA_NOMBRES_CLAROS[cn] || CASILLAS_OFICIALES_210.find((x) => x.num === cn)?.label || "Concepto";
                       const cVal = computed.casillas[cn] ?? 0;
+                      const opItem = formulaInfo.operadores?.find((o) => o.num === cn);
+                      const isNegative = opItem?.op === "-";
+
                       return (
                         <div key={cn} className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-4 border-b border-line pb-2 last:border-none last:pb-0">
-                          <div className="min-w-0 flex-1">
+                          <div className="min-w-0 flex-1 flex items-center gap-2">
+                            {opItem && (
+                              <span
+                                className={`px-2 py-0.5 rounded text-[10px] font-bold shrink-0 border ${
+                                  isNegative
+                                    ? "bg-rose-100 text-rose-800 border-rose-300"
+                                    : "bg-emerald-100 text-emerald-800 border-emerald-300"
+                                }`}
+                              >
+                                {isNegative ? "(-) Resta" : "(+) Suma"}
+                              </span>
+                            )}
                             <span className="text-ink text-[11.5px] font-medium leading-snug">
                               <strong className="text-forest font-mono font-bold">Casilla {cn}</strong> · {clearLabel}:
                             </span>
                           </div>
                           <div className="shrink-0 self-end sm:self-auto">
-                            <span className="font-bold font-mono text-ink text-xs sm:text-sm bg-mist/80 px-2.5 py-0.5 rounded border border-line inline-block">
-                              {cn === 138 ? String(cVal) : formatCOP(cVal)}
+                            <span
+                              className={`font-bold font-mono text-xs sm:text-sm px-2.5 py-0.5 rounded border inline-block ${
+                                isNegative
+                                  ? "bg-rose-50 text-rose-700 border-rose-200"
+                                  : "bg-emerald-50/60 text-ink border-emerald-200"
+                              }`}
+                            >
+                              {cn === 138 ? String(cVal) : isNegative ? `- ${formatCOP(cVal)}` : `+ ${formatCOP(cVal)}`}
                             </span>
                           </div>
                         </div>
                       );
                     })}
+
+                    {/* Resumen Total de la Fórmula */}
+                    <div className="flex items-center justify-between p-2.5 bg-forest-mist/70 rounded-lg border-2 border-forest text-xs mt-1">
+                      <span className="font-bold text-forest-deep text-xs sm:text-sm">
+                        (=) Total Liquidado en Casilla {casillaNum}:
+                      </span>
+                      <span className="font-mono font-black text-forest-deep text-sm sm:text-base bg-white px-3 py-0.5 rounded-md border border-forest shadow-2xs">
+                        {formatCOP(rawVal)}
+                      </span>
+                    </div>
                   </div>
                 </div>
               )}
@@ -1740,33 +1770,55 @@ function CasillaInspectorModal({
 
               {/* Lista Desglosada de Conceptos */}
               <div className="grid gap-2 bg-surface p-3 rounded-lg border border-line text-xs shadow-2xs">
-                {itemized.items.map((it, idx) => (
-                  <div key={idx} className="border-b border-line pb-2 last:border-none last:pb-0 space-y-0.5">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-3">
-                      <span className="font-semibold text-ink leading-snug">{it.label}</span>
-                      <span className="font-bold font-mono text-forest-deep shrink-0 text-xs sm:text-sm self-end sm:self-auto bg-forest-mist/60 px-2.5 py-0.5 rounded border border-forest/30">
-                        {it.value}
-                      </span>
+                {itemized.items.map((it, idx) => {
+                  const isNegative = it.sign === "-" || String(it.value).startsWith("-");
+                  return (
+                    <div key={idx} className="border-b border-line pb-2 last:border-none last:pb-0 space-y-0.5">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-3">
+                        <div className="flex items-center gap-2">
+                          {it.sign && (
+                            <span
+                              className={`px-2 py-0.5 rounded text-[10px] font-bold shrink-0 border ${
+                                isNegative
+                                  ? "bg-rose-100 text-rose-800 border-rose-300"
+                                  : "bg-emerald-100 text-emerald-800 border-emerald-300"
+                              }`}
+                            >
+                              {isNegative ? "(-) Resta" : "(+) Suma"}
+                            </span>
+                          )}
+                          <span className="font-semibold text-ink leading-snug">{it.label}</span>
+                        </div>
+                        <span
+                          className={`font-bold font-mono shrink-0 text-xs sm:text-sm self-end sm:self-auto px-2.5 py-0.5 rounded border ${
+                            isNegative
+                              ? "bg-rose-50 text-rose-700 border-rose-200"
+                              : "bg-forest-mist/60 text-forest-deep border-forest/30"
+                          }`}
+                        >
+                          {it.value}
+                        </span>
+                      </div>
+                      {it.source && (
+                        <p className="text-[10.5px] text-muted font-mono flex items-center gap-1">
+                          📂 <span className="text-ink-soft font-medium">{it.source}</span>
+                        </p>
+                      )}
+                      {it.legal && (
+                        <p className="text-[10px] text-forest font-medium">
+                          ⚖️ {it.legal}
+                        </p>
+                      )}
                     </div>
-                    {it.source && (
-                      <p className="text-[10.5px] text-muted font-mono flex items-center gap-1">
-                        📂 <span className="text-ink-soft font-medium">{it.source}</span>
-                      </p>
-                    )}
-                    {it.legal && (
-                      <p className="text-[10px] text-forest font-medium">
-                        ⚖️ {it.legal}
-                      </p>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Subtotal del Desglose */}
               {itemized.totalLabel && itemized.totalValue !== undefined && (
-                <div className="flex items-center justify-between p-2.5 bg-forest/10 rounded-lg border border-forest/20 text-xs">
-                  <span className="font-bold text-forest-deep">{itemized.totalLabel}:</span>
-                  <span className="font-mono font-bold text-forest-deep text-sm">
+                <div className="flex items-center justify-between p-3 bg-forest-mist/70 rounded-lg border-2 border-forest text-xs">
+                  <span className="font-bold text-forest-deep text-xs sm:text-sm">{itemized.totalLabel}:</span>
+                  <span className="font-mono font-black text-forest-deep text-sm sm:text-base bg-white px-3 py-0.5 rounded-md border border-forest shadow-2xs">
                     {formatCOP(itemized.totalValue)}
                   </span>
                 </div>

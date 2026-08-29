@@ -4,10 +4,17 @@
  * Con lenguaje claro, profesional y comprensible para cualquier contribuyente.
  */
 
+export interface OperadorCasilla {
+  num: number;
+  op: "+" | "-";
+  labelOverride?: string;
+}
+
 export interface FormulaExplicada {
   formula: string;
   descripcion: string;
   casillasInvolucradas: number[];
+  operadores?: OperadorCasilla[];
   ejemploCalculo?: (casillas: Record<number, number>) => string;
 }
 
@@ -16,166 +23,318 @@ export const FORMULAS_EXPLICADAS_210: Record<number, FormulaExplicada> = {
     formula: "Casilla 29 (Bienes y patrimonio bruto) - Casilla 30 (Deudas y créditos pendientes)",
     descripcion: "Es el valor real de tu patrimonio limpio al 31 de diciembre. Se calcula tomando todos tus bienes (casas, apartamentos, vehículos, cuentas bancarias, inversiones) y restando todas tus deudas y créditos financieros pendientes de pago.",
     casillasInvolucradas: [29, 30],
+    operadores: [
+      { num: 29, op: "+" },
+      { num: 30, op: "-" },
+    ],
   },
   34: {
     formula: "Casilla 32 (Salarios y pagos laborales) - Casilla 33 (Aportes obligatorios a Salud y Pensión)",
     descripcion: "Total de salarios, prestaciones sociales, bonificaciones y pagos laborales recibidos en el año, menos los descuentos obligatorios de seguridad social (salud, pensión y ARL). El resultado son tus ingresos netos de trabajo sobre los cuales se liquidan tus deducciones.",
     casillasInvolucradas: [32, 33],
+    operadores: [
+      { num: 32, op: "+" },
+      { num: 33, op: "-" },
+    ],
   },
   37: {
     formula: "Casilla 35 (Aportes voluntarios FVP y cuentas AFC) + Casilla 36 (Exención del 25% laboral y cesantías)",
     descripcion: "Suma de todos tus beneficios por rentas exentas en trabajo: ahorros voluntarios en fondos de pensiones voluntarias o cuentas AFC, más el 25% de exención laboral automática que otorga la ley (hasta 790 UVT) y cesantías exentas.",
     casillasInvolucradas: [35, 36],
+    operadores: [
+      { num: 35, op: "+" },
+      { num: 36, op: "+" },
+    ],
   },
   40: {
     formula: "Casilla 38 (Intereses de vivienda) + Casilla 39 (Medicina prepagada, 50% 4x1000 GMF e ICETEX)",
     descripcion: "Gastos personales permitidos que disminuyen tu base de impuesto: intereses pagados por crédito hipotecario o leasing de vivienda (hasta 1.200 UVT), medicina prepagada o pólizas de salud (hasta 192 UVT), intereses de crédito ICETEX (hasta 100 UVT) y el 50% del impuesto del 4x1000 bancario.",
     casillasInvolucradas: [38, 39],
+    operadores: [
+      { num: 38, op: "+" },
+      { num: 39, op: "+" },
+    ],
   },
   41: {
     formula: "Mínimo entre: (Casilla 37 Total exentas + Casilla 40 Total deducciones) y el límite conjunto del 40% de ingresos netos de la Cédula General (tope máximo 1.340 UVT)",
     descripcion: "Paso a paso legal (Art. 336 E.T.): 1. Sumas tus rentas exentas (Casilla 37) y deducciones (Casilla 40). 2. Calculas el 40% sobre los ingresos netos de la Cédula General (máximo 1.340 UVT). 3. Si tus beneficios solicitados son menores a dicho límite, la ley te acepta el 100% sin ningún recorte.",
-    casillasInvolucradas: [34, 37, 40],
+    casillasInvolucradas: [37, 40],
+    operadores: [
+      { num: 37, op: "+" },
+      { num: 40, op: "+" },
+    ],
   },
   42: {
     formula: "Casilla 34 (Ingresos netos de trabajo) - Casilla 41 (Exentas y deducciones aceptadas)",
     descripcion: "Es la ganancia neta depurada de tu trabajo que pasa a integrarse a la Cédula General.",
     casillasInvolucradas: [34, 41],
+    operadores: [
+      { num: 34, op: "+" },
+      { num: 41, op: "-" },
+    ],
   },
   46: {
     formula: "Casilla 43 (Honorarios y servicios cobrados) - Casilla 44 (Devoluciones) - Casilla 45 (Aportes a Salud y Pensión como independiente)",
     descripcion: "Total de ingresos recibidos por honorarios o servicios profesionales independientes, menos devoluciones y menos tus aportes obligatorios a salud, pensión y ARL pagados durante el año.",
     casillasInvolucradas: [43, 44, 45],
+    operadores: [
+      { num: 43, op: "+" },
+      { num: 44, op: "-" },
+      { num: 45, op: "-" },
+    ],
   },
   49: {
     formula: "Casilla 47 (Aportes voluntarios FVP/AFC) + Casilla 48 (Otras rentas exentas en honorarios)",
     descripcion: "Total de beneficios exentos aplicables a la subcédula de honorarios y servicios personales.",
     casillasInvolucradas: [47, 48],
+    operadores: [
+      { num: 47, op: "+" },
+      { num: 48, op: "+" },
+    ],
   },
   52: {
     formula: "Casilla 50 (Intereses de vivienda) + Casilla 51 (Medicina prepagada y 50% 4x1000)",
     descripcion: "Total de deducciones personales imputables a tus ingresos por honorarios y servicios.",
     casillasInvolucradas: [50, 51],
+    operadores: [
+      { num: 50, op: "+" },
+      { num: 51, op: "+" },
+    ],
   },
   53: {
     formula: "Mínimo entre: (Casilla 49 Total exentas + Casilla 52 Total deducciones) y (Límite del 40% de ingresos o 1.340 UVT)",
     descripcion: "Beneficios y deducciones aceptados en honorarios bajo el tope legal del 40% y 1.340 UVT.",
-    casillasInvolucradas: [46, 49, 52],
+    casillasInvolucradas: [49, 52],
+    operadores: [
+      { num: 49, op: "+" },
+      { num: 52, op: "+" },
+    ],
   },
   54: {
     formula: "Casilla 46 (Ingresos netos por honorarios) - Casilla 53 (Exentas y deducciones aceptadas)",
     descripcion: "Renta líquida ordinaria del ejercicio generada en la subcédula de honorarios y servicios personales antes de compensar pérdidas de años anteriores.",
     casillasInvolucradas: [46, 53],
+    operadores: [
+      { num: 46, op: "+" },
+      { num: 53, op: "-" },
+    ],
   },
   57: {
     formula: "Casilla 54 (Renta líquida del ejercicio) - Casilla 56 (Pérdidas de años anteriores)",
     descripcion: "Ganancia neta depurada final de honorarios que se integra a la Cédula General.",
     casillasInvolucradas: [54, 56],
+    operadores: [
+      { num: 54, op: "+" },
+      { num: 56, op: "-" },
+    ],
   },
   61: {
     formula: "Casilla 58 (Ingresos brutos capital) - Casilla 59 (Beneficio de inflación y seguridad social) - Casilla 60 (Costos procedentes)",
     descripcion: "Ingresos netos de capital después de restar beneficios no gravados como el componente inflacionario bancario, aportes de seguridad social y costos deducibles.",
     casillasInvolucradas: [58, 59, 60],
+    operadores: [
+      { num: 58, op: "+" },
+      { num: 59, op: "-" },
+      { num: 60, op: "-" },
+    ],
   },
   65: {
     formula: "Casilla 63 (Aportes voluntarios AFC/FVP) + Casilla 64 (Otras rentas exentas de capital)",
     descripcion: "Total de rentas exentas imputables a tus ingresos por rentas de capital.",
     casillasInvolucradas: [63, 64],
+    operadores: [
+      { num: 63, op: "+" },
+      { num: 64, op: "+" },
+    ],
   },
   68: {
     formula: "Casilla 66 (Intereses de vivienda) + Casilla 67 (Otras deducciones / 50% 4x1000 GMF)",
     descripcion: "Total de deducciones imputables a la subcédula de rentas de capital (intereses de crédito hipotecario, deducción del 50% del 4x1000 bancario, etc.).",
     casillasInvolucradas: [66, 67],
+    operadores: [
+      { num: 66, op: "+" },
+      { num: 67, op: "+" },
+    ],
   },
   69: {
     formula: "Mínimo entre: (Casilla 65 Total exentas + Casilla 68 Total deducciones) y (Límite del 40% de ingresos netos o 1.340 UVT)",
     descripcion: "Beneficios y deducciones aceptados en rentas de capital bajo el límite conjunto del 40% y 1.340 UVT.",
-    casillasInvolucradas: [61, 65, 68],
+    casillasInvolucradas: [65, 68],
+    operadores: [
+      { num: 65, op: "+" },
+      { num: 68, op: "+" },
+    ],
   },
   70: {
     formula: "Casilla 61 (Ingresos netos) + Casilla 62 (Rentas del exterior ECE) - Casilla 69 (Exentas y deducciones aceptadas)",
     descripcion: "Renta líquida ordinaria del ejercicio generada en rentas de capital antes de compensar pérdidas.",
     casillasInvolucradas: [61, 62, 69],
+    operadores: [
+      { num: 61, op: "+" },
+      { num: 62, op: "+" },
+      { num: 69, op: "-" },
+    ],
   },
   73: {
     formula: "Casilla 70 (Renta líquida del ejercicio) - Casilla 72 (Pérdidas fiscales anteriores)",
     descripcion: "Ganancia neta depurada de rentas de capital que se integra a la Cédula General.",
     casillasInvolucradas: [70, 72],
+    operadores: [
+      { num: 70, op: "+" },
+      { num: 72, op: "-" },
+    ],
   },
   78: {
     formula: "Casilla 74 (Ventas e ingresos del negocio) - Casilla 75 (Devoluciones) - Casilla 76 (Seguridad social) - Casilla 77 (Costos y gastos procedentes del negocio)",
     descripcion: "Ingresos por actividades comerciales, agropecuarias, manufactura o servicios con costos, restando todas las compras de mercancía, insumos, nóminas y gastos necesarios para producir la renta.",
     casillasInvolucradas: [74, 75, 76, 77],
+    operadores: [
+      { num: 74, op: "+" },
+      { num: 75, op: "-" },
+      { num: 76, op: "-" },
+      { num: 77, op: "-" },
+    ],
   },
   82: {
     formula: "Casilla 80 (Aportes voluntarios AFC/FVP) + Casilla 81 (Otras rentas exentas no laborales)",
     descripcion: "Total de rentas exentas imputables a tus actividades comerciales o de negocio.",
     casillasInvolucradas: [80, 81],
+    operadores: [
+      { num: 80, op: "+" },
+      { num: 81, op: "+" },
+    ],
   },
   85: {
     formula: "Casilla 83 (Intereses de vivienda) + Casilla 84 (Otras deducciones / 50% 4x1000 GMF)",
     descripcion: "Total de deducciones aplicables a actividades comerciales y no laborales.",
     casillasInvolucradas: [83, 84],
+    operadores: [
+      { num: 83, op: "+" },
+      { num: 84, op: "+" },
+    ],
   },
   86: {
     formula: "Mínimo entre: (Casilla 82 Total exentas + Casilla 85 Total deducciones) y (Límite del 40% o 1.340 UVT)",
     descripcion: "Beneficios tributarios aceptados en actividades comerciales y no laborales bajo el límite del 40% y 1.340 UVT.",
-    casillasInvolucradas: [78, 82, 85],
+    casillasInvolucradas: [82, 85],
+    operadores: [
+      { num: 82, op: "+" },
+      { num: 85, op: "+" },
+    ],
   },
   87: {
     formula: "Casilla 78 (Ingresos netos) + Casilla 79 (Rentas del exterior ECE) - Casilla 86 (Exentas y deducciones aceptadas)",
     descripcion: "Renta líquida ordinaria del ejercicio en actividades no laborales antes de compensar pérdidas.",
     casillasInvolucradas: [78, 79, 86],
+    operadores: [
+      { num: 78, op: "+" },
+      { num: 79, op: "+" },
+      { num: 86, op: "-" },
+    ],
   },
   90: {
     formula: "Casilla 87 (Renta líquida del ejercicio) - Casilla 89 (Pérdidas fiscales anteriores)",
     descripcion: "Ganancia neta depurada final de actividades comerciales y no laborales que se integra a la Cédula General.",
     casillasInvolucradas: [87, 89],
+    operadores: [
+      { num: 87, op: "+" },
+      { num: 89, op: "-" },
+    ],
   },
   91: {
-    formula: "Casilla 34 (Trabajo) + Casilla 46 (Honorarios) + Casilla 61 (Capital) + Casilla 78 (No Laborales)",
+    formula: "Casilla 34 (Trabajo) + Casilla 46 (Honorarios) + Casilla 61 (Capital) + Casilla 62 (ECE) + Casilla 78 (No Laborales) + Casilla 79 (ECE)",
     descripcion: "Sumatoria de todos los ingresos netos recibidos en el año por todas tus fuentes de ingresos (salarios, honorarios, arriendos, rendimientos bancarios y negocios).",
-    casillasInvolucradas: [34, 46, 61, 78],
+    casillasInvolucradas: [34, 46, 61, 62, 78, 79],
+    operadores: [
+      { num: 34, op: "+" },
+      { num: 46, op: "+" },
+      { num: 61, op: "+" },
+      { num: 62, op: "+" },
+      { num: 78, op: "+" },
+      { num: 79, op: "+" },
+    ],
   },
   92: {
     formula: "Casilla 41 (Trabajo) + Casilla 53 (Honorarios) + Casilla 69 (Capital) + Casilla 86 (No Laborales) + Casilla 139 (Dependientes) + Casilla 28 (1% Factura Electrónica)",
     descripcion: "Total consolidado de todos los beneficios y deducciones aplicados en tus subcédulas (limitadas al 40% o 1.340 UVT), más los beneficios adicionales sin límite: 72 UVT por cada dependiente económico (hasta 4) y el 1% de compras soportadas con Factura Electrónica.",
     casillasInvolucradas: [41, 53, 69, 86, 139, 28],
+    operadores: [
+      { num: 41, op: "+" },
+      { num: 53, op: "+" },
+      { num: 69, op: "+" },
+      { num: 86, op: "+" },
+      { num: 139, op: "+" },
+      { num: 28, op: "+" },
+    ],
   },
   93: {
     formula: "Casilla 91 (Ingresos netos Cédula General) - Casilla 92 (Total rentas exentas y deducciones imputables)",
     descripcion: "Renta líquida ordinaria de la Cédula General. Se calcula tomando los ingresos netos totales de todas las subcédulas (Casilla 91) y restando el total de beneficios y deducciones imputables aceptados (Casilla 92: beneficios del 40%, deducción 72 UVT por dependiente y 1% de factura electrónica).",
     casillasInvolucradas: [91, 92],
+    operadores: [
+      { num: 91, op: "+" },
+      { num: 92, op: "-" },
+    ],
   },
   97: {
     formula: "Mayor entre (0, Casilla 93 Renta ordinaria - Casilla 94 Pérdidas anteriores - Casilla 95 Exceso presuntiva + Casilla 96 Rentas gravables)",
     descripcion: "Es la base imponible definitiva sobre la que se calculará tu impuesto de renta de la Cédula General aplicando la tabla progresiva de tarifas oficiales del Artículo 241 del Estatuto Tributario.",
     casillasInvolucradas: [93, 94, 95, 96],
+    operadores: [
+      { num: 93, op: "+" },
+      { num: 94, op: "-" },
+      { num: 95, op: "-" },
+      { num: 96, op: "+" },
+    ],
   },
   101: {
     formula: "Casilla 99 (Mesadas pensionales del año) - Casilla 100 (Descuentos obligatorios de salud y Fondo de Solidaridad)",
     descripcion: "Total de pensiones de jubilación, vejez, invalidez o sobrevivientes recibidas, menos los descuentos obligatorios de salud.",
     casillasInvolucradas: [99, 100],
+    operadores: [
+      { num: 99, op: "+" },
+      { num: 100, op: "-" },
+    ],
   },
   103: {
     formula: "Máximo entre (0, Casilla 101 Ingresos netos pensiones - Casilla 102 Exención de hasta 1.000 UVT mensuales)",
     descripcion: "En Colombia las pensiones de hasta 1.000 UVT al mes están 100% exentas de impuestos (Art. 206 numeral 5 E.T.). Si no superas este monto, tu renta gravable de pensiones es $0.",
     casillasInvolucradas: [101, 102],
+    operadores: [
+      { num: 101, op: "+" },
+      { num: 102, op: "-" },
+    ],
   },
   106: {
     formula: "Casilla 104 (Dividendos utilidades 2016 y anteriores) - Casilla 105 (Dividendos no gravados 2016)",
     descripcion: "Ganancia neta ordinaria de dividendos provenientes de utilidades generadas en 2016 y periodos anteriores.",
     casillasInvolucradas: [104, 105],
+    operadores: [
+      { num: 104, op: "+" },
+      { num: 105, op: "-" },
+    ],
   },
   111: {
     formula: "Mayor entre (Casilla 97 Renta gravable y Casilla 98 Renta presuntiva) + Casilla 103 (Pensiones gravables) + Casilla 107 (Dividendos 1ª subcédula) + Casilla 109 (Dividendos exterior) - Casilla 110 (Exentas exterior)",
     descripcion: "Base gravable consolidada de todas tus rentas sobre la cual se aplica la tabla de tarifas progresivas de impuesto de renta (Art. 241 E.T.).",
-    casillasInvolucradas: [97, 98, 103, 107, 109, 110],
+    casillasInvolucradas: [97, 103, 107, 109, 110],
+    operadores: [
+      { num: 97, op: "+" },
+      { num: 103, op: "+" },
+      { num: 107, op: "+" },
+      { num: 109, op: "+" },
+      { num: 110, op: "-" },
+    ],
   },
   115: {
     formula: "Casilla 112 (Ingresos por venta de inmuebles/herencias/loterías) - Casilla 113 (Costo fiscal del bien) - Casilla 114 (Ganancias exentas)",
     descripcion: "Ganancia limpia por venta de casas, apartamentos o vehículos poseídos por más de 2 años, herencias, donaciones o premios, sobre la cual se aplica la tarifa del 15% (o 20% para loterías y rifas).",
     casillasInvolucradas: [112, 113, 114],
+    operadores: [
+      { num: 112, op: "+" },
+      { num: 113, op: "-" },
+      { num: 114, op: "-" },
+    ],
   },
   116: {
     formula: "Tabla de tarifas progresivas del Artículo 241 del Estatuto Tributario aplicada sobre la Casilla 111",
@@ -191,16 +350,32 @@ export const FORMULAS_EXPLICADAS_210: Record<number, FormulaExplicada> = {
     formula: "Casilla 116 (Impuesto Cédula General y Pensiones) + Casilla 117 (Impuesto Renta Presuntiva) + Casilla 118 (Impuesto Dividendos 35%) + Casilla 119 + Casilla 120",
     descripcion: "Suma de los impuestos calculados sobre tus rentas ordinarias y dividendos antes de aplicar descuentos tributarios.",
     casillasInvolucradas: [116, 117, 118, 119, 120],
+    operadores: [
+      { num: 116, op: "+" },
+      { num: 117, op: "+" },
+      { num: 118, op: "+" },
+      { num: 119, op: "+" },
+      { num: 120, op: "+" },
+    ],
   },
   125: {
     formula: "Casilla 122 (Impuestos pagados en el exterior) + Casilla 123 (Descuento del 25% por donaciones a fundaciones/ESAL) + Casilla 124 (Otros descuentos)",
     descripcion: "Descuentos que se restan directamente peso a peso del impuesto liquidado a pagar.",
     casillasInvolucradas: [122, 123, 124],
+    operadores: [
+      { num: 122, op: "+" },
+      { num: 123, op: "+" },
+      { num: 124, op: "+" },
+    ],
   },
   126: {
     formula: "Máximo entre (0, Casilla 121 Total impuesto - Casilla 125 Descuentos tributarios)",
     descripcion: "Impuesto neto de renta después de restar tus descuentos tributarios por donaciones o pagos en el exterior.",
     casillasInvolucradas: [121, 125],
+    operadores: [
+      { num: 121, op: "+" },
+      { num: 125, op: "-" },
+    ],
   },
   127: {
     formula: "15% sobre Casilla 115 (o 20% para loterías, rifas y apuestas)",
@@ -211,21 +386,49 @@ export const FORMULAS_EXPLICADAS_210: Record<number, FormulaExplicada> = {
     formula: "Casilla 126 (Impuesto neto de renta) + Casilla 127 (Impuesto de ganancias ocasionales) - Casilla 128 (Descuento exterior GO)",
     descripcion: "Monto total del impuesto que te corresponde asumir por el año gravable antes de restar tus retenciones en la fuente y anticipos.",
     casillasInvolucradas: [126, 127, 128],
+    operadores: [
+      { num: 126, op: "+" },
+      { num: 127, op: "+" },
+      { num: 128, op: "-" },
+    ],
   },
   134: {
     formula: "Casilla 129 (Impuesto a cargo) - Casilla 130 (Anticipo año anterior) - Casilla 131 (Saldo a favor anterior) - Casilla 132 (Retenciones que te practicaron) + Casilla 133 (Anticipo año siguiente)",
     descripcion: "Saldo de impuesto pendiente por pagar una vez cruzadas las retenciones en la fuente y anticipos previos.",
     casillasInvolucradas: [129, 130, 131, 132, 133],
+    operadores: [
+      { num: 129, op: "+" },
+      { num: 133, op: "+" },
+      { num: 130, op: "-" },
+      { num: 131, op: "-" },
+      { num: 132, op: "-" },
+    ],
   },
   136: {
     formula: "Casilla 129 (Impuesto) + Casilla 133 (Anticipo año siguiente) + Casilla 135 (Sanciones) - Casilla 130 (Anticipo anterior) - Casilla 131 (Saldo a favor anterior) - Casilla 132 (Retenciones)",
     descripcion: "Valor total definitivo que debes pagar en el banco o portal de la DIAN al presentar tu declaración de renta.",
     casillasInvolucradas: [129, 133, 135, 130, 131, 132],
+    operadores: [
+      { num: 129, op: "+" },
+      { num: 133, op: "+" },
+      { num: 135, op: "+" },
+      { num: 130, op: "-" },
+      { num: 131, op: "-" },
+      { num: 132, op: "-" },
+    ],
   },
   137: {
     formula: "Casilla 130 (Anticipo anterior) + Casilla 131 (Saldo a favor anterior) + Casilla 132 (Retenciones que te practicaron) - Casilla 129 (Impuesto a cargo) - Casilla 133 (Anticipo siguiente) - Casilla 135 (Sanciones)",
     descripcion: "Dinero a tu favor porque tus retenciones y anticipos fueron mayores al impuesto liquidado. Puedes pedirlo en devolución, compensación o arrastrarlo a tu declaración del próximo año.",
     casillasInvolucradas: [130, 131, 132, 129, 133, 135],
+    operadores: [
+      { num: 130, op: "+" },
+      { num: 131, op: "+" },
+      { num: 132, op: "+" },
+      { num: 129, op: "-" },
+      { num: 133, op: "-" },
+      { num: 135, op: "-" },
+    ],
   },
   139: {
     formula: "Casilla 138 (Número de dependientes económicos) × 72 UVT",

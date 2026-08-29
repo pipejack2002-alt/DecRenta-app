@@ -7,6 +7,7 @@ export interface ItemBreakdown {
   source?: string;
   legal?: string;
   highlight?: boolean;
+  sign?: "+" | "-";
 }
 
 export interface CasillaBreakdownInfo {
@@ -296,6 +297,35 @@ export function getCasillaItemizedBreakdown(
         totalLabel: "Total Ingresos No Constitutivos (Casilla 33)",
         totalValue: c.casillas[33] ?? 0,
         footnote: "Solo se restan los aportes efectivamente a cargo del trabajador certificados en el Formato 220. Los pagos patronales de la empresa son informativos.",
+      };
+    }
+
+    case 34: {
+      const brutas = c.casillas[32] ?? 0;
+      const incrngo = c.casillas[33] ?? 0;
+      const liq = c.casillas[34] ?? 0;
+
+      return {
+        title: "Renta Líquida de Trabajo (Casilla 34)",
+        description:
+          "Ganancia neta obtenida en rentas de trabajo restando los aportes obligatorios de seguridad social a los salarios devengados (Fórmula oficial DIAN: Casilla 32 - Casilla 33):",
+        items: [
+          {
+            label: "Ingresos brutos por rentas de trabajo (Casilla 32)",
+            value: formatCOP(brutas),
+            source: "Salarios, prestaciones, bonificaciones y pagos laborales (Formato 220)",
+            sign: "+",
+          },
+          {
+            label: "Menos: Ingresos no constitutivos de renta (Casilla 33)",
+            value: `- ${formatCOP(incrngo)}`,
+            source: "Aportes obligatorios a salud (4%) y pensión (4%) pagados por el trabajador",
+            sign: "-",
+          },
+        ],
+        totalLabel: "(=) Total Renta Líquida de Trabajo (Casilla 34)",
+        totalValue: liq,
+        footnote: `Cálculo oficial: Casilla 32 ($${formatNumber(brutas)}) - Casilla 33 ($${formatNumber(incrngo)}) = $${formatNumber(liq)}. Esta es la base sobre la que se calcula el 40% y la exención laboral del 25%.`,
       };
     }
 
@@ -908,6 +938,42 @@ export function getCasillaItemizedBreakdown(
         ],
         totalLabel: "Total Costos de Capital (Casilla 60)",
         totalValue: c.casillas[60] ?? 0,
+      };
+    }
+
+    case 61: {
+      const brutas = c.casillas[58] ?? 0;
+      const incrngo = c.casillas[59] ?? 0;
+      const costos = c.casillas[60] ?? 0;
+      const liq = c.casillas[61] ?? 0;
+
+      return {
+        title: "Renta Líquida de Capital (Casilla 61)",
+        description:
+          "Ganancia neta obtenida en rentas de capital restando el beneficio de inflación, seguridad social y costos procedentes (Fórmula oficial DIAN: Casilla 58 - Casilla 59 - Casilla 60):",
+        items: [
+          {
+            label: "Ingresos brutos por rentas de capital (Casilla 58)",
+            value: formatCOP(brutas),
+            source: "Rendimientos bancarios, cuentas de ahorro, CDTs y arriendos",
+            sign: "+",
+          },
+          {
+            label: "Menos: Ingresos no constitutivos de renta (Casilla 59)",
+            value: `- ${formatCOP(incrngo)}`,
+            source: "Componente inflacionario no gravado y aportes a seguridad social (PILA)",
+            sign: "-",
+          },
+          {
+            label: "Menos: Costos y deducciones procedentes (Casilla 60)",
+            value: `- ${formatCOP(costos)}`,
+            source: "Costos de mantenimiento, administración de inmuebles o prediales",
+            sign: "-",
+          },
+        ],
+        totalLabel: "(=) Total Renta Líquida de Capital (Casilla 61)",
+        totalValue: liq,
+        footnote: `Cálculo oficial: Casilla 58 ($${formatNumber(brutas)}) - Casilla 59 ($${formatNumber(incrngo)}) - Casilla 60 ($${formatNumber(costos)}) = $${formatNumber(liq)}. Este valor se integra a la Cédula General.`,
       };
     }
 
