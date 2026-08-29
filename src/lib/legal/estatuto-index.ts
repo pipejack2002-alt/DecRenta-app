@@ -22,7 +22,15 @@ export type EtArt = {
   for210: string;
 };
 
-export const SENADO_ET = "http://www.secretariasenado.gov.co/senado/basedoc/estatuto_tributario.html";
+export const SENADO_ET = "https://www.secretariasenado.gov.co/senado/basedoc/estatuto_tributario.html";
+
+export function estatutoCoArt(n: number | string) {
+  return `https://estatuto.co/${n}`;
+}
+
+export function dianNormogramaArt(n: number | string) {
+  return `https://normograma.dian.gov.co/dian/compilacion/docs/estatuto_tributario.htm#${n}`;
+}
 
 export function senadoArt(n: number | string) {
   return `${SENADO_ET}#${n}`;
