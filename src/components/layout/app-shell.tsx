@@ -6,6 +6,7 @@ import { useAppStore, useComputed } from "@/lib/store";
 import { formatCOP } from "@/lib/tax/format";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Logo } from "@/components/ui/logo";
 import { GeminiAsistenteModal } from "@/components/layout/gemini-asistente-modal";
 import { ClientSwitcher } from "@/components/layout/client-switcher";
 
@@ -51,18 +52,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-40 border-b border-line bg-bg/90 backdrop-blur-sm print:hidden no-print" data-print-hide>
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3">
           <div className="flex items-center gap-3">
-            <Link to="/" className="flex min-w-0 items-center gap-3">
-              <span className="flex size-9 items-center justify-center rounded-md bg-forest text-primary-fg font-display font-bold text-lg">
-                T
-              </span>
-              <span className="min-w-0 hidden sm:block">
-                <span className="block font-display text-lg leading-none tracking-tight font-bold">
-                  TributoApp
-                </span>
-                <span className="mt-0.5 block text-[11px] uppercase tracking-[0.16em] text-muted">
-                  Renta 210 · AG {year}
-                </span>
-              </span>
+            <Link to="/" className="flex min-w-0 items-center gap-2 hover:opacity-95 transition-opacity">
+              <Logo size="md" />
             </Link>
             <button
               type="button"
