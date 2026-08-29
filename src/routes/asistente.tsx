@@ -35,7 +35,7 @@ function AsistentePage() {
   const c = useComputed();
 
   const [inputKey, setInputKey] = useState(aiSettings.geminiApiKey || "");
-  const [selectedModel, setSelectedModel] = useState(aiSettings.geminiModel || "gemini-2.0-flash");
+  const [selectedModel, setSelectedModel] = useState(aiSettings.geminiModel || "gemini-2.5-flash");
   const [keySaved, setKeySaved] = useState(false);
   const [testStatus, setTestStatus] = useState<"idle" | "testing" | "ok" | "error">("idle");
   const [testError, setTestError] = useState<string | null>(null);

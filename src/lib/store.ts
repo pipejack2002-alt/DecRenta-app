@@ -194,7 +194,7 @@ export const useAppStore = create<AppState>()(
       normas: [],
       aiSettings: {
         geminiApiKey: typeof window !== "undefined" ? localStorage.getItem("tributoapp_gemini_api_key") || "" : "",
-        geminiModel: (typeof window !== "undefined" ? (localStorage.getItem("tributoapp_gemini_model") as any) : null) || "gemini-2.0-flash",
+        geminiModel: (typeof window !== "undefined" ? (localStorage.getItem("tributoapp_gemini_model") as any) : null) || "gemini-2.5-flash",
       },
       profiles: [],
       activeProfileId: DEFAULT_PROFILE_ID,
@@ -774,7 +774,7 @@ export const useAppStore = create<AppState>()(
         const localModel = typeof window !== "undefined" ? localStorage.getItem("tributoapp_gemini_model") : null;
         const aiSettings = {
           geminiApiKey: localKey || p?.aiSettings?.geminiApiKey || current.aiSettings.geminiApiKey || "",
-          geminiModel: (localModel as any) || p?.aiSettings?.geminiModel || current.aiSettings.geminiModel || "gemini-2.0-flash",
+          geminiModel: (localModel as any) || p?.aiSettings?.geminiModel || current.aiSettings.geminiModel || "gemini-2.5-flash",
         };
         const profiles = Array.isArray(p?.profiles)
           ? p.profiles.map((prof) => ({

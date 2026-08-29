@@ -3,52 +3,49 @@ import { etMapForPrompt } from "@/lib/legal/estatuto-index";
 
 export const GEMINI_MODELS = [
   {
+    id: "gemini-2.5-flash",
+    label: "Gemini 2.5 Flash (Recomendado)",
+    desc: "Última generación oficial Google AI: máxima velocidad, análisis documental y precisión tributaria",
+    badge: "Recomendado 2.5",
+  },
+  {
     id: "gemini-2.0-flash",
-    label: "Gemini 2.0 Flash (Recomendado)",
-    desc: "Última generación 2.0: ultra rápida, precisa y compatible con todas las claves de Google AI Studio",
-    badge: "Recomendado",
+    label: "Gemini 2.0 Flash",
+    desc: "Modelo rápido de alta eficiencia para consultas y cálculos tributarios",
+    badge: "2.0 Flash",
   },
   {
     id: "gemini-1.5-flash-latest",
     label: "Gemini 1.5 Flash (Latest)",
-    desc: "Versión 1.5 Flash actualizada de alta velocidad y estabilidad",
+    desc: "Versión estable 1.5 actualizada compatible universalmente",
     badge: "Estable",
   },
   {
-    id: "gemini-2.5-flash",
-    label: "Gemini 2.5 Flash",
-    desc: "Nueva versión 2.5 optimizada para análisis documental avanzado",
-    badge: "Nuevo 2.5",
+    id: "gemini-2.5-pro",
+    label: "Gemini 2.5 Pro",
+    desc: "Razonamiento tributario profundo y auditoría exhaustiva del Formulario 210",
+    badge: "Pro 2.5",
   },
   {
     id: "gemini-1.5-pro",
     label: "Gemini 1.5 Pro",
-    desc: "Razonamiento tributario profundo y auditoría exhaustiva del Formulario 210",
+    desc: "Auditoría experta y análisis de normas del Estatuto Tributario",
     badge: "Pro",
-  },
-  {
-    id: "gemini-2.0-flash-lite",
-    label: "Gemini 2.0 Flash Lite",
-    desc: "Modo ultra ligero optimizado para mínimo consumo de cuota",
-    badge: "Ligero",
-  },
-  {
-    id: "gemini-1.5-flash",
-    label: "Gemini 1.5 Flash (Legacy)",
-    desc: "Versión clásica 1.5 Flash",
-    badge: "Legacy",
   },
 ] as const;
 
 export type GeminiModelId = (typeof GEMINI_MODELS)[number]["id"];
 
 const CANDIDATE_MODELS: string[] = [
+  "gemini-2.5-flash",
   "gemini-2.0-flash",
   "gemini-1.5-flash-latest",
-  "gemini-2.5-flash",
+  "gemini-2.5-pro",
   "gemini-1.5-pro",
+  "gemini-3.5-flash-lite",
   "gemini-2.0-flash-lite",
   "gemini-1.5-flash",
+  "gemini-pro",
 ];
 
 const CORPUS = ARTICLES.map(
@@ -57,9 +54,40 @@ const CORPUS = ARTICLES.map(
 
 const ET_MAP = etMapForPrompt();
 
+let discoveredModelsCache: { key: string; models: string[]; timestamp: number } | null = null;
+
+async function getAvailableModelsForApiKey(apiKey: string): Promise<string[]> {
+  const now = Date.now();
+  if (discoveredModelsCache && discoveredModelsCache.key === apiKey && now - discoveredModelsCache.timestamp < 300000) {
+    return discoveredModelsCache.models;
+  }
+
+  try {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+    if (res.ok) {
+      const data = (await res.json()) as {
+        models?: { name: string; supportedGenerationMethods?: string[] }[];
+      };
+      if (Array.isArray(data.models)) {
+        const valid = data.models
+          .filter((m) => m.supportedGenerationMethods?.includes("generateContent"))
+          .map((m) => m.name.replace(/^models\//, ""));
+        if (valid.length > 0) {
+          discoveredModelsCache = { key: apiKey, models: valid, timestamp: now };
+          return valid;
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("[Gemini Models Discovery] Error listing models:", err);
+  }
+
+  return CANDIDATE_MODELS;
+}
+
 export async function callGeminiApi({
   apiKey,
-  model = "gemini-2.0-flash",
+  model = "gemini-2.5-flash",
   systemPrompt,
   userPrompt,
   jsonMode = false,
@@ -78,8 +106,16 @@ export async function callGeminiApi({
     };
   }
 
-  // Lista ordenada de modelos a probar (iniciando por el modelo solicitado)
-  const modelsToTry = [model, ...CANDIDATE_MODELS.filter((m) => m !== model)];
+  // Descubrir modelos activos si es posible, o usar lista de candidatos
+  const discovered = await getAvailableModelsForApiKey(key);
+  const preferredModel = discovered.includes(model) ? model : discovered[0] || model;
+
+  const modelsToTry = [
+    preferredModel,
+    ...discovered.filter((m) => m !== preferredModel),
+    ...CANDIDATE_MODELS.filter((m) => m !== preferredModel && !discovered.includes(m)),
+  ];
+
   let lastErrorMsg = "Error en la API de Google Gemini";
 
   for (let i = 0; i < modelsToTry.length; i++) {
@@ -122,12 +158,20 @@ export async function callGeminiApi({
           `Error en la API de Gemini (${res.status})`;
         lastErrorMsg = msg;
 
-        // Si el modelo específico no existe o no está habilitado para esta cuenta en v1beta, reintentamos con el siguiente candidato
-        if (
+        const isModelAvailabilityError =
           res.status === 404 ||
-          msg.includes("not found") ||
-          msg.includes("not supported")
-        ) {
+          res.status === 400 ||
+          msg.toLowerCase().includes("not found") ||
+          msg.toLowerCase().includes("not supported") ||
+          msg.toLowerCase().includes("no longer available") ||
+          msg.toLowerCase().includes("deprecated") ||
+          msg.toLowerCase().includes("is not available") ||
+          msg.toLowerCase().includes("does not exist") ||
+          msg.toLowerCase().includes("update your code") ||
+          msg.toLowerCase().includes("unknown model");
+
+        // Si el modelo falló por disponibilidad, probar inmediatamente el siguiente candidato
+        if (isModelAvailabilityError) {
           console.warn(`[Gemini Fallback] ${currentModel} no disponible (${msg}), probando siguiente modelo...`);
           continue;
         }
