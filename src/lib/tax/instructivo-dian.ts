@@ -143,12 +143,12 @@ export const FORMULAS_EXPLICADAS_210: Record<number, FormulaExplicada> = {
     casillasInvolucradas: [41, 53, 69, 86, 139, 28],
   },
   93: {
-    formula: "Casilla 42 (Trabajo) + Casilla 57 (Honorarios) + Casilla 73 (Capital) + Casilla 90 (No Laborales)",
-    descripcion: "Ganancia neta global ordinaria de todas tus actividades combinadas antes de compensar pérdidas de años anteriores o sumar rentas gravables.",
-    casillasInvolucradas: [42, 57, 73, 90],
+    formula: "Casilla 91 (Ingresos netos Cédula General) - Casilla 92 (Total rentas exentas y deducciones imputables)",
+    descripcion: "Renta líquida ordinaria de la Cédula General. Se calcula tomando los ingresos netos totales de todas las subcédulas (Casilla 91) y restando el total de beneficios y deducciones imputables aceptados (Casilla 92: beneficios del 40%, deducción 72 UVT por dependiente y 1% de factura electrónica).",
+    casillasInvolucradas: [91, 92],
   },
   97: {
-    formula: "Casilla 93 (Renta ordinaria) - Casilla 94 (Pérdidas de años anteriores) - Casilla 95 (Exceso renta presuntiva) + Casilla 96 (Rentas gravables)",
+    formula: "Mayor entre (0, Casilla 93 Renta ordinaria - Casilla 94 Pérdidas anteriores - Casilla 95 Exceso presuntiva + Casilla 96 Rentas gravables)",
     descripcion: "Es la base imponible definitiva sobre la que se calculará tu impuesto de renta de la Cédula General aplicando la tabla progresiva de tarifas oficiales del Artículo 241 del Estatuto Tributario.",
     casillasInvolucradas: [93, 94, 95, 96],
   },

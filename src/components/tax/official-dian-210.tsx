@@ -1638,15 +1638,15 @@ function CasillaInspectorModal({
                   {meta?.label || `Casilla ${casillaNum}`}
                 </h3>
                 {formulaInfo ? (
-                  <span className="text-[10px] font-semibold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <span className="text-[10px] font-semibold text-forest bg-forest/15 px-2 py-0.5 rounded-full flex items-center gap-1 border border-forest/20">
                     <Calculator className="size-2.5" /> Formulada
                   </span>
                 ) : itemized ? (
-                  <span className="text-[10px] font-semibold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <span className="text-[10px] font-semibold text-forest bg-forest/15 px-2 py-0.5 rounded-full flex items-center gap-1 border border-forest/20">
                     <ListChecks className="size-2.5" /> Desglose de Conceptos
                   </span>
                 ) : (
-                  <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                  <span className="text-[10px] font-semibold text-forest bg-forest/15 px-2 py-0.5 rounded-full border border-forest/20">
                     Dato de Entrada
                   </span>
                 )}
@@ -1685,32 +1685,32 @@ function CasillaInspectorModal({
 
           {/* Desglose de Fórmula Matemática */}
           {formulaInfo && (
-            <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/70 space-y-3">
-              <div className="flex items-center gap-2 text-blue-900 font-bold text-xs uppercase tracking-wide">
-                <Calculator className="size-4 text-blue-600" />
+            <div className="p-4 rounded-xl border border-forest/25 bg-forest-mist/35 space-y-3">
+              <div className="flex items-center gap-2 text-forest font-bold text-xs uppercase tracking-wide">
+                <Calculator className="size-4 text-forest" />
                 <span>Fórmula Matemática Explicada</span>
               </div>
-              <div className="bg-white p-3.5 rounded-lg border border-blue-200 font-sans text-xs text-blue-950 font-bold leading-relaxed shadow-2xs">
+              <div className="bg-surface p-3.5 rounded-lg border border-line font-sans text-xs text-ink font-bold leading-relaxed shadow-2xs">
                 {formulaInfo.formula}
               </div>
 
               {/* Cálculo en vivo con valores del usuario */}
               {formulaInfo.casillasInvolucradas && formulaInfo.casillasInvolucradas.length > 0 && (
                 <div className="space-y-1.5 pt-1">
-                  <span className="text-[11px] font-semibold text-blue-900">Desglose de valores del declarante:</span>
-                  <div className="grid gap-2 bg-white p-3 rounded-lg border border-blue-100 text-xs shadow-2xs">
+                  <span className="text-[11px] font-semibold text-ink">Desglose de valores del declarante:</span>
+                  <div className="grid gap-2 bg-surface p-3 rounded-lg border border-line text-xs shadow-2xs">
                     {formulaInfo.casillasInvolucradas.map((cn: number) => {
                       const clearLabel = CASILLA_NOMBRES_CLAROS[cn] || CASILLAS_OFICIALES_210.find((x) => x.num === cn)?.label || "Concepto";
                       const cVal = computed.casillas[cn] ?? 0;
                       return (
-                        <div key={cn} className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-4 border-b border-gray-100 pb-2 last:border-none last:pb-0">
+                        <div key={cn} className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-4 border-b border-line pb-2 last:border-none last:pb-0">
                           <div className="min-w-0 flex-1">
-                            <span className="text-gray-800 text-[11.5px] font-medium leading-snug">
-                              <strong className="text-blue-900 font-mono font-bold">Casilla {cn}</strong> · {clearLabel}:
+                            <span className="text-ink text-[11.5px] font-medium leading-snug">
+                              <strong className="text-forest font-mono font-bold">Casilla {cn}</strong> · {clearLabel}:
                             </span>
                           </div>
                           <div className="shrink-0 self-end sm:self-auto">
-                            <span className="font-bold font-mono text-gray-900 text-xs sm:text-sm bg-blue-50/80 px-2.5 py-0.5 rounded border border-blue-200/70 inline-block">
+                            <span className="font-bold font-mono text-ink text-xs sm:text-sm bg-mist/80 px-2.5 py-0.5 rounded border border-line inline-block">
                               {cn === 138 ? String(cVal) : formatCOP(cVal)}
                             </span>
                           </div>
@@ -1721,7 +1721,7 @@ function CasillaInspectorModal({
                 </div>
               )}
 
-              <p className="text-xs text-blue-900 leading-relaxed">
+              <p className="text-xs text-ink-soft leading-relaxed">
                 {formulaInfo.descripcion}
               </p>
             </div>
@@ -1729,32 +1729,32 @@ function CasillaInspectorModal({
 
           {/* Desglose Interactivo de Conceptos y Soportes Incluidos */}
           {itemized && (
-            <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50/70 space-y-3">
-              <div className="flex items-center gap-2 text-emerald-950 font-bold text-xs uppercase tracking-wide">
-                <ListChecks className="size-4 text-emerald-700" />
+            <div className="p-4 rounded-xl border border-forest/25 bg-forest-mist/35 space-y-3">
+              <div className="flex items-center gap-2 text-forest font-bold text-xs uppercase tracking-wide">
+                <ListChecks className="size-4 text-forest" />
                 <span>{itemized.title}</span>
               </div>
-              <p className="text-xs text-emerald-900 leading-relaxed font-medium">
+              <p className="text-xs text-ink-soft leading-relaxed font-medium">
                 {itemized.description}
               </p>
 
               {/* Lista Desglosada de Conceptos */}
-              <div className="grid gap-2 bg-white p-3 rounded-lg border border-emerald-100 text-xs shadow-2xs">
+              <div className="grid gap-2 bg-surface p-3 rounded-lg border border-line text-xs shadow-2xs">
                 {itemized.items.map((it, idx) => (
-                  <div key={idx} className="border-b border-gray-100 pb-2 last:border-none last:pb-0 space-y-0.5">
+                  <div key={idx} className="border-b border-line pb-2 last:border-none last:pb-0 space-y-0.5">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-3">
-                      <span className="font-semibold text-gray-900 leading-snug">{it.label}</span>
-                      <span className="font-bold font-mono text-emerald-900 shrink-0 text-xs sm:text-sm self-end sm:self-auto bg-emerald-50/80 px-2.5 py-0.5 rounded border border-emerald-200/70">
+                      <span className="font-semibold text-ink leading-snug">{it.label}</span>
+                      <span className="font-bold font-mono text-forest-deep shrink-0 text-xs sm:text-sm self-end sm:self-auto bg-forest-mist/60 px-2.5 py-0.5 rounded border border-forest/30">
                         {it.value}
                       </span>
                     </div>
                     {it.source && (
-                      <p className="text-[10.5px] text-gray-500 font-mono flex items-center gap-1">
-                        📂 <span className="text-gray-600 font-medium">{it.source}</span>
+                      <p className="text-[10.5px] text-muted font-mono flex items-center gap-1">
+                        📂 <span className="text-ink-soft font-medium">{it.source}</span>
                       </p>
                     )}
                     {it.legal && (
-                      <p className="text-[10px] text-emerald-800 font-medium">
+                      <p className="text-[10px] text-forest font-medium">
                         ⚖️ {it.legal}
                       </p>
                     )}
@@ -1764,9 +1764,9 @@ function CasillaInspectorModal({
 
               {/* Subtotal del Desglose */}
               {itemized.totalLabel && itemized.totalValue !== undefined && (
-                <div className="flex items-center justify-between p-2.5 bg-emerald-100/80 rounded-lg border border-emerald-200 text-xs">
-                  <span className="font-bold text-emerald-950">{itemized.totalLabel}:</span>
-                  <span className="font-mono font-bold text-emerald-950 text-sm">
+                <div className="flex items-center justify-between p-2.5 bg-forest/10 rounded-lg border border-forest/20 text-xs">
+                  <span className="font-bold text-forest-deep">{itemized.totalLabel}:</span>
+                  <span className="font-mono font-bold text-forest-deep text-sm">
                     {formatCOP(itemized.totalValue)}
                   </span>
                 </div>
@@ -1774,7 +1774,7 @@ function CasillaInspectorModal({
 
               {/* Nota probatoria / Explicativa */}
               {itemized.footnote && (
-                <p className="text-[11px] text-emerald-900 leading-relaxed italic bg-emerald-100/40 p-2.5 rounded-md border border-emerald-200/50">
+                <p className="text-[11px] text-ink-soft leading-relaxed italic bg-mist/50 p-2.5 rounded-md border border-line">
                   💡 {itemized.footnote}
                 </p>
               )}
