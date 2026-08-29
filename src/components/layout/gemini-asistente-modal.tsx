@@ -193,50 +193,55 @@ export function GeminiAsistenteModal({
       /formato 220|certificado|retenci[oó]n|extracto|bancario|cesant[ií]as|salarios|aval[uú]o/i.test(q) &&
       /\d{3,}/.test(q);
 
-    if (isCertificate) {
-      try {
-        const ext = await extractDocumentWithGemini({
-          text: q,
-          kind: "formato220",
-          apiKey: key,
-          model: selectedModel,
-        });
-
-        if (ext.ok && Object.keys(ext.amounts).length > 0) {
-          setExtractedData({
-            doc: {
-              id: `doc-ai-${Date.now()}`,
-              name: `Certificado Extraído IA`,
-              kind: "formato220",
-              mime: "text/plain",
-              size: q.length,
-              addedAt: new Date().toISOString(),
-              notes: ext.notes || "",
-            },
-            amounts: ext.amounts,
-            notes: ext.notes,
+    try {
+      if (isCertificate) {
+        try {
+          const ext = await extractDocumentWithGemini({
+            text: q,
+            kind: "formato220",
+            apiKey: key,
+            model: selectedModel,
           });
+
+          if (ext.ok && Object.keys(ext.amounts).length > 0) {
+            setExtractedData({
+              doc: {
+                id: `doc-ai-${Date.now()}`,
+                name: `Certificado Extraído IA`,
+                kind: "formato220",
+                mime: "text/plain",
+                size: q.length,
+                addedAt: new Date().toISOString(),
+                notes: ext.notes || "",
+              },
+              amounts: ext.amounts,
+              notes: ext.notes,
+            });
+          }
+        } catch (err) {
+          console.error("Fallo la extracción automática", err);
         }
-      } catch (err) {
-        console.error("Fallo la extracción automática", err);
       }
-    }
 
-    // Consulta tributaria normal con RAG
-    const normasTexto = normasCorpus(normas);
-    const res = await askGeminiTributario({
-      question: q,
-      context,
-      normas: normasTexto,
-      apiKey: key,
-      model: selectedModel,
-    });
+      // Consulta tributaria normal con RAG
+      const normasTexto = normasCorpus(normas);
+      const res = await askGeminiTributario({
+        question: q,
+        context,
+        normas: normasTexto,
+        apiKey: key,
+        model: selectedModel,
+      });
 
-    setBusy(false);
-    if (res.ok) {
-      setAnswer(res.text);
-    } else {
-      setError(res.error);
+      if (res.ok) {
+        setAnswer(res.text);
+      } else {
+        setError(res.error);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al procesar la consulta.");
+    } finally {
+      setBusy(false);
     }
   }
 

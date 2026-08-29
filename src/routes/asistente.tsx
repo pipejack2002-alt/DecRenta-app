@@ -87,9 +87,24 @@ function AsistentePage() {
   }
 
   async function run(question: string) {
+    const q = question.trim();
+    if (!q) return;
+
     setBusy(true);
     setErr(null);
     setA(null);
+
+    const key =
+      inputKey.trim() ||
+      aiSettings.geminiApiKey ||
+      (typeof window !== "undefined" ? localStorage.getItem("tributoapp_gemini_api_key") || "" : "");
+
+    if (!key) {
+      setBusy(false);
+      setErr("Por favor configure y guarde su Google Gemini API Key en la sección superior para consultar.");
+      return;
+    }
+
     const context = [
       `AG ${d.year}`,
       `NIT ${d.identity.nit || "(sin)"}`,
@@ -103,22 +118,23 @@ function AsistentePage() {
       c.razonesObligado.join("; "),
     ].join(" · ");
 
-    if (aiSettings.geminiApiKey) {
+    try {
       const res = await askGeminiTributario({
-        apiKey: aiSettings.geminiApiKey,
+        apiKey: key,
         model: selectedModel,
-        question,
+        question: q,
         context,
         normas: normasCorpus(normas),
       });
+      if (!res.ok) {
+        setErr(res.error);
+      } else {
+        setA(res.text);
+      }
+    } catch (error) {
+      setErr(error instanceof Error ? error.message : "Error inesperado al consultar con Gemini.");
+    } finally {
       setBusy(false);
-      if (!res.ok) setErr(res.error);
-      else setA(res.text);
-    } else {
-      const res = await askNorma({ data: { question, context, normas: normasCorpus(normas) } });
-      setBusy(false);
-      if (!res.ok) setErr(res.error);
-      else setA(res.text);
     }
   }
 

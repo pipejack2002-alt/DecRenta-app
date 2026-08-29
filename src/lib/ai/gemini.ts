@@ -184,13 +184,19 @@ export async function callGeminiApi({
     }
 
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 28000);
+
       const res = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (!res.ok) {
         const errBody = await res.json().catch(() => ({}));
@@ -221,13 +227,41 @@ export async function callGeminiApi({
       }
 
       const data = (await res.json()) as {
-        candidates?: { content?: { parts?: { text?: string }[] } }[];
+        candidates?: {
+          content?: { parts?: { text?: string }[] };
+          groundingMetadata?: {
+            groundingChunks?: { web?: { uri?: string; title?: string } }[];
+          };
+        }[];
       };
 
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+      const candidate = data.candidates?.[0];
+      let text = candidate?.content?.parts?.[0]?.text ?? "";
+
+      // Si Google Search Grounding devolvió fuentes web, agregarlas con formato limpio
+      const groundingChunks = candidate?.groundingMetadata?.groundingChunks;
+      if (Array.isArray(groundingChunks) && groundingChunks.length > 0) {
+        const webSources: { title: string; uri: string }[] = [];
+        for (const chunk of groundingChunks) {
+          if (chunk.web?.uri && chunk.web?.title) {
+            webSources.push({ title: chunk.web.title, uri: chunk.web.uri });
+          }
+        }
+        if (webSources.length > 0) {
+          const unique = Array.from(new Map(webSources.map((s) => [s.uri, s])).values());
+          text +=
+            `\n\n---\n### 🌐 Fuentes Web Consultadas:\n` +
+            unique.map((s) => `- [${s.title}](${s.uri})`).join("\n");
+        }
+      }
+
       return { ok: true, text };
     } catch (err) {
-      lastErrorMsg = err instanceof Error ? err.message : "Error de red al conectar con Google Gemini.";
+      if (err instanceof Error && err.name === "AbortError") {
+        lastErrorMsg = "La consulta a Gemini excedió el tiempo límite (timeout de 28s). Intente nuevamente.";
+      } else {
+        lastErrorMsg = err instanceof Error ? err.message : "Error de red al conectar con Google Gemini.";
+      }
     }
   }
 
@@ -386,6 +420,7 @@ REGLAS DE RESPUESTA (LENGUAJE PROFESIONAL Y 100% COLOMBIANO):
 5. Si el usuario pregunta por cifras o depuración, explica la fórmula paso a paso con las cifras reales del contexto y desarrolla la explicación completa sin dejar ideas a medias.
 6. No des consejos ilegales ni inventes normas. Si una deducción requiere factura electrónica o pago bancarizado, recuérdalo (Art. 771-2 y 771-5).
 7. Concluye siempre con una nota breve de que la orientación se basa en el Estatuto Tributario y no sustituye la asesoría formal de un contador público.
+8. FUENTES OFICIALES Y CITAS EN INTERNET: Al final de tu respuesta, crea obligatoriamente una sección con el encabezado '### 📚 Fuentes y Referencias Oficiales:' donde listes con viñetas los artículos del Estatuto Tributario citados, conceptos DIAN, leyes y decretos reglamentarios con enlaces directos (por ejemplo: Estatuto Tributario https://estatuto.co/, Portal DIAN https://www.dian.gov.co, Ley 2277 de 2022).
 
 Normas y Artículos Aplicables del Estatuto Tributario:
 ${getRelevantArticlesSummary(question)}
