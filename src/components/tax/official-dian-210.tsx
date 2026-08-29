@@ -122,6 +122,28 @@ export function OfficialDian210({
     downloadFile(`formulario-210-ag${d.year}-${id.nit || "dian"}.csv`, csv, "text/csv");
   }
 
+  function VerticalLabel({ text, className = "" }: { text: string; className?: string }) {
+    return (
+      <div className={`w-5 bg-gray-200 border-r border-black flex items-center justify-center shrink-0 select-none overflow-hidden ${className}`}>
+        <svg className="w-4 h-full min-h-[35px] max-h-[140px]" viewBox="0 0 16 120" preserveAspectRatio="xMidYMid meet">
+          <text
+            x="-60"
+            y="11"
+            transform="rotate(-90)"
+            textAnchor="middle"
+            fill="#374151"
+            fontSize="8.5"
+            fontWeight="bold"
+            fontFamily="Arial, 'Helvetica Neue', Helvetica, sans-serif"
+            letterSpacing="0.5"
+          >
+            {text}
+          </text>
+        </svg>
+      </div>
+    );
+  }
+
   function Cell({
     num,
     className = "",
@@ -322,6 +344,11 @@ export function OfficialDian210({
             </svg>
           </div>
 
+          {/* Banner Ilustrativo superior idéntico a Contadia */}
+          <div className="text-center font-sans font-extrabold text-[11px] sm:text-xs tracking-wider text-[#2e7d32] py-1 border-b border-black bg-[#f1f8e9] print:!bg-[#f1f8e9] print:!text-[#2e7d32]">
+            BORRADOR ILUSTRATIVO DE CÓMO QUEDARÍA LA DECLARACIÓN
+          </div>
+
           {/* ———————————————————————————————————————————————————————————
               1. ENCABEZADO OFICIAL DIAN (Idéntico a Formulario_210_2024.pdf)
               ——————————————————————————————————————————————————————————— */}
@@ -384,11 +411,7 @@ export function OfficialDian210({
           <div className="border-b border-black text-[10px]">
             {/* Fila NIT, DV, Nombres y Seccional */}
             <div className="flex border-b border-black">
-              <div className="w-5 bg-gray-200 border-r border-black flex items-center justify-center">
-                <span className="[writing-mode:vertical-lr] rotate-180 font-sans text-[7.5px] font-bold tracking-tight text-gray-700 py-1">
-                  Datos del declarante
-                </span>
-              </div>
+              <VerticalLabel text="DATOS DECLARANTE" />
 
               <div className="flex-1 grid grid-cols-12 divide-x divide-black">
                 <div
@@ -539,11 +562,7 @@ export function OfficialDian210({
               3. SECCIÓN PATRIMONIO (Casillas 29 a 31)
               ——————————————————————————————————————————————————————————— */}
           <div className="flex border-b border-black bg-[#dbe7f0] text-[10px] font-bold">
-            <div className="w-5 bg-gray-200 border-r border-black flex items-center justify-center shrink-0">
-              <span className="[writing-mode:vertical-lr] rotate-180 font-sans text-[7px] font-bold uppercase tracking-tight text-gray-700 py-1">
-                Patrimonio
-              </span>
-            </div>
+            <VerticalLabel text="PATRIMONIO" />
             <div className="flex-1 grid grid-cols-12 divide-x divide-black items-center">
               <div className="col-span-4 flex items-center justify-between px-2 py-0.5 bg-white">
                 <span className="text-[9px] font-normal">Total patrimonio bruto</span>
@@ -566,11 +585,7 @@ export function OfficialDian210({
           <div className="border-b border-black text-[9.5px]">
             <div className="flex">
               {/* Etiqueta vertical izquierda: Cédula General */}
-              <div className="w-5 bg-gray-200 border-r border-black flex items-center justify-center">
-                <span className="[writing-mode:vertical-lr] rotate-180 font-sans text-[8px] font-bold uppercase tracking-wider text-gray-800 py-4">
-                  Cédula general
-                </span>
-              </div>
+              <VerticalLabel text="CÉDULA GENERAL" />
 
               {/* Contenedor de la Matriz Cedular */}
               <div className="flex-1">
@@ -751,11 +766,7 @@ export function OfficialDian210({
               5. DEPURACIÓN CÉDULA GENERAL (Casillas 91 a 98)
               ——————————————————————————————————————————————————————————— */}
           <div className="flex border-b border-black bg-[#eef4f8] text-[9px]">
-            <div className="w-5 bg-gray-200 border-r border-black flex items-center justify-center shrink-0">
-              <span className="[writing-mode:vertical-lr] rotate-180 font-sans text-[6.5px] font-bold uppercase tracking-tight text-gray-700 py-1">
-                Depuración
-              </span>
-            </div>
+            <VerticalLabel text="DEPURACIÓN" />
             <div className="flex-1">
               <div className="grid grid-cols-12 divide-x divide-black border-b border-gray-300">
                 <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5">
@@ -806,11 +817,7 @@ export function OfficialDian210({
               {/* CÉDULA DE PENSIONES (99 a 103) */}
               <div className="border-b border-black">
                 <div className="flex">
-                  <div className="w-5 bg-gray-200 border-r border-black flex items-center justify-center">
-                    <span className="[writing-mode:vertical-lr] rotate-180 font-sans text-[7.5px] font-bold uppercase text-gray-700 py-1">
-                      Cédula de pensiones
-                    </span>
-                  </div>
+                  <VerticalLabel text="PENSIONES" />
                   <div className="flex-1 divide-y divide-gray-300">
                     <div className="flex items-center justify-between px-2 py-0.5">
                       <span>Ingresos brutos por rentas de pensiones del país y del exterior</span>
@@ -839,11 +846,7 @@ export function OfficialDian210({
               {/* CÉDULA DE DIVIDENDOS Y PARTICIPACIONES (104 a 111) */}
               <div className="border-b border-black">
                 <div className="flex">
-                  <div className="w-5 bg-gray-200 border-r border-black flex items-center justify-center">
-                    <span className="[writing-mode:vertical-lr] rotate-180 font-sans text-[7px] font-bold uppercase text-gray-700 py-2">
-                      Cédula de dividendos y/o participaciones
-                    </span>
-                  </div>
+                  <VerticalLabel text="DIVIDENDOS" />
                   <div className="flex-1 divide-y divide-gray-300">
                     <div className="flex items-center justify-between px-2 py-0.5">
                       <span>Dividendos y participaciones año 2016 y anteriores, y otros</span>
@@ -886,11 +889,7 @@ export function OfficialDian210({
               {/* GANANCIAS OCASIONALES (112 a 115) */}
               <div>
                 <div className="flex">
-                  <div className="w-5 bg-gray-200 border-r border-black flex items-center justify-center">
-                    <span className="[writing-mode:vertical-lr] rotate-180 font-sans text-[7px] font-bold uppercase text-gray-700 py-1">
-                      Ganancias ocasionales
-                    </span>
-                  </div>
+                  <VerticalLabel text="GANANCIAS OCASIONALES" />
                   <div className="flex-1 divide-y divide-gray-300">
                     <div className="flex items-center justify-between px-2 py-0.5">
                       <span>Ingresos por ganancias ocasionales del país y del exterior</span>
@@ -915,11 +914,7 @@ export function OfficialDian210({
 
             {/* ==================== COLUMNA DERECHA: LIQUIDACIÓN PRIVADA ==================== */}
             <div className="col-span-6 flex">
-              <div className="w-5 bg-gray-200 border-r border-black flex items-center justify-center">
-                <span className="[writing-mode:vertical-lr] rotate-180 font-sans text-[8px] font-bold uppercase tracking-wider text-gray-800 py-4">
-                  Liquidación privada
-                </span>
-              </div>
+              <VerticalLabel text="LIQUIDACIÓN PRIVADA" />
 
               <div className="flex-1 divide-y divide-gray-300 flex flex-col justify-between">
                 {/* Sub-bloque Impuesto */}
