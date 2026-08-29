@@ -2,7 +2,6 @@ import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-r
 import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { AppShell } from "@/components/layout/app-shell";
-import "../styles.css";
 import appCss from "../styles.css?url";
 
 const APP_NAME = "TributoApp · Declaración de Renta 210";
