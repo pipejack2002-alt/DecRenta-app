@@ -96,9 +96,6 @@ export function AppShell({ children }: { children: ReactNode }) {
             >
               <Sparkles className="size-3.5" />
               <span className="hidden sm:inline">Asistente IA</span>
-              <kbd className="hidden lg:inline-flex items-center rounded border border-forest/30 bg-surface px-1.5 text-[10px] font-mono text-muted">
-                ⌘K
-              </kbd>
             </Button>
             <div className="lg:hidden">
               <Button
