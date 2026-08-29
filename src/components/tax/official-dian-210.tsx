@@ -344,11 +344,6 @@ export function OfficialDian210({
             </svg>
           </div>
 
-          {/* Banner Ilustrativo superior idéntico a Contadia */}
-          <div className="text-center font-sans font-extrabold text-[11px] sm:text-xs tracking-wider text-[#2e7d32] py-1 border-b border-black bg-[#f1f8e9] print:!bg-[#f1f8e9] print:!text-[#2e7d32]">
-            BORRADOR ILUSTRATIVO DE CÓMO QUEDARÍA LA DECLARACIÓN
-          </div>
-
           {/* ———————————————————————————————————————————————————————————
               1. ENCABEZADO OFICIAL DIAN (Idéntico a Formulario_210_2024.pdf)
               ——————————————————————————————————————————————————————————— */}
@@ -765,45 +760,42 @@ export function OfficialDian210({
           {/* ———————————————————————————————————————————————————————————
               5. DEPURACIÓN CÉDULA GENERAL (Casillas 91 a 98)
               ——————————————————————————————————————————————————————————— */}
-          <div className="flex border-b border-black bg-[#eef4f8] text-[9px]">
-            <VerticalLabel text="DEPURACIÓN" />
-            <div className="flex-1">
-              <div className="grid grid-cols-12 divide-x divide-black border-b border-gray-300">
-                <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5">
-                  <span>Ren. líquida céd. gen.</span>
-                  <Cell num={91} className="w-24 border border-gray-300" />
-                </div>
-                <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5">
-                  <span>Ren. ex. y ded. imp. li.</span>
-                  <Cell num={92} className="w-24 border border-gray-300" />
-                </div>
-                <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5 font-bold">
-                  <span>R. líq. ord. cédula gen.</span>
-                  <Cell num={93} className="w-24 border border-gray-300 font-bold" />
-                </div>
-                <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5">
-                  <span>Comp. pérdidas año 2018 y ant.</span>
-                  <Cell num={94} className="w-24 border border-gray-300" />
-                </div>
+          <div className="border-b border-black bg-[#eef4f8] text-[9px]">
+            <div className="grid grid-cols-12 divide-x divide-black border-b border-gray-300">
+              <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5">
+                <span>Ren. líquida céd. gen.</span>
+                <Cell num={91} className="w-24 border border-gray-300" />
               </div>
+              <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5">
+                <span>Ren. ex. y ded. imp. li.</span>
+                <Cell num={92} className="w-24 border border-gray-300" />
+              </div>
+              <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5 font-bold">
+                <span>R. líq. ord. cédula gen.</span>
+                <Cell num={93} className="w-24 border border-gray-300 font-bold" />
+              </div>
+              <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5">
+                <span>Comp. pérdidas año 2018 y ant.</span>
+                <Cell num={94} className="w-24 border border-gray-300" />
+              </div>
+            </div>
 
-              <div className="grid grid-cols-12 divide-x divide-black">
-                <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5">
-                  <span>Comp. exc. ren. presuntiva</span>
-                  <Cell num={95} className="w-24 border border-gray-300" />
-                </div>
-                <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5">
-                  <span>Rentas gravables</span>
-                  <Cell num={96} className="w-24 border border-gray-300" />
-                </div>
-                <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5 bg-[#dbe7f0] font-black">
-                  <span>R. líq. grav. cédula gen.</span>
-                  <Cell num={97} className="w-24 border border-black font-black" />
-                </div>
-                <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5">
-                  <span>Renta presuntiva</span>
-                  <Cell num={98} className="w-24 border border-gray-300" />
-                </div>
+            <div className="grid grid-cols-12 divide-x divide-black">
+              <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5">
+                <span>Comp. exc. ren. presuntiva</span>
+                <Cell num={95} className="w-24 border border-gray-300" />
+              </div>
+              <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5">
+                <span>Rentas gravables</span>
+                <Cell num={96} className="w-24 border border-gray-300" />
+              </div>
+              <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5 bg-[#dbe7f0] font-black">
+                <span>R. líq. grav. cédula gen.</span>
+                <Cell num={97} className="w-24 border border-black font-black" />
+              </div>
+              <div className="col-span-3 flex items-center justify-between px-1.5 py-0.5">
+                <span>Renta presuntiva</span>
+                <Cell num={98} className="w-24 border border-gray-300" />
               </div>
             </div>
           </div>
