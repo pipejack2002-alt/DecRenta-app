@@ -234,17 +234,128 @@ export async function callGeminiApi({
   return { ok: false, error: lastErrorMsg };
 }
 
+export type KeyValidationResult =
+  | {
+      ok: true;
+      detectedModel: string;
+      availableModels: string[];
+      modelLabel: string;
+      quotaTier: string;
+    }
+  | {
+      ok: false;
+      error: string;
+    };
+
+/**
+ * Calcula e identifica el modelo exacto que aplica según la API Key del usuario
+ * consultando la lista oficial de modelos autorizados por Google AI Studio.
+ */
+export async function detectAndValidateApiKey(apiKey: string): Promise<KeyValidationResult> {
+  const key = apiKey.trim();
+  if (!key) {
+    return { ok: false, error: "Por favor ingrese una clave de API de Google Gemini." };
+  }
+
+  try {
+    const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`);
+    if (!listRes.ok) {
+      const errBody = await listRes.json().catch(() => ({}));
+      const msg =
+        (errBody as { error?: { message?: string } })?.error?.message ||
+        `Error al validar API Key (${listRes.status}). Verifique que la clave sea correcta.`;
+      return { ok: false, error: msg };
+    }
+
+    const data = (await listRes.json()) as {
+      models?: { name: string; supportedGenerationMethods?: string[] }[];
+    };
+
+    const validModels = (data.models || [])
+      .filter((m) => m.supportedGenerationMethods?.includes("generateContent"))
+      .map((m) => m.name.replace(/^models\//, ""))
+      .filter(
+        (name) =>
+          !name.includes("tts") &&
+          !name.includes("audio") &&
+          !name.includes("embed") &&
+          !name.includes("vision") &&
+          !name.includes("imagen") &&
+          !name.includes("realtime"),
+      );
+
+    if (validModels.length === 0) {
+      return {
+        ok: false,
+        error: "Esta API Key no tiene modelos de generación de texto habilitados en Google AI Studio.",
+      };
+    }
+
+    // Orden de preferencia para el cálculo del modelo óptimo
+    const priorityOrder = [
+      "gemini-2.0-flash",
+      "gemini-1.5-flash-latest",
+      "gemini-1.5-flash",
+      "gemini-2.5-flash",
+      "gemini-1.5-pro",
+      "gemini-pro",
+    ];
+
+    let chosenModel = priorityOrder.find((pm) => validModels.includes(pm)) || validModels[0];
+
+    // Prueba ligera con el modelo calculado
+    const testRes = await callGeminiApi({
+      apiKey: key,
+      model: chosenModel,
+      userPrompt: "Responde únicamente 'OK'",
+    });
+
+    if (!testRes.ok) {
+      // Probar los demás modelos disponibles hasta encontrar el funcional
+      for (const fallbackModel of validModels) {
+        if (fallbackModel === chosenModel) continue;
+        const retryRes = await callGeminiApi({
+          apiKey: key,
+          model: fallbackModel,
+          userPrompt: "Responde únicamente 'OK'",
+        });
+        if (retryRes.ok) {
+          chosenModel = fallbackModel;
+          break;
+        }
+      }
+    }
+
+    // Guardar en caché
+    discoveredModelsCache = { key, models: validModels, timestamp: Date.now() };
+
+    const meta = GEMINI_MODELS.find((m) => m.id === chosenModel);
+    const modelLabel = meta?.label || chosenModel;
+
+    return {
+      ok: true,
+      detectedModel: chosenModel,
+      availableModels: validModels,
+      modelLabel,
+      quotaTier: chosenModel.includes("flash") ? "Flash Alta Velocidad (Gratuito y Pago)" : "Pro Razonamiento Avanzado",
+    };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Error de red al conectar con Google AI Studio.",
+    };
+  }
+}
+
 export async function testGeminiKey(
   apiKey: string,
   model = "gemini-2.0-flash",
-): Promise<{ ok: true } | { ok: false; error: string }> {
-  const res = await callGeminiApi({
-    apiKey,
-    model,
-    userPrompt: "Responde únicamente 'OK'",
-  });
-  if (res.ok) return { ok: true };
-  return { ok: false, error: res.error };
+): Promise<{ ok: true; detectedModel?: string } | { ok: false; error: string }> {
+  const detectResult = await detectAndValidateApiKey(apiKey);
+  if (detectResult.ok) {
+    return { ok: true, detectedModel: detectResult.detectedModel };
+  }
+  return { ok: false, error: detectResult.error };
 }
 
 export async function askGeminiTributario({

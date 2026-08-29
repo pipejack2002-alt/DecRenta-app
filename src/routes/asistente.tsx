@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardHint, CardTitle } from "@/components/ui/card";
 import { askNorma } from "@/lib/ai/ask";
-import { askGeminiTributario, GEMINI_MODELS, testGeminiKey } from "@/lib/ai/gemini";
+import { askGeminiTributario, detectAndValidateApiKey, GEMINI_MODELS, testGeminiKey } from "@/lib/ai/gemini";
 import { normasCorpus } from "@/lib/docs/types";
 import { useAppStore, useComputed } from "@/lib/store";
 import { formatCOP } from "@/lib/tax/format";
@@ -39,16 +39,30 @@ function AsistentePage() {
   const [keySaved, setKeySaved] = useState(false);
   const [testStatus, setTestStatus] = useState<"idle" | "testing" | "ok" | "error">("idle");
   const [testError, setTestError] = useState<string | null>(null);
+  const [detectedModelName, setDetectedModelName] = useState<string | null>(null);
 
   const hasApiKey = Boolean(aiSettings.geminiApiKey?.trim());
 
-  function handleSaveKey() {
-    setAiSettings({
-      geminiApiKey: inputKey.trim(),
-      geminiModel: selectedModel,
-    });
-    setKeySaved(true);
-    setTimeout(() => setKeySaved(false), 2000);
+  async function handleSaveKey() {
+    const key = inputKey.trim();
+    if (!key) return;
+    setTestStatus("testing");
+    setTestError(null);
+    const res = await detectAndValidateApiKey(key);
+    if (res.ok) {
+      setTestStatus("ok");
+      setSelectedModel(res.detectedModel);
+      setDetectedModelName(res.modelLabel);
+      setAiSettings({
+        geminiApiKey: key,
+        geminiModel: res.detectedModel,
+      });
+      setKeySaved(true);
+      setTimeout(() => setKeySaved(false), 2500);
+    } else {
+      setTestStatus("error");
+      setTestError(res.error);
+    }
   }
 
   async function handleTestConnection() {
@@ -60,10 +74,12 @@ function AsistentePage() {
     }
     setTestStatus("testing");
     setTestError(null);
-    const res = await testGeminiKey(keyToTest, selectedModel);
+    const res = await detectAndValidateApiKey(keyToTest);
     if (res.ok) {
       setTestStatus("ok");
-      setAiSettings({ geminiApiKey: keyToTest, geminiModel: selectedModel });
+      setSelectedModel(res.detectedModel);
+      setDetectedModelName(res.modelLabel);
+      setAiSettings({ geminiApiKey: keyToTest, geminiModel: res.detectedModel });
     } else {
       setTestStatus("error");
       setTestError(res.error);
@@ -193,9 +209,15 @@ function AsistentePage() {
 
         {/* Selector de Modelo */}
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-ink">
-            Modelo de Gemini
-          </label>
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-semibold text-ink">
+              Modelo Asignado para tu API Key
+            </label>
+            <span className="text-[11px] font-medium text-forest flex items-center gap-1 bg-forest/10 px-2 py-0.5 rounded-full">
+              <Sparkles className="size-3" />
+              Calculado automáticamente
+            </span>
+          </div>
           <select
             value={selectedModel}
             onChange={(e) => {

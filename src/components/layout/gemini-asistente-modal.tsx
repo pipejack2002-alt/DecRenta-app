@@ -23,6 +23,7 @@ import { formatCOP } from "@/lib/tax/format";
 import { normasCorpus } from "@/lib/docs/types";
 import {
   askGeminiTributario,
+  detectAndValidateApiKey,
   extractDocumentWithGemini,
   GEMINI_MODELS,
   testGeminiKey,
@@ -109,16 +110,25 @@ export function GeminiAsistenteModal({
 
   const hasApiKey = Boolean(inputKey.trim() || aiSettings.geminiApiKey?.trim());
 
-  function handleSaveKey() {
+  async function handleSaveKey() {
     const key = inputKey.trim();
     if (!key) return;
-    setAiSettings({
-      geminiApiKey: key,
-      geminiModel: selectedModel,
-    });
-    setKeySaved(true);
-    setTestStatus("ok");
-    setTimeout(() => setKeySaved(false), 2500);
+    setTestStatus("testing");
+    setTestError(null);
+    const res = await detectAndValidateApiKey(key);
+    if (res.ok) {
+      setTestStatus("ok");
+      setSelectedModel(res.detectedModel);
+      setAiSettings({
+        geminiApiKey: key,
+        geminiModel: res.detectedModel,
+      });
+      setKeySaved(true);
+      setTimeout(() => setKeySaved(false), 2500);
+    } else {
+      setTestStatus("error");
+      setTestError(res.error);
+    }
   }
 
   function handleClearKey() {
@@ -141,11 +151,11 @@ export function GeminiAsistenteModal({
     }
     setTestStatus("testing");
     setTestError(null);
-    const res = await testGeminiKey(keyToTest, selectedModel);
+    const res = await detectAndValidateApiKey(keyToTest);
     if (res.ok) {
       setTestStatus("ok");
-      // Guardar automáticamente si pasa la prueba
-      setAiSettings({ geminiApiKey: keyToTest, geminiModel: selectedModel });
+      setSelectedModel(res.detectedModel);
+      setAiSettings({ geminiApiKey: keyToTest, geminiModel: res.detectedModel });
     } else {
       setTestStatus("error");
       setTestError(res.error);
@@ -366,9 +376,15 @@ export function GeminiAsistenteModal({
 
             {/* Selector de Modelo Gemini */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-ink">
-                Modelo de Gemini
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-semibold text-ink">
+                  Modelo Asignado para tu API Key
+                </label>
+                <span className="text-[11px] font-medium text-forest flex items-center gap-1 bg-forest/10 px-2 py-0.5 rounded-full">
+                  <Sparkles className="size-3" />
+                  Calculado automáticamente
+                </span>
+              </div>
               <select
                 value={selectedModel}
                 onChange={(e) => {
