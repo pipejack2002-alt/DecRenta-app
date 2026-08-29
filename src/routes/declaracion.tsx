@@ -71,8 +71,8 @@ function DeclaracionPage() {
     <div className="space-y-6">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Formulario 210 · Año Gravable {d.year}</p>
-          <h1 className="mt-1 font-display text-4xl font-bold">Diligenciamiento de Cédulas</h1>
+          <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Paso 3 · Formulario 210 · Año Gravable {d.year}</p>
+          <h1 className="mt-1 font-display text-4xl font-bold">3. Diligenciamiento 210</h1>
           <p className="mt-2 max-w-2xl text-sm text-muted">
             Diligencie la información patrimonial y cedular con soporte normativo por casilla. Las rentas exentas (25 % laboral, AFC), deducciones imputables (vivienda, dependientes, GMF) y el límite conjunto del 40 % o 1.340 UVT se aplican automáticamente.
           </p>
@@ -2688,6 +2688,16 @@ function DeclaracionPage() {
           });
         }}
       />
+
+      {/* Navegación entre pasos */}
+      <div className="flex items-center justify-between border-t border-line pt-6 mt-8">
+        <Button asChild variant="outline">
+          <Link to="/documentos">← 2. Soportes y Documentos</Link>
+        </Button>
+        <Button asChild className="gap-2 bg-forest hover:bg-forest-deep text-white">
+          <Link to="/cedulas">4. Continuar a Depuración Cedular →</Link>
+        </Button>
+      </div>
     </div>
   );
 }

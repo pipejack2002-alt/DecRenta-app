@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Check, Minus, Scale } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardHint, CardTitle } from "@/components/ui/card";
 import { useAppStore, useComputed } from "@/lib/store";
 import {
@@ -45,8 +46,8 @@ function CedulasPage() {
   return (
     <div className="space-y-6">
       <header>
-        <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Sistema Cedular · Estatuto Tributario · AG {y}</p>
-        <h1 className="mt-1 font-display text-4xl font-bold">Depuración Cedular Integral</h1>
+        <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Paso 4 · Sistema Cedular · Estatuto Tributario · AG {y}</p>
+        <h1 className="mt-1 font-display text-4xl font-bold">4. Depuración Cedular</h1>
         <p className="mt-2 max-w-2xl text-sm text-muted">
           Matriz legal de depuración para la Cédula General (Trabajo, Honorarios, Capital y No Laborales), Pensiones y Dividendos. Consolida ingresos no constitutivos de renta (aportes obligatorios), rentas exentas y deducciones imputables con el límite conjunto del 40 % o 1.340 UVT (Art. 336 E.T.).
         </p>
@@ -195,6 +196,16 @@ function CedulasPage() {
       <p className="text-xs text-faint">
         Compilación de la capacitación DIAN «Impuesto sobre la renta personas naturales — determinación cedular» (AG 2025), cruzada con el Estatuto Tributario. No sustituye el instructivo ni el portal de la DIAN.
       </p>
+
+      {/* Navegación entre pasos */}
+      <div className="flex items-center justify-between border-t border-line pt-6 mt-8">
+        <Button asChild variant="outline">
+          <Link to="/declaracion">← 3. Diligenciamiento 210</Link>
+        </Button>
+        <Button asChild className="gap-2 bg-forest hover:bg-forest-deep text-white">
+          <Link to="/liquidacion">5. Continuar a Liquidación y Anticipos →</Link>
+        </Button>
+      </div>
     </div>
   );
 }

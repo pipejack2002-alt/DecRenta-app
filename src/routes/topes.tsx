@@ -184,9 +184,14 @@ function TopesPage() {
 
       <AlertList alerts={c.alerts.filter((a) => a.section === "identidad" || a.id.startsWith("ba"))} />
 
-      <Button asChild>
-        <Link to="/declaracion">Pasar a las cédulas</Link>
-      </Button>
+      <div className="flex items-center justify-between pt-2">
+        <Button asChild variant="outline">
+          <Link to="/clientes">← Gestor de Clientes</Link>
+        </Button>
+        <Button asChild className="gap-2 bg-forest hover:bg-forest-deep text-white">
+          <Link to="/documentos">2. Continuar a Soportes y Documentos →</Link>
+        </Button>
+      </div>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Check,
   Copy,
@@ -103,8 +103,8 @@ function DocumentosPage() {
     <div className="space-y-6">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Procedimiento Probatorio · Art. 771-2 E.T.</p>
-          <h1 className="mt-1 font-display text-4xl font-bold">Expediente y Soportes Documentales</h1>
+          <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Paso 2 · Procedimiento Probatorio y Soportes (Art. 771-2 E.T.)</p>
+          <h1 className="mt-1 font-display text-4xl font-bold">2. Soportes y Documentos</h1>
           <p className="mt-2 max-w-2xl text-sm text-muted">
             Importe la Información Exógena DIAN en Excel, cargue o arrastre cualquier soporte (PDF, fotos con OCR, Word, extractos), audite inconsistencias y genere solicitudes a terceros.
           </p>
@@ -144,31 +144,38 @@ function DocumentosPage() {
 
       <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
         {TABS.map((t) => {
+          const active = t.id === effective;
           const count =
             t.id === "mal"
               ? sum.block + sum.warn
               : t.id === "pedir"
                 ? missingCount
-                : t.id === "normas"
-                  ? normas.length
-                  : docs.length;
+                : t.id === "subir"
+                  ? docs.length
+                  : normas.length;
+          const tone =
+            t.id === "mal" && sum.block > 0
+              ? "stamp"
+              : t.id === "mal" && sum.warn > 0
+                ? "warn"
+                : t.id === "pedir" && missingCount > 0
+                  ? "warn"
+                  : "forest";
           return (
             <button
               key={t.id}
               type="button"
               onClick={() => setTab(t.id)}
               className={cn(
-                "h-11 shrink-0 rounded-full px-4 text-sm font-medium transition-colors cursor-pointer",
-                effective === t.id
-                  ? "bg-forest text-primary-fg shadow-sm"
-                  : "bg-surface text-ink-soft shadow-[0_0_0_1px_var(--color-line)] hover:bg-bg-raised",
+                "flex h-11 shrink-0 items-center gap-2 rounded-full px-4 text-sm transition-all",
+                active ? "bg-forest text-primary-fg shadow-xs font-semibold" : "bg-surface text-ink-soft shadow-[0_0_0_1px_var(--color-line)] hover:bg-forest-mist/30",
               )}
             >
-              {t.label}
+              <span>{t.label}</span>
               {count > 0 ? (
-                <span className={cn("ml-2 tabular-nums rounded-full px-1.5 py-0.5 text-xs", effective === t.id ? "bg-white/20 text-primary-fg" : "bg-bg-raised text-faint")}>
+                <Badge tone={active ? "neutral" : tone} className="text-xs">
                   {count}
-                </span>
+                </Badge>
               ) : null}
             </button>
           );
@@ -179,6 +186,16 @@ function DocumentosPage() {
       {effective === "pedir" ? <PedirPanel asks={needed} /> : null}
       {effective === "subir" ? <SubirPanel /> : null}
       {effective === "normas" ? <NormasPanel /> : null}
+
+      {/* Navegación entre pasos */}
+      <div className="flex items-center justify-between border-t border-line pt-6 mt-8">
+        <Button asChild variant="outline">
+          <Link to="/topes">← 1. Diagnóstico de Topes</Link>
+        </Button>
+        <Button asChild className="gap-2 bg-forest hover:bg-forest-deep text-white">
+          <Link to="/declaracion">3. Continuar a Diligenciamiento 210 →</Link>
+        </Button>
+      </div>
     </div>
   );
 }

@@ -67,11 +67,11 @@ function FormularioPage() {
             </Link>
             <span className="text-muted">·</span>
             <span className="text-[11px] uppercase tracking-[0.18em] text-muted">
-              DIAN MUISCA Oficial · AG {d.year}
+              Paso 6 · DIAN MUISCA Oficial · AG {d.year}
             </span>
           </div>
           <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-ink">
-            Formulario Oficial 210 DIAN
+            6. Formulario 210 DIAN
           </h1>
           <p className="mt-1 max-w-2xl text-xs sm:text-sm text-muted">
             Declaración de Renta y Complementario para Personas Naturales Residentes. Formato fiel e interactivo con casillas oficiales, fundamento legal del Estatuto Tributario y exportación a Excel, XML y PDF.
@@ -200,6 +200,16 @@ function FormularioPage() {
         <p className="text-[11px] text-faint">
           Espacios 980–997 corresponden a las firmas del declarante, contador público (si el patrimonio o ingresos superan {formatNumber(100000)} UVT) y control de la entidad recaudadora.
         </p>
+      </div>
+
+      {/* Navegación entre pasos */}
+      <div className="flex items-center justify-between border-t border-line pt-6 mt-8 print:hidden no-print" data-print-hide>
+        <Button asChild variant="outline">
+          <Link to="/liquidacion">← 5. Liquidación y Anticipos</Link>
+        </Button>
+        <Button asChild className="gap-2 bg-forest hover:bg-forest-deep text-white">
+          <Link to="/clientes">Gestor de Clientes →</Link>
+        </Button>
       </div>
     </div>
   );

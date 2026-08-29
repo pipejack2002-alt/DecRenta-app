@@ -45,8 +45,8 @@ function LiquidacionPage() {
     <div className="space-y-6">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Determinación del Impuesto · Formulario 210</p>
-          <h1 className="mt-1 font-display text-4xl font-bold">Liquidación Privada del Impuesto</h1>
+          <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Paso 5 · Determinación del Impuesto y Anticipos · Formulario 210</p>
+          <h1 className="mt-1 font-display text-4xl font-bold">5. Liquidación y Anticipos</h1>
           <p className="mt-2 max-w-2xl text-sm text-muted">
             Cálculo del impuesto sobre la renta y complementarios según la tabla progresiva del art. 241 E.T. (Ley 2277 de 2022). UVT AG {c.year} = {formatCOP(c.uvt)}. UVT de presentación {c.filingYear} = {formatCOP(c.uvtFiling)}.
           </p>
@@ -292,9 +292,15 @@ function LiquidacionPage() {
         <AlertList alerts={c.alerts} />
       </section>
 
-      <Button asChild>
-        <Link to="/formulario">Ver Formulario 210</Link>
-      </Button>
+      {/* Navegación entre pasos */}
+      <div className="flex items-center justify-between border-t border-line pt-6 mt-8">
+        <Button asChild variant="outline">
+          <Link to="/cedulas">← 4. Depuración Cedular</Link>
+        </Button>
+        <Button asChild className="gap-2 bg-forest hover:bg-forest-deep text-white">
+          <Link to="/formulario">6. Continuar a Formulario 210 DIAN →</Link>
+        </Button>
+      </div>
     </div>
   );
 }
