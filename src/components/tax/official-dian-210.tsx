@@ -124,18 +124,18 @@ export function OfficialDian210({
 
   function VerticalLabel({ text, className = "" }: { text: string; className?: string }) {
     return (
-      <div className={`w-5 bg-gray-200 border-r border-black flex items-center justify-center shrink-0 select-none overflow-hidden ${className}`}>
-        <svg className="w-4 h-full min-h-[35px] max-h-[140px]" viewBox="0 0 16 120" preserveAspectRatio="xMidYMid meet">
+      <div className={`w-4 bg-gray-100 border-r border-black flex items-center justify-center shrink-0 select-none overflow-hidden ${className}`}>
+        <svg className="w-3.5 h-full max-h-[120px]" viewBox="0 0 14 100" preserveAspectRatio="xMidYMid meet">
           <text
-            x="-60"
-            y="11"
+            x="-50"
+            y="9.5"
             transform="rotate(-90)"
             textAnchor="middle"
-            fill="#374151"
-            fontSize="8.5"
+            fill="#1f2937"
+            fontSize="7.5"
             fontWeight="bold"
             fontFamily="Arial, 'Helvetica Neue', Helvetica, sans-serif"
-            letterSpacing="0.5"
+            letterSpacing="0.2"
           >
             {text}
           </text>
@@ -159,7 +159,7 @@ export function OfficialDian210({
       <div
         onClick={() => setSelectedCasilla(num)}
         title={meta ? `Casilla ${num}: ${meta.label} (${meta.legal})` : `Casilla ${num}`}
-        className={`relative flex items-center justify-end px-1.5 py-0.5 cursor-pointer font-mono text-[11px] leading-none transition-colors select-text ${
+        className={`relative flex items-center justify-between px-1 h-[19px] cursor-pointer font-mono text-[9.5px] leading-none transition-colors select-text ${
           highlighted
             ? "bg-[#ffeb99] ring-2 ring-amber-500 z-10 font-bold"
             : valStr
@@ -167,10 +167,10 @@ export function OfficialDian210({
             : "bg-white text-black hover:bg-amber-50"
         } ${className}`}
       >
-        <span className="absolute left-1 top-0.5 font-sans text-[8px] text-gray-500 select-none pointer-events-none print:text-[6px] print:left-0.5 print:top-0">
+        <span className="font-sans text-[6.5px] text-gray-500 font-normal select-none pointer-events-none pr-1">
           {num}
         </span>
-        <span className="tabular-nums text-right w-full pl-3 whitespace-nowrap print:text-[7.5px] print:pl-1.5">{valStr || "0"}</span>
+        <span className="tabular-nums text-right w-full whitespace-nowrap">{valStr || "0"}</span>
       </div>
     );
   }
@@ -348,53 +348,59 @@ export function OfficialDian210({
               1. ENCABEZADO OFICIAL DIAN (Idéntico a Formulario_210_2024.pdf)
               ——————————————————————————————————————————————————————————— */}
           <div className="grid grid-cols-12 border-b border-black">
-            {/* Logo DIAN y Casilla 1 */}
+            {/* Col 1-3: Logo DIAN y Casilla 1 */}
             <div
-              className={`col-span-3 border-r border-black p-2 flex flex-col justify-between cursor-pointer transition-colors ${
+              className={`col-span-3 border-r border-black p-1.5 flex flex-col justify-between cursor-pointer transition-colors ${
                 selectedCasilla === 1 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
               }`}
               onClick={() => setSelectedCasilla(1)}
               onDoubleClick={() => setIsEditingDeclarante(true)}
-              title="Casilla 1: Año gravable (Art. 596 E.T.) - Clic para instructivo / Doble clic para editar"
+              title="Casilla 1: Año gravable (Art. 596 E.T.)"
             >
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center justify-start pl-1">
                 {/* Logotipo DIAN oficial */}
-                <div className="font-sans text-2xl font-black tracking-tight text-black flex items-baseline uppercase">
+                <div className="font-sans text-xl font-light tracking-[3px] text-black uppercase flex items-baseline">
                   <span>D</span>
-                  <span className="text-[#2D6187]">I</span>
+                  <span className="font-normal text-[#2D6187]">I</span>
                   <span>AN</span>
                 </div>
               </div>
-              <div className="mt-2 text-[9px] leading-tight">
-                <span className="font-bold">1. Año:</span>
-                <span className="ml-2 font-mono text-sm font-black text-forest-deep">{d.year}</span>
-                <p className="text-[8px] text-gray-500 mt-1">Espacio reservado para la DIAN (Clic para editar)</p>
+              <div className="mt-1 flex items-center gap-1 text-[8.5px]">
+                <span className="font-bold">1. Año</span>
+                <div className="flex border border-black divide-x divide-black bg-white">
+                  {String(d.year).padStart(4, "0").split("").map((digit, idx) => (
+                    <span key={idx} className="w-3.5 h-3.5 flex items-center justify-center font-mono font-bold text-[9px] text-black">
+                      {digit}
+                    </span>
+                  ))}
+                </div>
               </div>
+              <p className="text-[7px] text-gray-500 leading-none mt-0.5">Espacio reservado para la DIAN</p>
             </div>
 
-            {/* Título Central y Casilla 4 */}
-            <div className="col-span-7 border-r border-black p-2 flex flex-col justify-between text-center">
-              <h1 className="font-sans text-[13px] font-bold uppercase tracking-tight leading-snug px-4">
+            {/* Col 4-10: Título Central y Casilla 4 */}
+            <div className="col-span-7 border-r border-black p-1.5 flex flex-col justify-between text-center">
+              <h1 className="font-sans text-[11px] font-bold uppercase tracking-tight leading-tight px-2">
                 Declaración de renta y complementario personas naturales y asimiladas residentes y sucesiones ilíquidas de causantes residentes
               </h1>
               <div
-                className={`mt-2 inline-flex items-center justify-center gap-2 text-[10px] cursor-pointer rounded p-1 transition-colors self-center ${
+                className={`mt-1 inline-flex items-center justify-center gap-1.5 text-[8.5px] cursor-pointer rounded px-1 transition-colors self-center ${
                   selectedCasilla === 4 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
                 }`}
                 onClick={() => setSelectedCasilla(4)}
                 onDoubleClick={() => setIsEditingDeclarante(true)}
-                title="Casilla 4: Número de formulario único (Art. 578 E.T.) - Clic para instructivo / Doble clic para editar"
+                title="Casilla 4: Número de formulario único (Art. 578 E.T.)"
               >
                 <span className="font-bold">4. Número de formulario:</span>
-                <span className="font-mono font-bold text-xs bg-gray-50 px-2 py-0.5 border border-gray-300">
+                <span className="font-mono font-bold text-[9.5px] bg-white px-2 py-0.5 border border-black">
                   {id.numeroFormulario || `210${d.year}000${id.nit ? id.nit.slice(-5) : "41029"}`}
                 </span>
               </div>
             </div>
 
-            {/* Caja Azul Oficial 210 */}
-            <div className="col-span-2 bg-[#2D6187] text-white flex items-center justify-center p-2 print:!bg-[#2D6187] print:!text-white">
-              <span className="font-sans text-5xl font-black tracking-normal print:!text-white">
+            {/* Col 11-12: Caja Azul Oficial 210 */}
+            <div className="col-span-2 bg-[#2D6187] text-white flex items-center justify-center p-1 print:!bg-[#2D6187] print:!text-white">
+              <span className="font-sans text-4xl font-black tracking-normal print:!text-white">
                 210
               </span>
             </div>
@@ -403,151 +409,177 @@ export function OfficialDian210({
           {/* ———————————————————————————————————————————————————————————
               2. DATOS DEL DECLARANTE (Casillas 5 a 28)
               ——————————————————————————————————————————————————————————— */}
-          <div className="border-b border-black text-[10px]">
-            {/* Fila NIT, DV, Nombres y Seccional */}
-            <div className="flex border-b border-black">
-              <VerticalLabel text="DATOS DECLARANTE" />
+          <div className="border-b border-black text-[8.5px]">
+            {/* Fila 1: NIT, DV, Nombres y Seccional */}
+            <div className="flex border-b border-black items-stretch h-[24px]">
+              <div className="w-5 border-r border-black flex items-center justify-center shrink-0 bg-gray-50 overflow-hidden">
+                <VerticalLabel text="Datos declarante" />
+              </div>
 
-              <div className="flex-1 grid grid-cols-12 divide-x divide-black">
+              <div className="flex-1 grid grid-cols-12 divide-x divide-black items-center h-full">
+                {/* 5. NIT con cajitas individuales */}
                 <div
-                  className={`col-span-2 p-1 cursor-pointer transition-colors ${
-                    selectedCasilla === 5 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
+                  className={`col-span-3 px-1 h-full flex items-center justify-between cursor-pointer transition-colors ${
+                    selectedCasilla === 5 ? "bg-[#ffeb99]" : "hover:bg-amber-50"
                   }`}
                   onClick={() => setSelectedCasilla(5)}
                   onDoubleClick={() => setIsEditingDeclarante(true)}
-                  title="Casilla 5: Número de Identificación Tributaria (NIT) - Clic para instructivo / Doble clic para editar"
+                  title="Casilla 5: Número de Identificación Tributaria (NIT)"
                 >
-                  <span className="block text-[8px] text-gray-600">5. Número de Identificación Tributaria (NIT)</span>
-                  <span className="font-mono font-bold text-xs">{id.nit || "—"}</span>
+                  <span className="text-[7.5px] text-gray-700 leading-none whitespace-nowrap">5. NIT</span>
+                  <div className="flex border border-black divide-x divide-black bg-white">
+                    {((id.nit || "").padEnd(10, " ")).slice(0, 10).split("").map((ch, idx) => (
+                      <span key={idx} className="w-2.5 h-3.5 flex items-center justify-center font-mono font-bold text-[8px] text-black">
+                        {ch.trim()}
+                      </span>
+                    ))}
+                  </div>
                 </div>
+
+                {/* 6. DV */}
                 <div
-                  className={`col-span-1 p-1 text-center cursor-pointer transition-colors ${
-                    selectedCasilla === 6 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
+                  className={`col-span-1 px-1 h-full flex items-center justify-center gap-1 cursor-pointer transition-colors ${
+                    selectedCasilla === 6 ? "bg-[#ffeb99]" : "hover:bg-amber-50"
                   }`}
                   onClick={() => setSelectedCasilla(6)}
                   onDoubleClick={() => setIsEditingDeclarante(true)}
-                  title="Casilla 6: Dígito de Verificación (DV) - Clic para instructivo / Doble clic para editar"
+                  title="Casilla 6: Dígito de Verificación (DV)"
                 >
-                  <span className="block text-[8px] text-gray-600">6.DV</span>
-                  <span className="font-mono font-bold text-xs">{id.dv || "0"}</span>
+                  <span className="text-[7.5px] text-gray-700 leading-none">6.DV</span>
+                  <span className="w-3.5 h-3.5 border border-black flex items-center justify-center font-mono font-bold text-[8.5px] bg-white">
+                    {id.dv || "0"}
+                  </span>
                 </div>
+
+                {/* 7. Primer apellido */}
                 <div
-                  className={`col-span-2 p-1 cursor-pointer transition-colors ${
-                    selectedCasilla === 7 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
+                  className={`col-span-2 px-1 h-full flex flex-col justify-center cursor-pointer transition-colors ${
+                    selectedCasilla === 7 ? "bg-[#ffeb99]" : "hover:bg-amber-50"
                   }`}
                   onClick={() => setSelectedCasilla(7)}
                   onDoubleClick={() => setIsEditingDeclarante(true)}
-                  title="Casilla 7: Primer apellido - Clic para instructivo / Doble clic para editar"
                 >
-                  <span className="block text-[8px] text-gray-600">7. Primer apellido</span>
-                  <span className="font-semibold uppercase text-[11px] whitespace-nowrap block">{id.primerApellido || "—"}</span>
+                  <span className="text-[7px] text-gray-600 leading-none">7. Primer apellido</span>
+                  <span className="font-semibold uppercase text-[8.5px] leading-tight truncate">{id.primerApellido || "—"}</span>
                 </div>
+
+                {/* 8. Segundo apellido */}
                 <div
-                  className={`col-span-2 p-1 cursor-pointer transition-colors ${
-                    selectedCasilla === 8 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
+                  className={`col-span-2 px-1 h-full flex flex-col justify-center cursor-pointer transition-colors ${
+                    selectedCasilla === 8 ? "bg-[#ffeb99]" : "hover:bg-amber-50"
                   }`}
                   onClick={() => setSelectedCasilla(8)}
                   onDoubleClick={() => setIsEditingDeclarante(true)}
-                  title="Casilla 8: Segundo apellido - Clic para instructivo / Doble clic para editar"
                 >
-                  <span className="block text-[8px] text-gray-600">8. Segundo apellido</span>
-                  <span className="font-semibold uppercase text-[11px] whitespace-nowrap block">{id.segundoApellido || "—"}</span>
+                  <span className="text-[7px] text-gray-600 leading-none">8. Segundo apellido</span>
+                  <span className="font-semibold uppercase text-[8.5px] leading-tight truncate">{id.segundoApellido || "—"}</span>
                 </div>
+
+                {/* 9. Primer nombre */}
                 <div
-                  className={`col-span-2 p-1 cursor-pointer transition-colors ${
-                    selectedCasilla === 9 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
+                  className={`col-span-2 px-1 h-full flex flex-col justify-center cursor-pointer transition-colors ${
+                    selectedCasilla === 9 ? "bg-[#ffeb99]" : "hover:bg-amber-50"
                   }`}
                   onClick={() => setSelectedCasilla(9)}
                   onDoubleClick={() => setIsEditingDeclarante(true)}
-                  title="Casilla 9: Primer nombre - Clic para instructivo / Doble clic para editar"
                 >
-                  <span className="block text-[8px] text-gray-600">9. Primer nombre</span>
-                  <span className="font-semibold uppercase text-[11px] whitespace-nowrap block">{id.primerNombre || "—"}</span>
+                  <span className="text-[7px] text-gray-600 leading-none">9. Primer nombre</span>
+                  <span className="font-semibold uppercase text-[8.5px] leading-tight truncate">{id.primerNombre || "—"}</span>
                 </div>
+
+                {/* 10. Otros nombres */}
                 <div
-                  className={`col-span-2 p-1 cursor-pointer transition-colors ${
-                    selectedCasilla === 10 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
+                  className={`col-span-1 px-1 h-full flex flex-col justify-center cursor-pointer transition-colors ${
+                    selectedCasilla === 10 ? "bg-[#ffeb99]" : "hover:bg-amber-50"
                   }`}
                   onClick={() => setSelectedCasilla(10)}
                   onDoubleClick={() => setIsEditingDeclarante(true)}
-                  title="Casilla 10: Otros nombres - Clic para instructivo / Doble clic para editar"
                 >
-                  <span className="block text-[8px] text-gray-600">10. Otros nombres</span>
-                  <span className="font-semibold uppercase text-[11px] whitespace-nowrap block">{id.otrosNombres || "—"}</span>
+                  <span className="text-[7px] text-gray-600 leading-none">10. Otros</span>
+                  <span className="font-semibold uppercase text-[8.5px] leading-tight truncate">{id.otrosNombres || "—"}</span>
                 </div>
+
+                {/* 12. Cód. Dirección seccional */}
                 <div
-                  className={`col-span-1 p-1 text-center cursor-pointer transition-colors ${
-                    selectedCasilla === 12 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
+                  className={`col-span-1 px-1 h-full flex flex-col justify-center text-center cursor-pointer transition-colors ${
+                    selectedCasilla === 12 ? "bg-[#ffeb99]" : "hover:bg-amber-50"
                   }`}
                   onClick={() => setSelectedCasilla(12)}
                   onDoubleClick={() => setIsEditingDeclarante(true)}
-                  title="Casilla 12: Código Dirección Seccional DIAN - Clic para instructivo / Doble clic para editar"
                 >
-                  <span className="block text-[7.5px] text-gray-600 leading-none">12.Cód.Secc</span>
-                  <span className="font-mono font-bold text-xs">{id.dirSeccional || "03"}</span>
+                  <span className="text-[6.5px] text-gray-600 leading-none">12.Cod.Secc</span>
+                  <span className="font-mono font-bold text-[8.5px] leading-tight">{id.dirSeccional || "02"}</span>
                 </div>
               </div>
             </div>
 
-            {/* Fila Actividad CIIU, Correcciones y Casilla 28 */}
-            <div className="flex bg-[#f4f7f9]">
-              <div className="w-5 bg-gray-200 border-r border-black flex items-center justify-center shrink-0" />
-              <div className="flex-1 grid grid-cols-12 divide-x divide-black">
+            {/* Fila 2: Actividad CIIU, Correcciones y Casilla 28 */}
+            <div className="flex items-stretch h-[22px] bg-[#f8fafc]">
+              <div className="w-5 border-r border-black shrink-0 bg-gray-100" />
+              <div className="flex-1 grid grid-cols-12 divide-x divide-black items-center h-full">
+                {/* 24. Actividad CIIU */}
                 <div
-                  className={`col-span-2 p-1 cursor-pointer transition-colors ${
-                    selectedCasilla === 24 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
+                  className={`col-span-3 px-1 h-full flex items-center justify-between cursor-pointer transition-colors ${
+                    selectedCasilla === 24 ? "bg-[#ffeb99]" : "hover:bg-amber-50"
                   }`}
                   onClick={() => setSelectedCasilla(24)}
                   onDoubleClick={() => setIsEditingDeclarante(true)}
-                  title="Casilla 24: Actividad económica principal CIIU - Clic para instructivo / Doble clic para editar"
                 >
-                  <span className="block text-[8px] text-gray-600">24. Actividad económica principal</span>
-                  <span className="font-mono font-bold text-xs">{id.actividadCiiu || "0010"}</span>
+                  <span className="text-[7px] text-gray-700 leading-none">24. Actividad ppal</span>
+                  <div className="flex border border-black divide-x divide-black bg-white">
+                    {((id.actividadCiiu || "0010").padStart(4, "0")).slice(0, 4).split("").map((ch, idx) => (
+                      <span key={idx} className="w-2.5 h-3.5 flex items-center justify-center font-mono font-bold text-[8px] text-black">
+                        {ch}
+                      </span>
+                    ))}
+                  </div>
                 </div>
+
+                {/* 25. Cód. Corrección */}
                 <div
-                  className={`col-span-1 p-1 text-center cursor-pointer transition-colors ${
-                    selectedCasilla === 25 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
+                  className={`col-span-1 px-1 h-full flex items-center justify-center gap-1 cursor-pointer transition-colors ${
+                    selectedCasilla === 25 ? "bg-[#ffeb99]" : "hover:bg-amber-50"
                   }`}
                   onClick={() => setSelectedCasilla(25)}
                   onDoubleClick={() => setIsEditingDeclarante(true)}
-                  title="Casilla 25: Código de corrección (1, 2, 3) - Clic para instructivo / Doble clic para editar"
                 >
-                  <span className="block text-[7.5px] text-gray-600 leading-none">25. Cód</span>
-                  <span className="font-mono font-bold text-xs">{id.esCorreccion ? (id.codCorreccion || "1") : "—"}</span>
+                  <span className="text-[7px] text-gray-600 leading-none">25.Cód</span>
+                  <span className="font-mono text-[8px]">{id.esCorreccion ? (id.codCorreccion || "1") : "—"}</span>
                 </div>
+
+                {/* 26. No. Formulario anterior */}
                 <div
-                  className={`col-span-2 p-1 cursor-pointer transition-colors ${
-                    selectedCasilla === 26 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
+                  className={`col-span-2 px-1 h-full flex items-center justify-between cursor-pointer transition-colors ${
+                    selectedCasilla === 26 ? "bg-[#ffeb99]" : "hover:bg-amber-50"
                   }`}
                   onClick={() => setSelectedCasilla(26)}
                   onDoubleClick={() => setIsEditingDeclarante(true)}
-                  title="Casilla 26: Número de formulario anterior - Clic para instructivo / Doble clic para editar"
                 >
-                  <span className="block text-[8px] text-gray-600">26. No. Formulario anterior</span>
-                  <span className="font-mono text-xs">{id.esCorreccion ? (id.formAnterior || "—") : "—"}</span>
+                  <span className="text-[7px] text-gray-600 leading-none">26. Form. anterior</span>
+                  <span className="font-mono text-[8px]">{id.esCorreccion ? (id.formAnterior || "—") : "—"}</span>
                 </div>
+
+                {/* 27. Fracción año gravable siguiente */}
                 <div
-                  className={`col-span-2 p-1 text-center cursor-pointer transition-colors ${
-                    selectedCasilla === 27 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-50"
+                  className={`col-span-2 px-1 h-full flex items-center justify-center gap-1 cursor-pointer transition-colors ${
+                    selectedCasilla === 27 ? "bg-[#ffeb99]" : "hover:bg-amber-50"
                   }`}
                   onClick={() => setSelectedCasilla(27)}
                   onDoubleClick={() => setIsEditingDeclarante(true)}
-                  title="Casilla 27: Fracción año gravable siguiente - Clic para instructivo / Doble clic para editar"
                 >
-                  <span className="block text-[7.5px] text-gray-600 leading-none">27. Fracción año gravable sig.</span>
-                  <span className="font-semibold text-xs">{id.fraccionAnioSiguiente ? "SÍ" : "NO"}</span>
+                  <span className="text-[7px] text-gray-600 leading-none">27. Fracción sig.</span>
+                  <span className="font-bold text-[8px]">{id.fraccionAnioSiguiente ? "SÍ" : "NO"}</span>
                 </div>
+
+                {/* 28. 1% Factura electrónica */}
                 <div
-                  className={`col-span-5 p-1 bg-white flex items-center justify-between gap-1.5 cursor-pointer px-2 ${
-                    selectedCasilla === 28 ? "bg-[#ffeb99] ring-2 ring-amber-500" : ""
+                  className={`col-span-4 px-1.5 h-full bg-white flex items-center justify-between cursor-pointer ${
+                    selectedCasilla === 28 ? "bg-[#ffeb99]" : "hover:bg-amber-50"
                   }`}
                   onClick={() => setSelectedCasilla(28)}
-                  title="Casilla 28: 1% compras factura electrónica (Tope 240 UVT) - Clic para ver instructivo"
                 >
-                  <span className="text-[7.5px] text-gray-700 leading-tight">
-                    28. Uno por ciento (1%) de compras con factura electrónica
-                  </span>
-                  <Cell num={28} className="w-28 shrink-0 border border-gray-300" />
+                  <span className="text-[7px] text-gray-700 leading-tight">28. 1% compras factura electrónica</span>
+                  <Cell num={28} className="w-20 border border-gray-300 h-4" />
                 </div>
               </div>
             </div>
@@ -556,20 +588,22 @@ export function OfficialDian210({
           {/* ———————————————————————————————————————————————————————————
               3. SECCIÓN PATRIMONIO (Casillas 29 a 31)
               ——————————————————————————————————————————————————————————— */}
-          <div className="flex border-b border-black bg-[#dbe7f0] text-[10px] font-bold">
-            <VerticalLabel text="PATRIMONIO" />
-            <div className="flex-1 grid grid-cols-12 divide-x divide-black items-center">
-              <div className="col-span-4 flex items-center justify-between px-2 py-0.5 bg-white">
-                <span className="text-[9px] font-normal">Total patrimonio bruto</span>
-                <Cell num={29} className="w-28 border border-gray-300" />
+          <div className="border-b border-black text-[8.5px] h-[22px] flex items-center bg-[#e8eef3]">
+            <div className="w-24 px-2 font-bold text-[8.5px] border-r border-black h-full flex items-center">
+              Patrimonio
+            </div>
+            <div className="flex-1 grid grid-cols-12 divide-x divide-black h-full items-center">
+              <div className="col-span-4 flex items-center justify-between px-2 h-full bg-white">
+                <span className="text-[8px]">Total patrimonio bruto</span>
+                <Cell num={29} className="w-24 border border-gray-300 h-4" />
               </div>
-              <div className="col-span-4 flex items-center justify-between px-2 py-0.5 bg-white">
-                <span className="text-[9px] font-normal">Deudas</span>
-                <Cell num={30} className="w-28 border border-gray-300" />
+              <div className="col-span-4 flex items-center justify-between px-2 h-full bg-white">
+                <span className="text-[8px]">Deudas</span>
+                <Cell num={30} className="w-24 border border-gray-300 h-4" />
               </div>
-              <div className="col-span-4 flex items-center justify-between px-2 py-0.5 bg-[#eaf1f7]">
-                <span className="text-[9px] font-bold">Total patrimonio líquido</span>
-                <Cell num={31} className="w-32 border border-black font-bold" />
+              <div className="col-span-4 flex items-center justify-between px-2 h-full bg-[#dce7f0]">
+                <span className="text-[8px] font-bold">Total patrimonio líquido</span>
+                <Cell num={31} className="w-24 border border-black font-bold h-4" />
               </div>
             </div>
           </div>
