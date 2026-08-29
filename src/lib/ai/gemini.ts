@@ -3,27 +3,27 @@ import { etMapForPrompt } from "@/lib/legal/estatuto-index";
 
 export const GEMINI_MODELS = [
   {
-    id: "gemini-2.0-flash",
-    label: "Gemini 2.0 Flash (Recomendado)",
-    desc: "Última generación oficial: ultra rápida, precisa y compatible con cuentas gratuitas y de pago",
+    id: "gemini-1.5-flash",
+    label: "Gemini 1.5 Flash (Ultra Rápido)",
+    desc: "Modelo oficial de alta velocidad, máxima compatibilidad y bajo consumo de cuota",
     badge: "Recomendado",
   },
   {
-    id: "gemini-1.5-flash-latest",
-    label: "Gemini 1.5 Flash (Latest)",
-    desc: "Versión estable 1.5 de alta eficiencia y bajo consumo de cuota",
-    badge: "Estable",
+    id: "gemini-2.0-flash",
+    label: "Gemini 2.0 Flash",
+    desc: "Nueva generación 2.0: ultra precisa para análisis tributario",
+    badge: "2.0 Flash",
   },
   {
     id: "gemini-2.5-flash",
     label: "Gemini 2.5 Flash",
-    desc: "Nueva versión 2.5 optimizada para análisis documental avanzado",
-    badge: "Nuevo 2.5",
+    desc: "Versión 2.5 para análisis documental avanzado",
+    badge: "2.5 Flash",
   },
   {
     id: "gemini-1.5-pro",
     label: "Gemini 1.5 Pro",
-    desc: "Razonamiento tributario profundo y auditoría exhaustiva del Formulario 210",
+    desc: "Razonamiento profundo para casos tributarios complejos",
     badge: "Pro",
   },
 ] as const;
@@ -31,9 +31,8 @@ export const GEMINI_MODELS = [
 export type GeminiModelId = (typeof GEMINI_MODELS)[number]["id"];
 
 const CANDIDATE_MODELS: string[] = [
-  "gemini-2.0-flash",
-  "gemini-1.5-flash-latest",
   "gemini-1.5-flash",
+  "gemini-2.0-flash",
   "gemini-2.5-flash",
   "gemini-1.5-pro",
   "gemini-pro",
@@ -128,7 +127,7 @@ async function getAvailableModelsForApiKey(apiKey: string): Promise<string[]> {
 
 export async function callGeminiApi({
   apiKey,
-  model = "gemini-2.0-flash",
+  model = "gemini-1.5-flash",
   systemPrompt,
   userPrompt,
   jsonMode = false,
@@ -147,17 +146,22 @@ export async function callGeminiApi({
     };
   }
 
-  // Descubrir modelos activos si es posible, o usar lista de candidatos
-  const discovered = await getAvailableModelsForApiKey(key);
-  const preferredModel = discovered.includes(model) ? model : discovered[0] || model;
-
+  // Normalizar nombres de modelos
+  const rawModel = model.replace("-latest", "");
   const modelsToTry = [
-    preferredModel,
-    ...discovered.filter((m) => m !== preferredModel),
-    ...CANDIDATE_MODELS.filter((m) => m !== preferredModel && !discovered.includes(m)),
-  ];
+    rawModel,
+    "gemini-2.0-flash",
+    "gemini-1.5-flash",
+    "gemini-2.5-flash",
+    "gemini-1.5-pro",
+    "gemini-pro",
+  ].filter((m, idx, arr) => arr.indexOf(m) === idx);
 
   let lastErrorMsg = "Error en la API de Google Gemini";
+
+  const fullPromptText = systemPrompt
+    ? `${systemPrompt}\n\n========================================\nCONSULTA / PREGUNTA DEL DECLARANTE:\n${userPrompt}`
+    : userPrompt;
 
   for (let i = 0; i < modelsToTry.length; i++) {
     const currentModel = modelsToTry[i];
@@ -167,25 +171,19 @@ export async function callGeminiApi({
       contents: [
         {
           role: "user",
-          parts: [{ text: userPrompt }],
+          parts: [{ text: fullPromptText }],
         },
       ],
       generationConfig: {
         temperature: 0.2,
-        maxOutputTokens: 8192,
+        maxOutputTokens: 2048,
         ...(jsonMode ? { responseMimeType: "application/json" } : {}),
       },
     };
 
-    if (systemPrompt) {
-      payload.systemInstruction = {
-        parts: [{ text: systemPrompt }],
-      };
-    }
-
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 28000);
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
 
       const res = await fetch(endpoint, {
         method: "POST",
@@ -205,9 +203,18 @@ export async function callGeminiApi({
           `Error en la API de Gemini (${res.status})`;
         lastErrorMsg = msg;
 
-        const isModelAvailabilityError =
+        const isRetryableModelError =
           res.status === 404 ||
           res.status === 400 ||
+          res.status === 429 ||
+          res.status === 503 ||
+          res.status === 500 ||
+          msg.toLowerCase().includes("high demand") ||
+          msg.toLowerCase().includes("overloaded") ||
+          msg.toLowerCase().includes("capacity") ||
+          msg.toLowerCase().includes("quota") ||
+          msg.toLowerCase().includes("rate limit") ||
+          msg.toLowerCase().includes("try again later") ||
           msg.toLowerCase().includes("not found") ||
           msg.toLowerCase().includes("not supported") ||
           msg.toLowerCase().includes("no longer available") ||
@@ -217,9 +224,8 @@ export async function callGeminiApi({
           msg.toLowerCase().includes("update your code") ||
           msg.toLowerCase().includes("unknown model");
 
-        // Si el modelo falló por disponibilidad, probar inmediatamente el siguiente candidato
-        if (isModelAvailabilityError) {
-          console.warn(`[Gemini Fallback] ${currentModel} no disponible (${msg}), probando siguiente modelo...`);
+        if (isRetryableModelError) {
+          console.warn(`[Gemini Fallback] ${currentModel} ocupado o no disponible (${msg}), probando siguiente modelo...`);
           continue;
         }
 
@@ -238,7 +244,7 @@ export async function callGeminiApi({
       const candidate = data.candidates?.[0];
       let text = candidate?.content?.parts?.[0]?.text ?? "";
 
-      // Si Google Search Grounding devolvió fuentes web, agregarlas con formato limpio
+      // Si Google Search Grounding devolvió fuentes web, agregarlas
       const groundingChunks = candidate?.groundingMetadata?.groundingChunks;
       if (Array.isArray(groundingChunks) && groundingChunks.length > 0) {
         const webSources: { title: string; uri: string }[] = [];
@@ -258,7 +264,7 @@ export async function callGeminiApi({
       return { ok: true, text };
     } catch (err) {
       if (err instanceof Error && err.name === "AbortError") {
-        lastErrorMsg = "La consulta a Gemini excedió el tiempo límite (timeout de 28s). Intente nuevamente.";
+        lastErrorMsg = "Tiempo de espera agotado al conectar con Gemini. Reintentando...";
       } else {
         lastErrorMsg = err instanceof Error ? err.message : "Error de red al conectar con Google Gemini.";
       }
