@@ -33,6 +33,7 @@ export type DocKind =
   | "resolucion"
   | "decreto"
   | "conceptoDian"
+  | "sentencia"
   | "oficio"
   | "ley"
   | "otro";
@@ -350,6 +351,13 @@ export const DOC_CATALOG: {
     source: "DIAN",
   },
   {
+    kind: "sentencia",
+    label: "Sentencia Judicial (Corte Constitucional / Consejo de Estado)",
+    help: "Jurisprudencia o fallo judicial aplicable que condicione o interprete un artículo tributario.",
+    maps: [],
+    source: "Corte Constitucional / Consejo de Estado",
+  },
+  {
     kind: "ley",
     label: "Ley (reforma, 1819, 2010, 2277, 1715…)",
     help: "Texto de una ley que modifica el Estatuto. El asistente la usará junto al E.T.",
@@ -369,7 +377,7 @@ export function docMeta(kind: DocKind) {
   return DOC_CATALOG.find((d) => d.kind === kind) ?? DOC_CATALOG[DOC_CATALOG.length - 1];
 }
 
-export const NORMA_KINDS: DocKind[] = ["resolucion", "decreto", "conceptoDian", "oficio", "ley"];
+export const NORMA_KINDS: DocKind[] = ["resolucion", "decreto", "conceptoDian", "sentencia", "oficio", "ley"];
 
 export function isNormaKind(kind: DocKind) {
   return NORMA_KINDS.includes(kind);
