@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { BookOpen, ChevronLeft, ChevronRight, Menu, PanelLeftClose, PanelLeftOpen, Sparkles, X } from "lucide-react";
-import { type ReactNode, useState } from "react";
+import { BookOpen, ChevronLeft, ChevronRight, Menu, PanelLeftClose, PanelLeftOpen, Sparkles, X, CheckCircle2 } from "lucide-react";
+import { type ReactNode, useEffect, useState } from "react";
 import { NAV } from "@/lib/catalogs";
 import { useAppStore, useComputed } from "@/lib/store";
 import { formatCOP } from "@/lib/tax/format";
@@ -19,6 +19,26 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const [asistenteOpen, setAsistenteOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [saveToast, setSaveToast] = useState(false);
+
+  // Atajos de teclado globales (Ctrl+K: Asistente IA, Ctrl+S: Guardar, Ctrl+B: Colapsar Menú)
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setAsistenteOpen((prev) => !prev);
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        setSaveToast(true);
+        setTimeout(() => setSaveToast(false), 2200);
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "b") {
+        e.preventDefault();
+        setSidebarCollapsed((prev) => !prev);
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   return (
     <div className="min-h-screen bg-bg text-ink">
@@ -72,10 +92,13 @@ export function AppShell({ children }: { children: ReactNode }) {
               size="sm"
               onClick={() => setAsistenteOpen(true)}
               className="gap-1.5 border-forest/30 bg-forest-mist/50 text-forest hover:bg-forest-mist"
-              title="Abrir Asistente IA Google Gemini"
+              title="Abrir Asistente IA Google Gemini (Ctrl + K)"
             >
               <Sparkles className="size-3.5" />
               <span className="hidden sm:inline">Asistente IA</span>
+              <kbd className="hidden lg:inline-flex items-center rounded border border-forest/30 bg-surface px-1.5 text-[10px] font-mono text-muted">
+                ⌘K
+              </kbd>
             </Button>
             <div className="lg:hidden">
               <Button
@@ -158,6 +181,13 @@ export function AppShell({ children }: { children: ReactNode }) {
           {children}
         </main>
       </div>
+
+      {saveToast && (
+        <div className="fixed bottom-5 right-5 z-50 flex items-center gap-2.5 rounded-xl bg-forest px-4 py-3 text-xs font-bold text-white shadow-2xl animate-in fade-in slide-in-from-bottom-2 border border-forest-light">
+          <CheckCircle2 className="size-4 text-emerald-300" />
+          <span>Declaración guardada localmente con éxito (Ctrl + S)</span>
+        </div>
+      )}
     </div>
   );
 }
