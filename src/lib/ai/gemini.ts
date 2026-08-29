@@ -3,33 +3,27 @@ import { etMapForPrompt } from "@/lib/legal/estatuto-index";
 
 export const GEMINI_MODELS = [
   {
-    id: "gemini-2.5-flash",
-    label: "Gemini 2.5 Flash (Recomendado)",
-    desc: "Última generación oficial Google AI: máxima velocidad, análisis documental y precisión tributaria",
-    badge: "Recomendado 2.5",
-  },
-  {
     id: "gemini-2.0-flash",
-    label: "Gemini 2.0 Flash",
-    desc: "Modelo rápido de alta eficiencia para consultas y cálculos tributarios",
-    badge: "2.0 Flash",
+    label: "Gemini 2.0 Flash (Recomendado)",
+    desc: "Última generación oficial: ultra rápida, precisa y compatible con cuentas gratuitas y de pago",
+    badge: "Recomendado",
   },
   {
     id: "gemini-1.5-flash-latest",
     label: "Gemini 1.5 Flash (Latest)",
-    desc: "Versión estable 1.5 actualizada compatible universalmente",
+    desc: "Versión estable 1.5 de alta eficiencia y bajo consumo de cuota",
     badge: "Estable",
   },
   {
-    id: "gemini-2.5-pro",
-    label: "Gemini 2.5 Pro",
-    desc: "Razonamiento tributario profundo y auditoría exhaustiva del Formulario 210",
-    badge: "Pro 2.5",
+    id: "gemini-2.5-flash",
+    label: "Gemini 2.5 Flash",
+    desc: "Nueva versión 2.5 optimizada para análisis documental avanzado",
+    badge: "Nuevo 2.5",
   },
   {
     id: "gemini-1.5-pro",
     label: "Gemini 1.5 Pro",
-    desc: "Auditoría experta y análisis de normas del Estatuto Tributario",
+    desc: "Razonamiento tributario profundo y auditoría exhaustiva del Formulario 210",
     badge: "Pro",
   },
 ] as const;
@@ -37,22 +31,60 @@ export const GEMINI_MODELS = [
 export type GeminiModelId = (typeof GEMINI_MODELS)[number]["id"];
 
 const CANDIDATE_MODELS: string[] = [
-  "gemini-2.5-flash",
   "gemini-2.0-flash",
   "gemini-1.5-flash-latest",
-  "gemini-2.5-pro",
-  "gemini-1.5-pro",
-  "gemini-3.5-flash-lite",
-  "gemini-2.0-flash-lite",
   "gemini-1.5-flash",
+  "gemini-2.5-flash",
+  "gemini-1.5-pro",
   "gemini-pro",
 ];
 
-const CORPUS = ARTICLES.map(
-  (a) => `[${a.citation}] ${a.title}\n${a.text}\nFuente: ${a.url}`,
-).join("\n\n");
+function getRelevantArticlesSummary(question: string): string {
+  const q = question.toLowerCase();
+  const tokens = q.split(/\s+/).filter((t) => t.length > 3);
 
-const ET_MAP = etMapForPrompt();
+  const scored = ARTICLES.map((a) => {
+    let score = 0;
+    const full = `${a.citation} ${a.title} ${a.tags.join(" ")} ${a.summary}`.toLowerCase();
+    for (const t of tokens) {
+      if (full.includes(t)) score += 3;
+    }
+    if (q.includes("25%") || q.includes("exenta") || q.includes("honorarios") || q.includes("costos")) {
+      if (a.id === "et-206" || a.id === "et-336" || a.id === "et-103") score += 15;
+    }
+    if (q.includes("uvt") || q.includes("tope") || q.includes("1340") || q.includes("40%")) {
+      if (a.id === "et-336" || a.id === "et-868") score += 15;
+    }
+    if (q.includes("dependiente") || q.includes("vivienda") || q.includes("salud") || q.includes("pension")) {
+      if (a.id === "et-387" || a.id === "et-119" || a.id === "et-55" || a.id === "et-56") score += 15;
+    }
+    if (q.includes("ganancia") || q.includes("ocasional") || q.includes("loter") || q.includes("herencia")) {
+      if (a.id === "et-300" || a.id === "et-307") score += 15;
+    }
+    return { a, score };
+  });
+
+  const top = scored
+    .filter((x) => x.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 4);
+
+  if (top.length === 0) {
+    return [
+      "[Art. 206 Num 10 E.T.] Renta exenta laboral del 25 % (máximo 790 UVT anuales). Para independientes/honorarios aplica si no imputan costos y deducciones.",
+      "[Art. 336 E.T.] Límite legal conjunto de rentas exentas y deducciones: 40 % de la renta líquida cedular o máximo 1.340 UVT.",
+      "[Art. 241 E.T.] Tabla progresiva de tarifas del impuesto de renta (0 %, 19 %, 28 %, 33 %, 35 %, 37 %, 39 %).",
+      "[Art. 103 / 336 E.T.] Cédula general: Rentas de trabajo, de capital y no laborales.",
+    ].join("\n");
+  }
+
+  return top
+    .map(
+      (x) =>
+        `[${x.a.citation}] ${x.a.title}: ${x.a.summary} (Norma: ${x.a.text.slice(0, 300)}...)`,
+    )
+    .join("\n\n");
+}
 
 let discoveredModelsCache: { key: string; models: string[]; timestamp: number } | null = null;
 
@@ -71,7 +103,16 @@ async function getAvailableModelsForApiKey(apiKey: string): Promise<string[]> {
       if (Array.isArray(data.models)) {
         const valid = data.models
           .filter((m) => m.supportedGenerationMethods?.includes("generateContent"))
-          .map((m) => m.name.replace(/^models\//, ""));
+          .map((m) => m.name.replace(/^models\//, ""))
+          .filter(
+            (name) =>
+              !name.includes("tts") &&
+              !name.includes("audio") &&
+              !name.includes("embed") &&
+              !name.includes("vision") &&
+              !name.includes("imagen") &&
+              !name.includes("realtime"),
+          );
         if (valid.length > 0) {
           discoveredModelsCache = { key: apiKey, models: valid, timestamp: now };
           return valid;
@@ -87,7 +128,7 @@ async function getAvailableModelsForApiKey(apiKey: string): Promise<string[]> {
 
 export async function callGeminiApi({
   apiKey,
-  model = "gemini-2.5-flash",
+  model = "gemini-2.0-flash",
   systemPrompt,
   userPrompt,
   jsonMode = false,
@@ -235,11 +276,8 @@ REGLAS DE RESPUESTA (LENGUAJE PROFESIONAL Y 100% COLOMBIANO):
 6. No des consejos ilegales ni inventes normas. Si una deducción requiere factura electrónica o pago bancarizado, recuérdalo (Art. 771-2 y 771-5).
 7. Concluye siempre con una nota breve de que la orientación se basa en el Estatuto Tributario y no sustituye la asesoría formal de un contador público.
 
-Índice del Estatuto Tributario:
-${ET_MAP}
-
-Corpus del Formulario 210:
-${CORPUS}
+Normas y Artículos Aplicables del Estatuto Tributario:
+${getRelevantArticlesSummary(question)}
 
 ${normas ? `Normas aportadas al expediente:\n${normas}` : ""}`;
 
