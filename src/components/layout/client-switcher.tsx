@@ -17,6 +17,7 @@ import {
   ChevronDown,
   Info,
   X,
+  Calendar,
 } from "lucide-react";
 import { useAppStore, type ProfileStatus, type ClientProfile } from "@/lib/store";
 import type { TaxYear } from "@/lib/tax/types";
@@ -40,6 +41,7 @@ export function ClientSwitcher() {
   const switchProfile = useAppStore((s) => s.switchProfile);
   const createProfile = useAppStore((s) => s.createProfile);
   const duplicateProfile = useAppStore((s) => s.duplicateProfile);
+  const rolloverProfileToNextYear = useAppStore((s) => s.rolloverProfileToNextYear);
   const deleteProfile = useAppStore((s) => s.deleteProfile);
   const updateProfileStatus = useAppStore((s) => s.updateProfileStatus);
   const updateProfileInfo = useAppStore((s) => s.updateProfileInfo);
@@ -333,6 +335,24 @@ export function ClientSwitcher() {
                               <option value="listo">✨ Listo</option>
                               <option value="presentado">✅ Presentado DIAN</option>
                             </select>
+
+                            {/* Botón Pasar a Año Siguiente (Rollover) */}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const nextYr = ((p.year || 2025) + 1) as TaxYear;
+                                const newId = rolloverProfileToNextYear(p.id, nextYr);
+                                switchProfile(newId);
+                                setModalOpen(false);
+                              }}
+                              title={`Crear declaración AG ${p.year + 1} traspasando automáticamente anticipo, saldos a favor y patrimonio líquido`}
+                              className="gap-1 text-xs h-8 px-2.5 border-emerald-500/40 text-emerald-800 bg-emerald-50/70 hover:bg-emerald-100 font-semibold"
+                            >
+                              <Calendar className="size-3 text-emerald-600" />
+                              <span>Pasar a AG {p.year + 1}</span>
+                            </Button>
 
                             {/* Botón Editar Información */}
                             <Button

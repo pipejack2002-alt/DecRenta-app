@@ -15,6 +15,7 @@ import {
   DEFAULT_SECCIONALES,
   DEFAULT_CIIU_COMMON,
 } from "@/lib/catalogs";
+import { saveSnapshotToIdb, getSnapshotFromIdb } from "@/lib/idb-backup";
 
 const memory: { current: string | null } = { current: null };
 
@@ -121,11 +122,13 @@ type AppState = {
   createProfile: (name?: string, nit?: string, year?: TaxYear) => string;
   switchProfile: (id: string) => void;
   duplicateProfile: (id: string) => string;
+  rolloverProfileToNextYear: (id: string, nextYear?: TaxYear) => string;
   deleteProfile: (id: string) => void;
   updateProfileStatus: (id: string, status: ProfileStatus) => void;
   updateProfileInfo: (id: string, name: string, nit: string, year?: TaxYear) => void;
   exportAllProfilesJson: () => string;
   importProfilesJson: (jsonStr: string) => { ok: true; count: number } | { ok: false; error: string };
+  restoreFromIdb: () => Promise<boolean>;
 
   // Catálogos personalizables
   customSeccionales: CatalogItem[];
@@ -411,6 +414,82 @@ export const useAppStore = create<AppState>()(
         return newId;
       },
 
+      rolloverProfileToNextYear: (id, customNextYear) => {
+        const s = get();
+        const source = s.profiles.find((p) => p.id === id) || {
+          id: DEFAULT_PROFILE_ID,
+          name: "Cliente",
+          nit: "",
+          year: s.declaration.year,
+          status: "borrador" as ProfileStatus,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          declaration: s.declaration,
+          docs: s.docs,
+          normas: s.normas,
+        };
+
+        const targetYear = (customNextYear || (source.year + 1)) as TaxYear;
+        const sourceDecl = hydrateDeclaration(source.declaration);
+        const computedSource = compute(sourceDecl);
+
+        const newDecl = emptyDeclaration(targetYear);
+
+        // 1. Identificación idéntica (incrementa años declarando)
+        newDecl.identity = {
+          ...structuredClone(sourceDecl.identity),
+          aniosDeclarando: Math.min(3, (sourceDecl.identity.aniosDeclarando || 1) + 1) as 1 | 2 | 3,
+          numeroFormulario: "",
+        };
+
+        // 2. Traspaso patrimonial base y fijación de patrimonio líquido anterior (Casilla 31 -> Comparación Patrimonial Art. 236 E.T.)
+        newDecl.patrimonio = {
+          ...structuredClone(sourceDecl.patrimonio),
+          patrimonioLiquidoAnterior: computedSource.casillas[31] || sourceDecl.patrimonio.patrimonioLiquidoAnterior || 0,
+        };
+
+        // 3. Traspaso de anticipos y saldos a favor (Art. 807 y ss. E.T.)
+        newDecl.extra = {
+          ...newDecl.extra,
+          anticipoAnterior: computedSource.casillas[133] || 0, // Anticipo liquidado año anterior (Casilla 134)
+          saldoFavorAnterior: computedSource.casillas[137] || 0, // Saldo a favor año anterior (Casilla 138)
+          impuestoNetoAnterior: computedSource.casillas[126] || 0,
+          retenciones: 0,
+        };
+
+        // 4. Historial de compensaciones pendientes (Pérdidas fiscales y excesos de renta presuntiva)
+        newDecl.historialPerdidas = structuredClone(sourceDecl.historialPerdidas || []);
+
+        const newId = `cli-${Date.now()}`;
+        const now = new Date().toISOString();
+        const baseName = source.name.replace(/\s*\(AG\s*\d+\)/i, "").trim();
+        const rolloverProfile: ClientProfile = {
+          id: newId,
+          name: `${baseName} (AG ${targetYear})`,
+          nit: source.nit,
+          year: targetYear,
+          status: "borrador",
+          createdAt: now,
+          updatedAt: now,
+          declaration: newDecl,
+          docs: structuredClone(source.docs || []),
+          normas: structuredClone(source.normas || []),
+        };
+
+        set((state) => {
+          const synced = syncCurrentProfile(state);
+          return {
+            profiles: [rolloverProfile, ...synced],
+            activeProfileId: newId,
+            declaration: newDecl,
+            docs: rolloverProfile.docs,
+            normas: rolloverProfile.normas,
+          };
+        });
+
+        return newId;
+      },
+
       deleteProfile: (id) => {
         set((s) => {
           const nextProfiles = s.profiles.filter((p) => p.id !== id);
@@ -570,6 +649,45 @@ export const useAppStore = create<AppState>()(
         }
       },
 
+      restoreFromIdb: async () => {
+        try {
+          const snapshot = await getSnapshotFromIdb<{
+            declaration?: Declaration;
+            profiles?: ClientProfile[];
+            activeProfileId?: string;
+            docs?: VaultDoc[];
+            normas?: IngestedNorm[];
+          }>("declarapro_backup_state");
+
+          if (!snapshot) return false;
+
+          const decl = snapshot.declaration ? hydrateDeclaration(snapshot.declaration) : null;
+          const profiles = Array.isArray(snapshot.profiles)
+            ? snapshot.profiles.map((p) => ({
+                ...p,
+                declaration: hydrateDeclaration(p.declaration),
+                docs: Array.isArray(p.docs) ? p.docs : [],
+                normas: hydrateNormas(p.normas),
+              }))
+            : [];
+
+          if (!decl && profiles.length === 0) return false;
+
+          set((s) => ({
+            ...s,
+            declaration: decl || s.declaration,
+            profiles: profiles.length > 0 ? profiles : s.profiles,
+            activeProfileId: snapshot.activeProfileId || s.activeProfileId,
+            docs: Array.isArray(snapshot.docs) ? snapshot.docs : s.docs,
+            normas: hydrateNormas(snapshot.normas) || s.normas,
+          }));
+
+          return true;
+        } catch {
+          return false;
+        }
+      },
+
       customSeccionales: DEFAULT_SECCIONALES,
       customCiiu: DEFAULT_CIIU_COMMON,
 
@@ -693,6 +811,27 @@ export const useAppStore = create<AppState>()(
   ),
 );
 
+// Sincronización automática no volátil con IndexedDB (Base de Datos Local Permanente)
+if (typeof window !== "undefined") {
+  useAppStore.subscribe((state) => {
+    saveSnapshotToIdb("declarapro_backup_state", {
+      declaration: state.declaration,
+      profiles: state.profiles,
+      activeProfileId: state.activeProfileId,
+      docs: state.docs,
+      normas: state.normas,
+    });
+  });
+
+  // Si localStorage estaba vacío pero hay respaldo en IndexedDB, restaurar automáticamente
+  setTimeout(() => {
+    const s = useAppStore.getState();
+    if (s.profiles.length === 0 && (!s.declaration.identity.nit || s.declaration.identity.nit === "Sin NIT")) {
+      useAppStore.getState().restoreFromIdb();
+    }
+  }, 100);
+}
+
 export function useComputed(): ComputedDeclaration {
   const declaration = useAppStore((s) => s.declaration);
   return compute(hydrateDeclaration(declaration));
@@ -787,7 +926,6 @@ export function andresBernalDeclaration(): Declaration {
   const d = emptyDeclaration(2025);
   d.identity = {
     ...d.identity,
-    tipoDocumento: "13",
     nit: "1001880133",
     dv: "7",
     primerApellido: "BERNAL",

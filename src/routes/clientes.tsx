@@ -53,6 +53,7 @@ function ClientesRoute() {
   const switchProfile = useAppStore((s) => s.switchProfile);
   const createProfile = useAppStore((s) => s.createProfile);
   const duplicateProfile = useAppStore((s) => s.duplicateProfile);
+  const rolloverProfileToNextYear = useAppStore((s) => s.rolloverProfileToNextYear);
   const deleteProfile = useAppStore((s) => s.deleteProfile);
   const updateProfileStatus = useAppStore((s) => s.updateProfileStatus);
   const updateProfileInfo = useAppStore((s) => s.updateProfileInfo);
@@ -179,9 +180,16 @@ function ClientesRoute() {
     switchProfile(newId);
   }
 
+  function handleRollover(p: ClientProfile) {
+    const nextYr = ((p.year || 2025) + 1) as TaxYear;
+    const newId = rolloverProfileToNextYear(p.id, nextYr);
+    switchProfile(newId);
+    navigate({ to: "/declaracion" });
+  }
+
   function handleExportAll() {
     const json = exportAllProfilesJson();
-    downloadFile(`tributoapp-portafolio-declaraciones-${new Date().toISOString().slice(0, 10)}.json`, json, "application/json");
+    downloadFile(`declarapro-respaldo-declaraciones-${new Date().toISOString().slice(0, 10)}.json`, json, "application/json");
   }
 
   function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -265,6 +273,41 @@ function ClientesRoute() {
               onChange={handleImportFile}
             />
           </label>
+        </div>
+      </div>
+
+      {/* Banner de Seguridad y Persistencia Multi-Año */}
+      <div className="rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 via-teal-50/70 to-emerald-50/40 p-4 shadow-xs">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <span className="flex size-10 items-center justify-center rounded-xl bg-emerald-700 text-white shadow-sm shrink-0">
+              <ShieldCheck className="size-5" />
+            </span>
+            <div>
+              <h2 className="text-sm font-bold text-emerald-950 flex items-center gap-2">
+                Persistencia Segura y Base de Datos Local Permanente (IndexedDB)
+                <Badge tone="ok" className="bg-emerald-100/80 text-emerald-800 border-emerald-300 text-[10px]">
+                  ✓ Doble Respaldo Activo
+                </Badge>
+              </h2>
+              <p className="text-xs text-emerald-800/90 mt-0.5">
+                Tus expedientes y clientes quedan guardados en la base de datos no volátil de tu navegador. Puedes traspasar cualquier cliente al <strong>Año Siguiente (Rollover)</strong> para arrastrar automáticamente patrimonios, anticipos y saldos a favor.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportAll}
+              className="bg-white/80 border-emerald-300 hover:bg-white text-emerald-900 text-xs font-semibold shadow-2xs gap-1.5"
+              title="Descargar archivo .JSON para respaldar en Google Drive, USB o tu computador"
+            >
+              <Download className="size-3.5 text-emerald-700" />
+              Descargar Respaldo Total
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -525,9 +568,20 @@ function ClientesRoute() {
                     )}
 
                     <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-8 text-[11px] font-semibold border-emerald-500/40 text-emerald-800 bg-emerald-50/60 hover:bg-emerald-100 hover:text-emerald-950 gap-1.5 cursor-pointer shadow-2xs"
+                      onClick={() => handleRollover(p)}
+                      title={`Crear declaración AG ${p.year + 1} traspasando automáticamente anticipos, saldos a favor y patrimonio líquido`}
+                    >
+                      <Calendar className="size-3 text-emerald-600" />
+                      <span>Pasar a AG {p.year + 1}</span>
+                    </Button>
+
+                    <Button
                       variant="ghost"
                       size="icon"
-                      className="size-8 text-muted hover:text-forest"
+                      className="size-8 text-muted hover:text-forest cursor-pointer"
                       onClick={() =>
                         setSelectedForInforme({
                           profile: p,
