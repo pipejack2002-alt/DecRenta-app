@@ -111,20 +111,14 @@ export function ClientSwitcher() {
   }
 
   function handleDelete(p: ClientProfile) {
-    if (profiles.length > 1) {
-      if (confirm(`¿Está seguro de eliminar definitivamente la declaración de "${p.name}"?`)) {
-        deleteProfile(p.id);
-      }
-    } else {
-      if (confirm(`Solo tiene un cliente registrado. ¿Desea reiniciar y limpiar todos los datos de "${p.name}" a ceros para empezar de nuevo?`)) {
-        reset();
-      }
+    if (confirm(`¿Está seguro de eliminar definitivamente la declaración de "${p.name}"?`)) {
+      deleteProfile(p.id);
     }
   }
 
   function handleExportAll() {
     const json = exportAllProfilesJson();
-    downloadFile(`tributoapp-clientes-respaldo-${new Date().toISOString().slice(0, 10)}.json`, json, "application/json");
+    downloadFile(`declarapro-clientes-respaldo-${new Date().toISOString().slice(0, 10)}.json`, json, "application/json");
   }
 
   function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {

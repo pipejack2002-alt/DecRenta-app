@@ -189,7 +189,7 @@ function syncCurrentProfile(s: AppState, nextDecl?: Declaration, nextDocs?: Vaul
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
-      declaration: andresBernalDeclaration(),
+      declaration: emptyDeclaration(2025),
       docs: [],
       normas: [],
       aiSettings: {
@@ -493,17 +493,7 @@ export const useAppStore = create<AppState>()(
       deleteProfile: (id) => {
         set((s) => {
           const nextProfiles = s.profiles.filter((p) => p.id !== id);
-          if (s.activeProfileId === id) {
-            const fallback = nextProfiles[0];
-            if (fallback) {
-              return {
-                profiles: nextProfiles,
-                activeProfileId: fallback.id,
-                declaration: hydrateDeclaration(fallback.declaration),
-                docs: fallback.docs || [],
-                normas: hydrateNormas(fallback.normas),
-              };
-            }
+          if (nextProfiles.length === 0) {
             const fresh = emptyDeclaration(2025);
             return {
               profiles: [],
@@ -511,6 +501,16 @@ export const useAppStore = create<AppState>()(
               declaration: fresh,
               docs: [],
               normas: [],
+            };
+          }
+          if (s.activeProfileId === id || !nextProfiles.some((p) => p.id === s.activeProfileId)) {
+            const fallback = nextProfiles[0];
+            return {
+              profiles: nextProfiles,
+              activeProfileId: fallback.id,
+              declaration: hydrateDeclaration(fallback.declaration),
+              docs: fallback.docs || [],
+              normas: hydrateNormas(fallback.normas),
             };
           }
           return { profiles: nextProfiles };

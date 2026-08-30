@@ -307,8 +307,8 @@ function AsistentePage() {
               <Sparkles className="size-4 text-forest" />
               Respuesta del Asistente
             </CardTitle>
-            <Badge tone="forest">
-              {GEMINI_MODELS.find((m) => m.id === selectedModel)?.label.split(" ")[0]} {selectedModel}
+            <Badge tone="forest" className="font-medium text-xs">
+              ✨ Asistente IA Tributario
             </Badge>
           </div>
           <div className="bg-surface/90 rounded-xl p-4 border border-line/70 shadow-sm">

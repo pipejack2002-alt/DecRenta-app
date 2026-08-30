@@ -401,17 +401,17 @@ export async function testGeminiKey(
 
 export async function askGeminiTributario({
   apiKey,
-  model = "gemini-2.0-flash",
+  model = "gemini-1.5-flash",
   question,
   context,
   normas,
 }: {
-  apiKey: string;
+  apiKey?: string;
   model?: string;
   question: string;
   context?: string;
   normas?: string;
-}) {
+}): Promise<{ ok: true; text: string } | { ok: false; error: string }> {
   const systemPrompt = `Eres el Asistente Experto en Tributación Colombiana y Formulario 210 (Personas Naturales, AG 2025/2026).
 Tu labor es orientar al usuario con base estricta en el Estatuto Tributario (E.T.), la Ley 2277 de 2022, decretos reglamentarios (DUR 1625 de 2016) y conceptos de la DIAN.
 

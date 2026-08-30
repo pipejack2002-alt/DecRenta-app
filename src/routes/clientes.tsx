@@ -167,11 +167,7 @@ function ClientesRoute() {
 
   function handleConfirmDelete() {
     if (!deletingProfile) return;
-    if (profiles.length > 1) {
-      deleteProfile(deletingProfile.id);
-    } else {
-      reset();
-    }
+    deleteProfile(deletingProfile.id);
     setDeletingProfile(null);
   }
 
