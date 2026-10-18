@@ -675,7 +675,7 @@ export function compute(d: Declaration): ComputedDeclaration {
   C[136] = n(C[129] + C[133] + C[135] - C[130] - C[131] - C[132]);
   C[137] = n(C[130] + C[131] + C[132] - C[129] - C[133] - C[135]);
   C[141] = n(x.aporteVoluntario);
-  C[980] = 0;
+  C[980] = C[136];
 
   C[140] = h.usarCostos && C[43] > 0 && C[45] / C[43] > 0.6 ? 1 : 0;
 

@@ -80,7 +80,7 @@ export function OfficialDian210({
 
   // Helper para formatear valor de casilla en el Formulario 210 oficial con redondeo al múltiplo de mil más cercano (Art. 577 E.T.)
   function v(num: number): string {
-    const val = c.casillas[num];
+    const val = num === 980 ? (c.casillas[980] ?? c.casillas[136] ?? (c.saldoPagar > 0 ? c.saldoPagar : 0)) : c.casillas[num];
     if (num === 140) return val ? "X" : "";
     if (num === 138) return String(val ?? 0);
     if (val === undefined || val === null || val === 0) return "0";
@@ -1094,10 +1094,16 @@ export function OfficialDian210({
               </div>
 
               <div className="grid grid-cols-12 divide-x divide-black bg-[#eaf1f7]">
-                <div className="col-span-7 p-1.5 flex items-center justify-between">
+                <div
+                  className={`col-span-7 p-1.5 flex items-center justify-between cursor-pointer transition-colors ${
+                    selectedCasilla === 980 ? "bg-[#ffeb99] ring-2 ring-amber-500 font-bold" : "hover:bg-amber-100/50"
+                  }`}
+                  onClick={() => setSelectedCasilla(980)}
+                  title="Casilla 980: Pago total $ (Art. 800 E.T.) - Clic para instructivo oficial"
+                >
                   <span className="font-bold text-[10px]">980. Pago total $</span>
                   <span className="font-mono text-sm font-black tabular-nums bg-white px-2 py-0.5 border border-black">
-                    {c.saldoPagar > 0 ? formatNumber(Math.round(c.saldoPagar)) : "0"}
+                    {c.saldoPagar > 0 ? v(980) : "0"}
                   </span>
                 </div>
                 <div className="col-span-5 p-1 text-[7.5px] text-gray-600 flex items-center justify-center text-center">
