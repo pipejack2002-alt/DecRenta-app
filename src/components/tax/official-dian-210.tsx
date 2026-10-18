@@ -1,14 +1,10 @@
 import {
   BookOpen,
   Calculator,
-  CheckCircle2,
-  Edit3,
   FileCode,
   FileSpreadsheet,
   FileText,
   ListChecks,
-  Maximize2,
-  Minimize2,
   Pencil,
   Printer,
   Search,
@@ -315,7 +311,7 @@ export function OfficialDian210({
         >
           {/* Marca de agua de fondo */}
           <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-[0.035] overflow-hidden">
-            <svg viewBox="0 0 500 500" className="w-[850px] h-[850px] text-black fill-current">
+            <svg viewBox="0 0 500 500" className="size-[850px] text-black fill-current">
               <circle cx="250" cy="250" r="230" fill="none" stroke="currentColor" strokeWidth="8" />
               <path d="M250 50 A200 200 0 0 1 450 250 A200 200 0 0 1 250 450 A200 200 0 0 1 50 250 A200 200 0 0 1 250 50 Z" fill="none" stroke="currentColor" strokeWidth="6" />
               <text x="250" y="270" textAnchor="middle" fontSize="48" fontWeight="bold" letterSpacing="4">DIAN · 210</text>
