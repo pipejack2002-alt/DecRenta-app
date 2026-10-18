@@ -544,7 +544,7 @@ function PedirPanel({ asks }: { asks: ProviderAsk[] }) {
   return (
     <div className="space-y-5">
       {/* Barra de Progreso General del Expediente */}
-      <Card className="border border-forest/20 bg-gradient-to-br from-surface to-forest-mist/20 p-5">
+      <Card className="border border-forest/20 bg-linear-to-br from-surface to-forest-mist/20 p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h3 className="font-display text-lg font-bold text-ink">Estado Probatorio del Expediente</h3>
@@ -1032,7 +1032,7 @@ function SubirPanel() {
             "flex min-h-32 cursor-pointer flex-col items-center justify-center gap-2.5 rounded-xl border-2 border-dashed px-6 py-8 text-center transition-all",
             isDragOver
               ? "border-forest bg-forest-mist/40 scale-[0.99]"
-              : "border-forest/40 bg-gradient-to-b from-forest-mist/10 to-surface hover:border-forest hover:bg-forest-mist/20"
+              : "border-forest/40 bg-linear-to-b from-forest-mist/10 to-surface hover:border-forest hover:bg-forest-mist/20"
           )}
         >
           <div className="flex size-12 items-center justify-center rounded-full bg-forest text-primary-fg shadow-sm">
@@ -1539,7 +1539,7 @@ function NormasPanel() {
   return (
     <div className="space-y-6">
       {/* 1. Catálogo Rápido de Normas Clave (1 Clic) */}
-      <Card className="border border-forest/20 bg-gradient-to-br from-surface to-forest-mist/15 p-5 space-y-3">
+      <Card className="border border-forest/20 bg-linear-to-br from-surface to-forest-mist/15 p-5 space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <span className="flex size-7 items-center justify-center rounded-lg bg-forest text-primary-fg shadow-sm">
@@ -1617,7 +1617,7 @@ function NormasPanel() {
             "flex min-h-28 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-5 py-6 text-center transition-all",
             isDragOver
               ? "border-forest bg-forest-mist/40 scale-[0.99]"
-              : "border-forest/40 bg-gradient-to-b from-forest-mist/10 to-surface hover:border-forest hover:bg-forest-mist/20"
+              : "border-forest/40 bg-linear-to-b from-forest-mist/10 to-surface hover:border-forest hover:bg-forest-mist/20"
           )}
         >
           <div className="flex size-10 items-center justify-center rounded-full bg-forest text-primary-fg shadow-sm">

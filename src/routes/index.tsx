@@ -84,7 +84,7 @@ function Home() {
       {/* ========================================================================= */}
       {/* 1. HERO COMERCIAL DE ALTA CONVERSIÓN & CAPTACIÓN */}
       {/* ========================================================================= */}
-      <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#064E3B] via-[#0F4F47] to-[#042F2E] p-6 text-white shadow-2xl sm:p-10 border border-emerald-500/20">
+      <section className="relative overflow-hidden rounded-2xl bg-linear-to-br from-[#064E3B] via-[#0F4F47] to-[#042F2E] p-6 text-white shadow-2xl sm:p-10 border border-emerald-500/20">
         {/* Luces y brillos ambientales de fondo */}
         <div className="absolute -right-24 -top-24 size-96 rounded-full bg-emerald-400/10 blur-3xl pointer-events-none" />
         <div className="absolute -left-20 -bottom-20 size-80 rounded-full bg-amber-400/10 blur-3xl pointer-events-none" />
@@ -100,7 +100,7 @@ function Home() {
 
             <h1 className="font-display text-3xl font-extrabold leading-[1.12] sm:text-5xl text-white tracking-tight">
               Liquida la Renta Persona Natural con{" "}
-              <span className="bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-300 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-amber-200 via-amber-400 to-yellow-300 bg-clip-text text-transparent">
                 Precisión Blindada
               </span>
             </h1>
@@ -114,7 +114,7 @@ function Home() {
               <Button
                 asChild
                 size="lg"
-                className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold shadow-lg shadow-emerald-950/50 hover:shadow-emerald-500/25 border border-emerald-400/30 hover-lift gap-2 text-sm sm:text-base px-6 h-12"
+                className="bg-linear-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold shadow-lg shadow-emerald-950/50 hover:shadow-emerald-500/25 border border-emerald-400/30 hover-lift gap-2 text-sm sm:text-base px-6 h-12"
               >
                 <Link to="/declaracion">
                   <Zap className="size-5 text-amber-300" />
@@ -527,7 +527,7 @@ function Home() {
         </Card>
 
         {/* Asistente IA Gemini & Herramientas */}
-        <Card className="bg-gradient-to-br from-emerald-950/5 to-teal-900/10 border-emerald-500/20 flex flex-col justify-between">
+        <Card className="bg-linear-to-br from-emerald-950/5 to-teal-900/10 border-emerald-500/20 flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-2 text-emerald-800">
               <Sparkles className="size-5 text-amber-500 animate-spin" style={{ animationDuration: '6s' }} />

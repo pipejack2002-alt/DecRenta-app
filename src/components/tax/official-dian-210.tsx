@@ -302,7 +302,7 @@ export function OfficialDian210({
       <div className="overflow-x-auto rounded-2xl border border-line bg-surface/30 p-1 sm:p-2 shadow-xs flex justify-center print:p-0 print:m-0 print:border-none print:bg-transparent print:shadow-none">
         <div
           id="dian-form-pdf-container"
-          className="relative bg-white text-black border border-black shadow-sm origin-top select-text print:!transform-none print:!m-0 print:!w-full print:!max-w-none print:!min-w-0 print:!mb-0 print:border-black print:!bg-white"
+          className="relative bg-white text-black border border-black shadow-sm origin-top select-text print:transform-none! print:m-0! print:w-full! print:max-w-none! print:min-w-0! print:mb-0! print:border-black print:bg-white!"
           style={{
             width: "100%",
             maxWidth: "1060px",
@@ -371,8 +371,8 @@ export function OfficialDian210({
             </div>
 
             {/* Caja Azul Oficial 210 */}
-            <div className="col-span-2 bg-[#2D6187] text-white flex items-center justify-center p-2 print:!bg-[#2D6187] print:!text-white">
-              <span className="font-sans text-5xl font-black tracking-normal print:!text-white">
+            <div className="col-span-2 bg-[#2D6187] text-white flex items-center justify-center p-2 print:bg-[#2D6187]! print:text-white!">
+              <span className="font-sans text-5xl font-black tracking-normal print:text-white!">
                 210
               </span>
             </div>
@@ -1807,10 +1807,10 @@ function CasillaInspectorModal({
                           >
                             {isInfo ? "ℹ️ Dato" : isNegative ? "(-) Resta" : "(+) Suma"}
                           </span>
-                          <span className="font-semibold text-ink leading-snug break-words">{it.label}</span>
+                          <span className="font-semibold text-ink leading-snug wrap-break-word">{it.label}</span>
                         </div>
                         <span
-                          className={`font-bold text-xs sm:text-sm self-start sm:self-auto px-2.5 py-0.5 rounded border max-w-full text-right break-words ${
+                          className={`font-bold text-xs sm:text-sm self-start sm:self-auto px-2.5 py-0.5 rounded border max-w-full text-right wrap-break-word ${
                             isInfo
                               ? "bg-sky-50/70 text-ink border-sky-200 font-sans"
                               : isNegative

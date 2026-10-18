@@ -8,7 +8,7 @@ export function AppErrorComponent({ error }: ErrorComponentProps) {
         <TriangleAlert className="size-10" strokeWidth={2} />
       </span>
       <h1 className="font-display text-2xl">Algo salió mal</h1>
-      <p className="max-w-md text-sm break-words text-muted">
+      <p className="max-w-md text-sm wrap-break-word text-muted">
         {error.message || "Ocurrió un error inesperado. Recargue la página."}
       </p>
     </main>

@@ -32,7 +32,7 @@ export function MoneyField({
   return (
     <div className="space-y-1.5 min-w-0 w-full">
       <div className="flex items-start justify-between gap-2">
-        <label htmlFor={id} className="text-xs font-semibold text-ink leading-snug block [overflow-wrap:anywhere] break-normal flex-1 min-w-0">
+        <label htmlFor={id} className="text-xs font-semibold text-ink leading-snug block wrap-anywhere break-normal flex-1 min-w-0">
           {label}
         </label>
         {casilla ? (
@@ -58,8 +58,8 @@ export function MoneyField({
           {value ? formatUvt(uvt, 1) : ""}
         </span>
       </div>
-      {hint ? <p className="text-[11.5px] leading-relaxed text-muted [overflow-wrap:anywhere] break-normal">{hint}</p> : null}
-      {source ? <p className="text-[10.5px] text-faint [overflow-wrap:anywhere] break-normal font-medium">{source}</p> : null}
+      {hint ? <p className="text-[11.5px] leading-relaxed text-muted wrap-anywhere break-normal">{hint}</p> : null}
+      {source ? <p className="text-[10.5px] text-faint wrap-anywhere break-normal font-medium">{source}</p> : null}
     </div>
   );
 }

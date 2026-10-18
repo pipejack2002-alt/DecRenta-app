@@ -4,7 +4,7 @@ export function Card({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       className={cn(
-        "rounded-xl bg-surface p-5 text-ink shadow-[var(--shadow-raise)]",
+        "rounded-xl bg-surface p-5 text-ink shadow-(--shadow-raise)",
         className,
       )}
       {...props}

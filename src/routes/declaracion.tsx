@@ -151,7 +151,7 @@ function DeclaracionPage() {
               max={75}
               value={splitRatio}
               onChange={(e) => setSplitRatio(Number(e.target.value))}
-              className="w-28 accent-[var(--color-forest)] cursor-pointer"
+              className="w-28 accent-(--color-forest) cursor-pointer"
               title="Arrastra para ajustar el tamaño de cada panel milimétricamente"
             />
           </div>
@@ -1988,7 +1988,7 @@ function DeclaracionPage() {
                     max={13}
                     value={d.pensiones.meses}
                     onChange={(e) => patch((x) => (x.pensiones.meses = Number(e.target.value)))}
-                    className="w-full accent-[var(--color-forest)] cursor-pointer"
+                    className="w-full accent-(--color-forest) cursor-pointer"
                   />
                   <p className="text-xs text-muted leading-relaxed">
                     Exención máxima legal calculada para {d.pensiones.meses} mesadas: <strong>{formatCOP((c.casillas[102] ?? 0))}</strong> ({d.pensiones.meses * 1000} UVT). Si la mesada mensual no supera 1.000 UVT ({formatCOP(c.uvt * 1000)}/mes), el 100 % de la pensión es exenta de renta.

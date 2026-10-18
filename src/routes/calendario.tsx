@@ -69,7 +69,7 @@ function CalendarioPage() {
         />
       </Card>
 
-      <div className="overflow-hidden rounded-xl bg-surface shadow-[var(--shadow-raise)]">
+      <div className="overflow-hidden rounded-xl bg-surface shadow-(--shadow-raise)">
         <table className="w-full text-sm">
           <thead className="text-left text-[11px] uppercase tracking-[0.12em] text-muted">
             <tr className="border-b border-line">

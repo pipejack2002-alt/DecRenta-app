@@ -273,7 +273,7 @@ function ClientesRoute() {
       </div>
 
       {/* Banner de Seguridad y Persistencia Multi-Año */}
-      <div className="rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 via-teal-50/70 to-emerald-50/40 p-4 shadow-xs">
+      <div className="rounded-2xl border border-emerald-200 bg-linear-to-r from-emerald-50 via-teal-50/70 to-emerald-50/40 p-4 shadow-xs">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <span className="flex size-10 items-center justify-center rounded-xl bg-emerald-700 text-white shadow-sm shrink-0">
