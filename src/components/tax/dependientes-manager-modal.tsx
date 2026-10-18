@@ -333,7 +333,7 @@ export function DependientesManagerModal({
                       {/* Institución educativa si es estudiante */}
                       {dep.parentesco === "hijo_estudiante_18_23" && (
                         <div className="md:col-span-2">
-                          <label className="text-[11px] font-semibold text-ink block mb-1 flex items-center gap-1">
+                          <label className="text-[11px] font-semibold text-ink mb-1 flex items-center gap-1">
                             <GraduationCap className="size-3 text-forest" />
                             Institución Educativa Superior / Técnica
                           </label>

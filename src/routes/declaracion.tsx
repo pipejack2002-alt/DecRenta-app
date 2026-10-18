@@ -847,7 +847,7 @@ function DeclaracionPage() {
                 />
               </div>
               {/* Sección Dependientes Económicos con Gestión Profesional */}
-              <div className="space-y-3 pt-3 border-t border-line bg-forest-mist/20 p-4 rounded-xl border border-forest/20">
+              <div className="space-y-3 bg-forest-mist/20 p-4 rounded-xl border border-forest/20 mt-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Users className="size-4 text-forest" />
@@ -1127,7 +1127,7 @@ function DeclaracionPage() {
 
                 {/* Dependientes en Honorarios con Control Inteligente de Aplicación */}
                 {d.trabajo.salarios > 0 ? (
-                  <div className="space-y-2 pt-3 border-t border-line bg-blue-50/60 p-4 rounded-xl border border-blue-200 mt-3">
+                  <div className="space-y-2 bg-blue-50/60 p-4 rounded-xl border border-blue-200 mt-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Users className="size-4 text-blue-700" />
@@ -1189,7 +1189,7 @@ function DeclaracionPage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-3 pt-3 border-t border-line bg-forest-mist/20 p-4 rounded-xl border border-forest/20 mt-3">
+                  <div className="space-y-3 bg-forest-mist/20 p-4 rounded-xl border border-forest/20 mt-3">
                     {/* Caso independiente 100%: los gestiona directamente aquí y se aplican en Casilla 51 */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">

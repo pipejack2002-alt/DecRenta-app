@@ -174,7 +174,7 @@ export function SancionesCalculatorModal({
                 <span>Intereses Moratorios estimados (Art. 634 E.T. al {tasaUsura} % E.A.):</span>
                 <span className="font-semibold text-amber-800">{formatCOP(res.interesesMoratorios)}</span>
               </div>
-              <div className="flex justify-between items-center text-xs border-t border-line pt-2 font-bold text-sm text-forest">
+              <div className="flex justify-between items-center border-t border-line pt-2 font-bold text-sm text-forest">
                 <span>Total a Pagar (Sanción + Intereses de Mora):</span>
                 <span>{formatCOP(res.totalPagarSancionEIntereses)}</span>
               </div>

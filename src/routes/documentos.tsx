@@ -374,7 +374,7 @@ function MalPanel({
               {copiedReport ? "Copiado" : "Copiar"}
             </Button>
           </div>
-          <div className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-ink font-mono text-xs bg-bg-raised p-4 rounded-lg">
+          <div className="mt-3 whitespace-pre-wrap leading-relaxed text-ink font-mono text-xs bg-bg-raised p-4 rounded-lg">
             {review}
           </div>
           <CardHint className="mt-4">
