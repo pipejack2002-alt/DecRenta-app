@@ -257,3 +257,37 @@ test("historial de pérdidas: alerta de caducidad cuando se superan 12 años o 5
   assert.ok(!c.alerts.some((a) => a.id === "perdida-vencida-p2"));
 });
 
+test("anticipo Art. 807: sincronización entre Procedimiento 1 y 2 en Casilla 133", () => {
+  const d = emptyDeclaration(2025);
+  d.identity.aniosDeclarando = 3;
+  // Cédula general con ingresos altos para generar impuesto neto
+  d.trabajo.salarios = 250_000_000;
+  d.extra.retenciones = 9_600_000;
+  d.extra.impuestoNetoAnterior = 10_580_000;
+
+  // 1. Procedimiento 1 (por defecto o cuando usarPromedioAnticipo = false)
+  d.extra.usarPromedioAnticipo = false;
+  const c1 = compute(d);
+  const impNeto = c1.casillas[126];
+  assert.ok(impNeto > 0, "debe generar impuesto neto");
+  const esperadoProc1 = Math.max(0, Math.round(impNeto * 0.75 - 9_600_000));
+  assert.equal(c1.casillas[133], esperadoProc1);
+
+  // 2. Procedimiento 2 (cuando usarPromedioAnticipo = true)
+  d.extra.usarPromedioAnticipo = true;
+  const c2 = compute(d);
+  const basePromedio = (impNeto + 10_580_000) / 2;
+  const esperadoProc2 = Math.max(0, Math.round(basePromedio * 0.75 - 9_600_000));
+  assert.equal(c2.casillas[133], esperadoProc2);
+
+  // El saldo a pagar debe reflejar exactamente la diferencia
+  assert.equal(c1.saldoPagar - c2.saldoPagar, esperadoProc1 - esperadoProc2);
+
+  // 3. Si es primer año, solo aplica Procedimiento 1 con tarifa del 25 %
+  d.identity.aniosDeclarando = 1;
+  d.identity.primeraVez = true;
+  const c3 = compute(d);
+  const esperadoPrimerAno = Math.max(0, Math.round(impNeto * 0.25 - 9_600_000));
+  assert.equal(c3.casillas[133], esperadoPrimerAno);
+});
+

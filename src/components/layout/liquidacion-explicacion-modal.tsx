@@ -22,6 +22,11 @@ export function LiquidacionExplicacionModal({ topic, onClose, computed: c, decla
   const esPrimeraVez = d.identity.primeraVez || d.identity.aniosDeclarando === 1;
   const anios = esPrimeraVez ? 1 : d.identity.aniosDeclarando || 3;
   const pctAnticipo = anios === 1 ? 25 : anios === 2 ? 50 : 75;
+  const tieneAnoAnterior = (d.extra.impuestoNetoAnterior ?? 0) > 0;
+  const usandoProc2 = Boolean(d.extra.usarPromedioAnticipo && !esPrimeraVez && tieneAnoAnterior);
+  const baseAnticipoModal = usandoProc2
+    ? Math.round((c.impuestoNeto + (d.extra.impuestoNetoAnterior || 0)) / 2)
+    : c.impuestoNeto;
   const nombreCliente = [d.identity.primerNombre, d.identity.primerApellido].filter(Boolean).join(" ") || "el contribuyente";
   const tieneIngresos = c.depuracion.ingresosBrutos > 0;
   const uvtGravable = uvtFromPesos(c.rentaLiquidaGravable, y, ov);
@@ -227,11 +232,11 @@ export function LiquidacionExplicacionModal({ topic, onClose, computed: c, decla
                 <span>Diagnóstico para {nombreCliente}: {formatCOP(c.casillas[133] ?? 0)}</span>
               </div>
               <p className="text-xs text-ink-soft leading-relaxed">
-                Antigüedad configurada: <strong>{esPrimeraVez ? "1.er año (Declara por primera vez)" : `${anios}.º año declarando`}</strong> (tarifa legal: <strong>{pctAnticipo} %</strong>).  
+                Antigüedad configurada: <strong>{esPrimeraVez ? "1.er año (Declara por primera vez)" : `${anios}.º año declarando`}</strong> (tarifa legal: <strong>{pctAnticipo} %</strong>) · Método: <strong>{usandoProc2 ? "Procedimiento 2 (Promedio 2 últimos años)" : "Procedimiento 1 (Impuesto neto actual)"}</strong>.  
                 <span className="font-mono font-semibold block mt-1">
-                  ({formatCOP(c.impuestoNeto)} de Impuesto Neto × {pctAnticipo} %) − {formatCOP(c.casillas[132] ?? 0)} Retenciones = {formatCOP(c.casillas[133] ?? 0)}
+                  ({formatCOP(baseAnticipoModal)} de Base × {pctAnticipo} %) − {formatCOP(c.casillas[132] ?? 0)} Retenciones = {formatCOP(c.casillas[133] ?? 0)}
                 </span>
-                {c.casillas[133] === 0 ? "Como el impuesto neto es $0, no se genera ningún valor a pagar por concepto de anticipo." : `El anticipo liquidado a pagar en esta declaración es de ${formatCOP(c.casillas[133])}.`}
+                {c.casillas[133] === 0 ? "Como la liquidación da $0, no se genera ningún valor a pagar por concepto de anticipo." : `El anticipo liquidado a pagar en esta declaración es de ${formatCOP(c.casillas[133])}.`}
               </p>
             </div>
 

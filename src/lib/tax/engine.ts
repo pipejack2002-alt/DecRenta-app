@@ -641,13 +641,21 @@ export function compute(d: Declaration): ComputedDeclaration {
   C[131] = n(x.saldoFavorAnterior);
   C[132] = n(x.retenciones);
 
-  const pctAnticipo = d.identity.primeraVez || d.identity.aniosDeclarando === 1
+  const esPrimeraVez = d.identity.primeraVez || d.identity.aniosDeclarando === 1;
+  const aniosDeclarando = esPrimeraVez ? 1 : d.identity.aniosDeclarando || 3;
+  const pctAnticipo = aniosDeclarando === 1
     ? 0.25
-    : d.identity.aniosDeclarando === 2
+    : aniosDeclarando === 2
       ? 0.5
       : 0.75;
-  const baseAnticipo = C[126];
-  const brutoAnticipo = n(baseAnticipo * pctAnticipo);
+
+  // Art. 807 E.T.: Procedimiento 1 (año actual) vs Procedimiento 2 (promedio 2 últimos años)
+  const tieneAnoAnterior = n(x.impuestoNetoAnterior) > 0;
+  const usarProc2 = Boolean(x.usarPromedioAnticipo && !esPrimeraVez && tieneAnoAnterior);
+  const baseAnticipo = usarProc2
+    ? (C[126] + n(x.impuestoNetoAnterior)) / 2
+    : C[126];
+  const brutoAnticipo = n(Math.round(baseAnticipo * pctAnticipo));
   C[133] = n(Math.max(0, brutoAnticipo - C[132]));
 
   C[135] = n(x.sanciones);

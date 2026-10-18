@@ -1290,7 +1290,7 @@ function DeclaracionPage() {
                     hint="Pérdidas fiscales acumuladas de años gravables anteriores en la subcédula de honorarios (Art. 147 E.T. reajustadas fiscalmente)."
                     source="Declaraciones de renta de años anteriores"
                   />
-                  <div className="sm:col-span-2">
+                  <div className="col-span-full">
                     <Button
                       type="button"
                       variant="outline"
@@ -1635,7 +1635,7 @@ function DeclaracionPage() {
                     hint="Pérdidas fiscales arrastradas de años gravables anteriores en la subcédula de capital (Art. 147 E.T.)."
                     source="Declaraciones de renta de períodos anteriores"
                   />
-                  <div className="sm:col-span-2">
+                  <div className="col-span-full">
                     <Button
                       type="button"
                       variant="outline"
@@ -1914,7 +1914,7 @@ function DeclaracionPage() {
                     hint="Pérdidas fiscales arrastradas de años gravables anteriores en la subcédula no laboral (Art. 147 E.T.)."
                     source="Declaraciones de renta de años anteriores"
                   />
-                  <div className="sm:col-span-2">
+                  <div className="col-span-full">
                     <Button
                       type="button"
                       variant="outline"
@@ -2300,9 +2300,64 @@ function DeclaracionPage() {
                     year={y}
                     value={d.extra.impuestoNetoAnterior}
                     onChange={(n) => patch((x) => (x.extra.impuestoNetoAnterior = n))}
-                    hint="Base para evaluar la procedencia del Beneficio de Auditoría del Art. 689-3 del E.T. (Incremento del 35% para firmeza en 6 meses o 25% para 12 meses)."
+                    hint="Base para evaluar el Beneficio de Auditoría (Art. 689-3 E.T.) y el Procedimiento 2 del Anticipo de Renta (Art. 807 literal b E.T.)."
                     source="Declaración de renta del año anterior (Casilla 126)"
                   />
+                  {/* Selector y Sincronizador de Anticipo de Renta Siguiente (Casilla 133) */}
+                  <div className="col-span-full rounded-xl border border-line bg-muted-mist/40 p-3.5 space-y-2.5">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-[10.5px] font-bold text-forest bg-forest-mist border border-forest/20 px-2 py-0.5 rounded">
+                          c.133
+                        </span>
+                        <span className="text-xs font-bold text-ink">
+                          Anticipo de renta año gravable siguiente (Art. 807 E.T.)
+                        </span>
+                      </div>
+                      <span className="font-mono text-sm font-bold text-forest-deep">
+                        {formatCOP(c.casillas[133] ?? 0)}
+                      </span>
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-line/60">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-[11px] text-muted font-medium">Método seleccionado:</span>
+                        <button
+                          type="button"
+                          onClick={() => patch((x) => (x.extra.usarPromedioAnticipo = false))}
+                          className={cn(
+                            "px-2.5 py-1 text-xs rounded-lg font-medium transition-colors border",
+                            !d.extra.usarPromedioAnticipo
+                              ? "bg-forest text-white border-forest font-bold shadow-2xs"
+                              : "bg-surface border-line text-ink hover:bg-forest-mist"
+                          )}
+                        >
+                          Procedimiento 1 (Año actual)
+                        </button>
+                        <button
+                          type="button"
+                          disabled={d.identity.primeraVez || d.identity.aniosDeclarando === 1}
+                          onClick={() => patch((x) => (x.extra.usarPromedioAnticipo = true))}
+                          className={cn(
+                            "px-2.5 py-1 text-xs rounded-lg font-medium transition-colors border",
+                            d.identity.primeraVez || d.identity.aniosDeclarando === 1
+                              ? "opacity-50 cursor-not-allowed bg-muted-mist border-line text-muted"
+                              : d.extra.usarPromedioAnticipo
+                              ? "bg-forest text-white border-forest font-bold shadow-2xs"
+                              : "bg-surface border-line text-ink hover:bg-forest-mist"
+                          )}
+                        >
+                          Procedimiento 2 (Promedio 2 años)
+                        </button>
+                      </div>
+                      <Link
+                        to="/liquidacion"
+                        className="text-[11px] text-forest hover:text-forest-deep underline font-medium"
+                      >
+                        Ver simulador en Liquidación →
+                      </Link>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -2334,7 +2389,7 @@ function DeclaracionPage() {
                     onChange={(n) => patch((x) => (x.extra.compensacionExcesoPresuntiva = n))}
                     hint="Excesos de renta presuntiva sobre renta líquida ordinaria de los últimos 5 años (Art. 189 E.T. reajustados fiscalmente)."
                   />
-                  <div className="sm:col-span-2">
+                  <div className="col-span-full">
                     <Button
                       type="button"
                       variant="outline"

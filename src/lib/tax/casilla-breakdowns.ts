@@ -7,7 +7,7 @@ export interface ItemBreakdown {
   source?: string;
   legal?: string;
   highlight?: boolean;
-  sign?: "+" | "-";
+  sign?: "+" | "-" | "info" | "none";
 }
 
 export interface CasillaBreakdownInfo {
@@ -2088,24 +2088,73 @@ export function getCasillaItemizedBreakdown(
     }
 
     case 133: {
+      const esPrimeraVez = d.identity.primeraVez || d.identity.aniosDeclarando === 1;
+      const aniosDeclarando = esPrimeraVez ? 1 : d.identity.aniosDeclarando || 3;
+      const pctNum = aniosDeclarando === 1 ? 25 : aniosDeclarando === 2 ? 50 : 75;
+      const pctLabel = aniosDeclarando === 1
+        ? "25 % (1.er año declarando)"
+        : aniosDeclarando === 2
+        ? "50 % (2.º año declarando)"
+        : "75 % (3.er año o más)";
+
+      const tieneAnoAnterior = (d.extra.impuestoNetoAnterior ?? 0) > 0;
+      const usandoProc2 = Boolean(d.extra.usarPromedioAnticipo && !esPrimeraVez && tieneAnoAnterior);
+
+      const baseImpuestoActual = c.casillas[126] ?? 0;
+      const baseImpuestoAnterior = d.extra.impuestoNetoAnterior ?? 0;
+      const baseCalculo = usandoProc2
+        ? Math.round((baseImpuestoActual + baseImpuestoAnterior) / 2)
+        : baseImpuestoActual;
+      const anticipoBruto = Math.round(baseCalculo * (pctNum / 100));
+      const retenciones = c.casillas[132] ?? 0;
+
       return {
         title: "Anticipo de Renta para el Año Siguiente (Casilla 133)",
-        description: "Anticipo obligatorio del impuesto de renta del período fiscal siguiente calculado según el Art. 807 del Estatuto Tributario:",
+        description: `Anticipo obligatorio del impuesto de renta del período fiscal siguiente calculado según el Art. 807 del E.T. (${
+          usandoProc2 ? "Procedimiento 2: Promedio 2 últimos años" : "Procedimiento 1: Impuesto neto año actual"
+        }):`,
         items: [
+          usandoProc2
+            ? {
+                label: `Base Promedio 2 últimos años (${d.year - 1} y ${d.year})`,
+                value: formatCOP(baseCalculo),
+                sign: "+",
+                source: `(${formatCOP(baseImpuestoActual)} [${d.year}] + ${formatCOP(baseImpuestoAnterior)} [${d.year - 1}]) ÷ 2`,
+                legal: "Art. 807 literal b del Estatuto Tributario",
+              }
+            : {
+                label: `Base Impuesto Neto de Renta ${d.year} (Casilla 126)`,
+                value: formatCOP(baseCalculo),
+                sign: "+",
+                source: "Casilla 126 del presente Formulario 210",
+                legal: "Art. 807 literal a del Estatuto Tributario",
+              },
           {
             label: "Porcentaje legal de anticipo aplicable",
-            value: "25% (1er año) / 50% (2do año) / 75% (3er año en adelante)",
-            legal: "Art. 807 del Estatuto Tributario",
+            value: pctLabel,
+            sign: "info",
+            legal: `Art. 807 E.T. (${aniosDeclarando === 1 ? "1.er año: 25%" : aniosDeclarando === 2 ? "2.º año: 50%" : "3.er año en adelante: 75%"})`,
           },
           {
-            label: "Anticipo calculado para el año gravable siguiente",
-            value: formatCOP(c.casillas[133] ?? 0),
-            source: "Menor valor entre procedimiento 1 (Impuesto neto) y procedimiento 2 (Promedio dos últimos años)",
+            label: `Anticipo bruto liquidado (${pctNum} % sobre la base)`,
+            value: formatCOP(anticipoBruto),
+            sign: "+",
+            source: `${formatCOP(baseCalculo)} × ${pctNum} %`,
+          },
+          {
+            label: "Menos: Retenciones en la fuente practicadas en el año (Casilla 132)",
+            value: formatCOP(retenciones),
+            sign: "-",
+            source: "Formato 220 casilla 60 / Certificados tributarios bancarios y retenciones",
           },
         ],
         totalLabel: "Total Anticipo Año Siguiente (Casilla 133)",
         totalValue: c.casillas[133] ?? 0,
-        footnote: "El anticipo pagado se resta automáticamente en la declaración de renta del año siguiente (Casilla 130).",
+        footnote: `Liquidado bajo ${
+          usandoProc2
+            ? "Procedimiento 2 (Promedio de los dos últimos años). Puede alternar al Procedimiento 1 en la pestaña Liquidación o en la sección Descuentos y Cierre."
+            : "Procedimiento 1 (Impuesto neto año actual). Puede alternar al Procedimiento 2 en la pestaña Liquidación si declaró en el año anterior."
+        }`,
       };
     }
 

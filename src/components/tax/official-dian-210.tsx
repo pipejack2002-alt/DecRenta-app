@@ -1616,6 +1616,7 @@ function CasillaInspectorModal({
   onClose: () => void;
   onEditDeclarante: () => void;
 }) {
+  const patch = useAppStore((s) => s.patch);
   const meta = CASILLAS_OFICIALES_210.find((x) => x.num === casillaNum);
   const formulaInfo = FORMULAS_EXPLICADAS_210[casillaNum];
   const itemized = getCasillaItemizedBreakdown(casillaNum, declaration, computed);
@@ -1779,6 +1780,7 @@ function CasillaInspectorModal({
                     it.label.toLowerCase().startsWith("menos") ||
                     it.label.toLowerCase().includes("descuento obligatorio") ||
                     it.label.toLowerCase().includes("retención");
+                  const isInfo = it.sign === "info" || it.sign === "none" || (!isCurrency && it.sign !== "+" && it.sign !== "-");
 
                   let displayValue = valStr;
                   if (isCurrency && !valStr.startsWith("+") && !valStr.startsWith("-")) {
@@ -1791,37 +1793,41 @@ function CasillaInspectorModal({
                   }
 
                   return (
-                    <div key={idx} className="border-b border-line pb-2 last:border-none last:pb-0 space-y-0.5">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-3">
-                        <div className="flex items-center gap-2">
+                    <div key={idx} className="border-b border-line pb-2.5 last:border-none last:pb-0 space-y-1">
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1.5 sm:gap-3">
+                        <div className="flex items-start gap-2 min-w-0 flex-1">
                           <span
-                            className={`px-2 py-0.5 rounded text-[10px] font-bold shrink-0 border ${
-                              isNegative
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold shrink-0 border mt-0.5 ${
+                              isInfo
+                                ? "bg-sky-50 text-sky-800 border-sky-200"
+                                : isNegative
                                 ? "bg-rose-100 text-rose-800 border-rose-300"
                                 : "bg-emerald-100 text-emerald-800 border-emerald-300"
                             }`}
                           >
-                            {isNegative ? "(-) Resta" : "(+) Suma"}
+                            {isInfo ? "ℹ️ Dato" : isNegative ? "(-) Resta" : "(+) Suma"}
                           </span>
-                          <span className="font-semibold text-ink leading-snug">{it.label}</span>
+                          <span className="font-semibold text-ink leading-snug break-words">{it.label}</span>
                         </div>
                         <span
-                          className={`font-bold font-mono shrink-0 text-xs sm:text-sm self-end sm:self-auto px-2.5 py-0.5 rounded border ${
-                            isNegative
-                              ? "bg-rose-50 text-rose-700 border-rose-200"
-                              : "bg-emerald-50/60 text-ink border-emerald-200"
+                          className={`font-bold text-xs sm:text-sm self-start sm:self-auto px-2.5 py-0.5 rounded border max-w-full text-right break-words ${
+                            isInfo
+                              ? "bg-sky-50/70 text-ink border-sky-200 font-sans"
+                              : isNegative
+                              ? "bg-rose-50 text-rose-700 border-rose-200 font-mono shrink-0"
+                              : "bg-emerald-50/60 text-ink border-emerald-200 font-mono shrink-0"
                           }`}
                         >
                           {displayValue}
                         </span>
                       </div>
                       {it.source && (
-                        <p className="text-[10.5px] text-muted font-mono flex items-center gap-1">
+                        <p className="text-[10.5px] text-muted font-mono flex items-center gap-1 pl-1">
                           📂 <span className="text-ink-soft font-medium">{it.source}</span>
                         </p>
                       )}
                       {it.legal && (
-                        <p className="text-[10px] text-forest font-medium">
+                        <p className="text-[10px] text-forest font-medium pl-1">
                           ⚖️ {it.legal}
                         </p>
                       )}
@@ -1847,6 +1853,38 @@ function CasillaInspectorModal({
                 <p className="text-[11px] text-ink-soft leading-relaxed italic bg-mist/50 p-2.5 rounded-md border border-line">
                   💡 {itemized.footnote}
                 </p>
+              )}
+
+              {/* Sincronizador interactivo de Procedimiento en Casilla 133 */}
+              {casillaNum === 133 && !(declaration.identity.primeraVez || declaration.identity.aniosDeclarando === 1) && (
+                <div className="flex flex-wrap items-center justify-between gap-2.5 p-3 rounded-xl border border-forest/30 bg-forest-mist/50">
+                  <div>
+                    <span className="text-xs font-bold text-forest-deep block">
+                      Alternar Procedimiento de Anticipo (Art. 807 E.T.):
+                    </span>
+                    <span className="text-[11px] text-muted">
+                      Seleccione el método más favorable para liquidar en el Formulario 210
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant={!declaration.extra.usarPromedioAnticipo ? "default" : "outline"}
+                      onClick={() => patch((draft) => { draft.extra.usarPromedioAnticipo = false; })}
+                      className="text-xs h-7"
+                    >
+                      {!declaration.extra.usarPromedioAnticipo ? "✓ Procedimiento 1" : "Procedimiento 1"}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={declaration.extra.usarPromedioAnticipo ? "default" : "outline"}
+                      onClick={() => patch((draft) => { draft.extra.usarPromedioAnticipo = true; })}
+                      className="text-xs h-7"
+                    >
+                      {declaration.extra.usarPromedioAnticipo ? "✓ Procedimiento 2" : "Procedimiento 2"}
+                    </Button>
+                  </div>
+                </div>
               )}
             </div>
           )}
