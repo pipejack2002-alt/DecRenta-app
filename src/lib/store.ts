@@ -42,7 +42,7 @@ function hydrateDeclaration(raw: Declaration): Declaration {
     ...raw,
     uvtOverrides: normalizeOverrides(raw.uvtOverrides),
     identity: { ...base.identity, ...raw.identity },
-    topes: { ...base.topes, ...raw.topes },
+    topes: { autoSyncFromDeclaration: true, ...base.topes, ...raw.topes },
     patrimonio: { ...base.patrimonio, ...raw.patrimonio },
     trabajo: { ...base.trabajo, ...raw.trabajo },
     honorarios: { ...base.honorarios, ...raw.honorarios },

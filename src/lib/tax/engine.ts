@@ -687,11 +687,22 @@ export function compute(d: Declaration): ComputedDeclaration {
   };
   const razones: string[] = [];
   if (d.identity.responsableIva) razones.push("Fue responsable de IVA al 31 de diciembre del año gravable (art. 592 E.T.).");
-  if (C[29] >= topesPesos.patrimonio || d.topes.patrimonioBruto >= topesPesos.patrimonio) {
+  const patrimonioBrutoConsolidado = Math.max(C[29] || 0, d.topes.patrimonioBruto || 0);
+  if (patrimonioBrutoConsolidado >= topesPesos.patrimonio) {
     razones.push(`Patrimonio bruto ≥ 4.500 UVT (${formatU(topesPesos.patrimonio)}).`);
   }
-  const ingBrutosDeclarados =
-    d.topes.ingresosBrutos || C[32] + C[43] + C[58] + C[74] + C[99] + C[104] + C[107] + C[108] + C[109] + C[112];
+  const sumCedulasIngresos =
+    (C[32] || 0) +
+    (C[43] || 0) +
+    (C[58] || 0) +
+    (C[74] || 0) +
+    (C[99] || 0) +
+    (C[104] || 0) +
+    (C[107] || 0) +
+    (C[108] || 0) +
+    (C[109] || 0) +
+    (C[112] || 0);
+  const ingBrutosDeclarados = Math.max(d.topes.ingresosBrutos || 0, sumCedulasIngresos);
   if (ingBrutosDeclarados >= topesPesos.ingresos) {
     razones.push(`Ingresos brutos ≥ 1.400 UVT (${formatU(topesPesos.ingresos)}).`);
   }

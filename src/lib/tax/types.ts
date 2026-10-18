@@ -44,6 +44,7 @@ export type TopesInput = {
   consumosTarjeta: number;
   compras: number;
   consignaciones: number;
+  autoSyncFromDeclaration?: boolean;
 };
 
 export type Patrimonio = {
@@ -356,6 +357,7 @@ export const emptyTopes = (): TopesInput => ({
   consumosTarjeta: 0,
   compras: 0,
   consignaciones: 0,
+  autoSyncFromDeclaration: true,
 });
 
 export const emptyPatrimonio = (): Patrimonio => ({

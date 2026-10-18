@@ -4,6 +4,7 @@ import { type ReactNode, useEffect, useState } from "react";
 import { NAV } from "@/lib/catalogs";
 import { useAppStore, useComputed } from "@/lib/store";
 import { formatCOP } from "@/lib/tax/format";
+import { dianRoundThousands } from "@/lib/tax/uvt";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/ui/logo";
@@ -75,7 +76,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     : "Impuesto a cargo"}
               </p>
               <p className="font-display text-lg tabular-nums leading-none">
-                {formatCOP(computed.saldoPagar || computed.saldoFavor || computed.impuestoCargo)}
+                {formatCOP(dianRoundThousands(computed.saldoPagar || computed.saldoFavor || computed.impuestoCargo))}
               </p>
             </div>
             <Button
