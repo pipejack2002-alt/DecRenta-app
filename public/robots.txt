@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /__grok/
+Disallow: /*.pdf$
+
+Sitemap: https://decrenta.tributoapp.me/sitemap.xml

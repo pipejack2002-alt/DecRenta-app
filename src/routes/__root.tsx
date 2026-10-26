@@ -1,4 +1,4 @@
-import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
+﻿import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
 import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { AppShell } from "@/components/layout/app-shell";
@@ -20,6 +20,7 @@ export const Route = createRootRoute({
       { name: "theme-color", content: "#064E3B" },
     ],
     links: [
+      { rel: "canonical", href: "https://decrenta.tributoapp.me/" },
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
       { rel: "stylesheet", href: `${appCss}?v=20260829_v6_clean` },
       { rel: "manifest", href: "/__grok/manifest.webmanifest" },
@@ -60,3 +61,5 @@ export const Route = createRootRoute({
     </html>
   ),
 });
+
+
